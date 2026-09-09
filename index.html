@@ -939,7 +939,7 @@
           Chạm vào đây để chọn cả 2 file cùng lúc
         </h3>
         <p style="font-size:13.5px; color:var(--text-muted); max-width:540px; margin:0 auto 16px; line-height:1.5;">
-          Chọn hoặc kéo thả đồng thời 2 file <strong>HNTRINH_ST_...</strong> và <strong>HNTRINH_KD6_...</strong><br>
+          Chọn hoặc kéo thả đồng thời 2 file <strong>Doanh Số Siêu Thị (BHX)</strong> và <strong>Doanh Số CVS & NPP</strong><br>
           <span style="color:#059669; font-weight:600;">✨ Hệ thống sẽ tự động nhận diện từng file và tổng hợp ngay lập tức!</span>
         </p>
         <button class="btn btn-primary" type="button" style="pointer-events:none; padding:10px 24px; font-size:14px; border-radius:30px; box-shadow:0 4px 15px rgba(236, 72, 153, 0.35);">
@@ -957,7 +957,7 @@
             <div style="flex:1; min-width:0;">
               <div style="font-size:13.5px; font-weight:700; color:#0f172a;">1. File Siêu Thị (BHX 5 Hubs + WinMart+)</div>
               <div id="statusST" style="font-size:12.5px; color:#475569; margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-                Chờ nạp file HNTRINH_ST_...
+                Chờ nạp file Siêu Thị (BHX)...
               </div>
             </div>
             <span id="badgeST" class="badge-pending">Chờ nạp</span>
@@ -972,7 +972,7 @@
             <div style="flex:1; min-width:0;">
               <div style="font-size:13.5px; font-weight:700; color:#0f172a;">2. File CVS & NPP (GS25, 7E, CK, FM, Hoàng Đức)</div>
               <div id="statusCVS" style="font-size:12.5px; color:#64748B; margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
-                Chờ nạp file HNTRINH_KD6_...
+                Chờ nạp file CVS & NPP...
               </div>
             </div>
             <span id="badgeCVS" class="badge-pending">Chờ nạp</span>
@@ -2663,10 +2663,10 @@ const DEFAULT_FM_STORES = [
         const st = document.getElementById('statusST');
         const badge = document.getElementById('badgeST');
         if (card) card.classList.add('loaded');
-        if (st) st.innerHTML = '<strong style="color:#059669;">' + file.name + '</strong> (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+        if (st) st.innerHTML = '<span style="color:#059669; font-weight:700;">File Siêu Thị đã sẵn sàng</span> (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
         if (badge) {
           badge.className = 'badge-success';
-          badge.innerText = '✅ Đã nhận diện';
+          badge.innerText = '✅ Đã nạp xong';
         }
       } else if (type === 'CVS') {
         fileCVS = file;
@@ -2674,10 +2674,10 @@ const DEFAULT_FM_STORES = [
         const st = document.getElementById('statusCVS');
         const badge = document.getElementById('badgeCVS');
         if (card) card.classList.add('loaded');
-        if (st) st.innerHTML = '<strong style="color:#059669;">' + file.name + '</strong> (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+        if (st) st.innerHTML = '<span style="color:#059669; font-weight:700;">File CVS & NPP đã sẵn sàng</span> (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
         if (badge) {
           badge.className = 'badge-success';
-          badge.innerText = '✅ Đã nhận diện';
+          badge.innerText = '✅ Đã nạp xong';
         }
       }
     }
@@ -4225,6 +4225,9 @@ const DEFAULT_FM_STORES = [
       headerDiv.style.borderBottom = '2px solid #14b8a6';
 
       const titleH = document.createElement('div');
+      const curPctAchieved = (typeof p.percent_achieved === 'number') ? p.percent_achieved : (p.total_target > 0 ? ((p.total_actual / p.total_target) * 100) : 0);
+      const curTimegone = (typeof p.timegone === 'number') ? p.timegone : 0;
+      const curDiff = curPctAchieved - curTimegone;
       titleH.innerHTML = `
         <div style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px;">
           📊 BÁO CÁO DOANH SỐ TEAM CẨM GIANG (${p.month ? ('Tháng ' + p.month + '/' + p.year) : ''})
@@ -4233,9 +4236,9 @@ const DEFAULT_FM_STORES = [
           ${subTitle}
         </div>
         <div style="display:flex; gap:10px; margin-top:6px; font-size:12px;">
-          <span style="background:#FEF3C7; color:#92400E; font-weight:700; padding:2px 8px; border-radius:6px;">⏳ % Timegone (Tiến độ tháng): ${p.timegone || 0}%</span>
-          <span style="background:${(p.pct_total >= (p.timegone || 0)) ? '#DCFCE7' : '#FEE2E2'}; color:${(p.pct_total >= (p.timegone || 0)) ? '#166534' : '#991B1B'}; font-weight:700; padding:2px 8px; border-radius:6px;">
-            ${(p.pct_total >= (p.timegone || 0)) ? '🟢' : '🔴'} % Đạt Toàn Team: ${(p.pct_total || 0).toFixed(2)}% (${((p.pct_total || 0) - (p.timegone || 0) >= 0 ? '+' : '')}${((p.pct_total || 0) - (p.timegone || 0)).toFixed(1)}%)
+          <span style="background:#FEF3C7; color:#92400E; font-weight:700; padding:2px 8px; border-radius:6px;">⏳ % Timegone (Tiến độ tháng): ${curTimegone}%</span>
+          <span style="background:${(curPctAchieved >= curTimegone) ? '#DCFCE7' : '#FEE2E2'}; color:${(curPctAchieved >= curTimegone) ? '#166534' : '#991B1B'}; font-weight:700; padding:2px 8px; border-radius:6px;">
+            ${(curPctAchieved >= curTimegone) ? '🟢' : '🔴'} % Đạt Toàn Team: ${curPctAchieved.toFixed(2)}% (${(curDiff >= 0 ? '+' : '')}${curDiff.toFixed(1)}%)
           </span>
         </div>
       `;
@@ -4329,7 +4332,8 @@ const DEFAULT_FM_STORES = [
       try {
         const imgRes = await generateTableBlob(sheetKey);
         const p = processedReportData;
-        const caption = `📊 <b>${imgRes.subTitle}</b>\n👤 Team Lead: ${p.team_lead} | 📅 Tháng ${p.month}/${p.year}\n🎯 Target: ${formatNumber(p.total_target)} đ | Thực hiện: ${formatNumber(p.total_actual)} đ (${p.pct_total.toFixed(2)}%)`;
+        const curPct = (typeof p.percent_achieved === 'number') ? p.percent_achieved : (p.total_target > 0 ? ((p.total_actual / p.total_target) * 100) : 0);
+        const caption = `📊 <b>${imgRes.subTitle}</b>\n👤 Team Lead: ${p.team_lead} | 📅 Tháng ${p.month}/${p.year}\n🎯 Target: ${formatNumber(p.total_target)} đ | Thực hiện: ${formatNumber(p.total_actual)} đ (${curPct.toFixed(2)}%)`;
 
         await sendPhotoToTelegram(token, chatId, imgRes.blob, imgRes.fileName, caption);
         closeModal('loadingModal');
@@ -4361,9 +4365,16 @@ const DEFAULT_FM_STORES = [
       const dateStr = now.toLocaleDateString('vi-VN');
       const timeStr = now.toLocaleTimeString('vi-VN');
 
-      const diff = (p.pct_total - p.timegone).toFixed(1);
-      const statusEmoji = p.pct_total >= p.timegone ? '🟢' : '🔴';
-      const statusText = p.pct_total >= p.timegone ? `VƯỢT TIẾN ĐỘ (+${diff}%)` : `CHẬM TIẾN ĐỘ (${diff}%)`;
+      const percentAchieved = (typeof p.percent_achieved === 'number') ? p.percent_achieved : (p.total_target > 0 ? ((p.total_actual / p.total_target) * 100) : 0);
+      const timegoneVal = (typeof p.timegone === 'number') ? p.timegone : 0;
+      const totalCvsVal = (typeof p.total_cvs === 'number') ? p.total_cvs : (p.total_actual_cvs || 0);
+      const totalBhxVal = (typeof p.total_actual_bhx === 'number') ? p.total_actual_bhx : 0;
+      const totalTargetVal = (typeof p.total_target === 'number') ? p.total_target : 0;
+      const totalActualVal = (typeof p.total_actual === 'number') ? p.total_actual : 0;
+
+      const diff = (percentAchieved - timegoneVal).toFixed(1);
+      const statusEmoji = percentAchieved >= timegoneVal ? '🟢' : '🔴';
+      const statusText = percentAchieved >= timegoneVal ? `VƯỢT TIẾN ĐỘ (+${diff}%)` : `CHẬM TIẾN ĐỘ (${diff}%)`;
 
       showModal('loadingModal', 'Đang chuẩn bị báo cáo Telegram...', 'Đang gửi tin nhắn tóm tắt số liệu tổng hợp...');
 
@@ -4374,13 +4385,13 @@ const DEFAULT_FM_STORES = [
 🕒 <b>Thời gian:</b> ${timeStr} ngày ${dateStr}
 
 👤 <b>Team Lead:</b> ${p.team_lead} (Tháng ${p.month}/${p.year})
-⏳ <b>Tiến độ tháng (% Timegone):</b> ${p.timegone}%
+⏳ <b>Tiến độ tháng (% Timegone):</b> ${timegoneVal}%
 
-🎯 <b>Target Team:</b> <code>${formatNumber(p.total_target)} đ</code>
-🛒 <b>Thực hiện BHX:</b> <code>${formatNumber(p.total_actual_bhx)} đ</code>
-🏪 <b>Thực hiện CVS:</b> <code>${formatNumber(p.total_actual_cvs)} đ</code>
-📊 <b>TỔNG THỰC HIỆN:</b> <b>${formatNumber(p.total_actual)} đ</b>
-📈 <b>% ĐẠT:</b> <b>${p.pct_total.toFixed(2)}%</b>
+🎯 <b>Target Team:</b> <code>${formatNumber(totalTargetVal)} đ</code>
+🛒 <b>Thực hiện BHX:</b> <code>${formatNumber(totalBhxVal)} đ</code>
+🏪 <b>Thực hiện CVS:</b> <code>${formatNumber(totalCvsVal)} đ</code>
+📊 <b>TỔNG THỰC HIỆN:</b> <b>${formatNumber(totalActualVal)} đ</b>
+📈 <b>% ĐẠT:</b> <b>${percentAchieved.toFixed(2)}%</b>
 🚦 <b>Trạng thái:</b> ${statusEmoji} Team đang <b>${statusText}</b>
 
 <i>📸 Đang tự động gửi lần lượt 4 ảnh bảng biểu sắc nét bên dưới...</i>`;
@@ -4389,9 +4400,9 @@ const DEFAULT_FM_STORES = [
 
         // 2. Chụp và gửi 4 ảnh chính
         const sheetsToSend = [
-          { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(p.total_target)} đ | Thực hiện: ${formatNumber(p.total_actual)} đ (${p.pct_total.toFixed(2)}%)` },
+          { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(totalTargetVal)} đ | Thực hiện: ${formatNumber(totalActualVal)} đ (${percentAchieved.toFixed(2)}%)` },
           { key: 'tabRank', caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusEmoji} ${statusText}` },
-          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatNumber(p.total_actual_bhx)} đ` },
+          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatNumber(totalBhxVal)} đ` },
           { key: 'tabFmSku', caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart` }
         ];
 
