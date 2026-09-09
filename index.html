@@ -356,6 +356,27 @@
       background: #f0fdfa;
       border-color: #14b8a6;
     }
+    .btn-capture-telegram {
+      background: #f0f9ff;
+      color: #0284c7;
+      border: 1.5px solid #bae6fd;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-capture-telegram:hover {
+      background: #0284c7;
+      color: white;
+      border-color: #0284c7;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+    }
 
     .file-detected-card {
       background: #FFFFFF;
@@ -478,6 +499,29 @@
     .btn-excel:hover {
       background: #047857;
       transform: translateY(-1px);
+    }
+    .btn-telegram {
+      background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+      color: white;
+      box-shadow: 0 3px 12px rgba(34, 158, 217, 0.35);
+      font-weight: 700;
+    }
+    .btn-telegram:hover {
+      background: linear-gradient(135deg, #229ED9 0%, #1a88be 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 16px rgba(34, 158, 217, 0.45);
+    }
+    .btn-telegram-nav {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1.5px solid #bae6fd;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(3, 105, 161, 0.1);
+    }
+    .btn-telegram-nav:hover {
+      background: #0284c7;
+      color: white;
+      border-color: #0284c7;
     }
 
     .btn-outline {
@@ -843,7 +887,10 @@
           <span>🎯</span>
           <span>Mục Cập Nhật KPI / Target Tháng Mới</span>
         </div>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-telegram-nav" onclick="openTelegramConfigModal()" title="Cài đặt Bot Token & Chat ID nhận báo cáo">
+            🤖 Cấu Hình Bot Telegram
+          </button>
           <button class="btn btn-outline" onclick="openTargetEditModal()">
             ✏️ Sửa Nhanh Bảng Chỉ Tiêu (10 NV)
           </button>
@@ -983,6 +1030,9 @@
           </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="btn btn-telegram" onclick="sendFullReportToTelegram()" title="Tự động chụp cả 4 bảng biểu và gửi kèm file Excel sang Telegram">
+            🚀 Gửi Báo Cáo & 4 Ảnh Sang Telegram
+          </button>
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
           </button>
@@ -1012,6 +1062,9 @@
             <span id="teamEmpCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">10 Nhân viên</span>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabTeam')" title="Gửi ảnh bảng này vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabTeam')" title="Chụp và sao chép ảnh toàn bộ bảng hoặc nhân viên đã lọc">
               📸 Copy Ảnh Bảng
             </button>
@@ -1054,6 +1107,9 @@
             </select>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabRank')" title="Gửi bảng xếp hạng vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabRank')" title="Chụp và sao chép ảnh bảng xếp hạng">
               📸 Copy Bảng Xếp Hạng
             </button>
@@ -1101,6 +1157,9 @@
             <span id="storesCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">142 CH</span>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabStores')" title="Gửi danh sách cửa hàng vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabStores')" title="Chụp và sao chép ảnh danh sách cửa hàng đang lọc">
               📸 Copy Danh Sách CH
             </button>
@@ -1133,6 +1192,9 @@
             <span style="font-size:14px; font-weight:800; color:#0f172a;">🏢 1. Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)</span>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabBhxHubs')" title="Gửi bảng 5 Hubs vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabBhxHubs')">
               📸 Copy Bảng 5 Hubs
             </button>
@@ -1164,6 +1226,9 @@
             </select>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabBhxDist')" title="Gửi bảng phân bổ BHX vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabBhxDist')">
               📸 Copy Bảng Phân Bổ
             </button>
@@ -1257,6 +1322,9 @@
             <span id="fmStoreCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">35 CH</span>
           </div>
           <div class="sheet-toolbar-right">
+            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabFmSku')" title="Gửi bảng tổng hợp FamilyMart vào Telegram">
+              ✈️ Gửi Telegram
+            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabFmSku')" title="Chụp bảng tổng hợp FamilyMart (8 cột rõ nét để gửi Zalo)">
               📸 Copy Ảnh Tổng Hợp (Gửi Zalo Rõ Nét)
             </button>
@@ -1281,6 +1349,64 @@
 
     </div>
 
+  </div>
+
+  <!-- Modal Telegram Bot Config -->
+  <div class="modal-overlay" id="telegramConfigModal">
+    <div class="modal-content" style="max-width:580px; text-align:left;">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
+        <span style="font-size:32px;">🤖</span>
+        <div>
+          <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">Cấu Hình Bot Telegram Nhận Báo Cáo</h3>
+          <p style="font-size:12.5px; color:#64748B; margin:2px 0 0 0;">Gửi báo cáo & ảnh bảng biểu sắc nét trực tiếp vào Telegram</p>
+        </div>
+      </div>
+
+      <div style="background:#F0F9FF; border:1px solid #BAE6FD; border-radius:10px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; color:#0369A1; line-height:1.6;">
+        💡 <strong>Hướng dẫn nhanh:</strong><br>
+        1. <strong>Bot Token:</strong> Lấy từ <a href="https://t.me/BotFather" target="_blank" style="color:#0284c7; font-weight:700;">@BotFather</a> của bot <code>Baocaodoanhso_bot</code>.<br>
+        2. <strong>Chat ID:</strong> ID cá nhân (lấy từ <a href="https://t.me/userinfobot" target="_blank" style="color:#0284c7; font-weight:700;">@userinfobot</a>, VD: <code>8935343795</code>) hoặc ID nhóm Telegram (dạng số âm <code>-100...</code>).<br>
+        <em>⚠️ Lưu ý: Nếu gửi tin nhắn cá nhân, bạn hãy mở bot trên Telegram và bấm <strong>/start</strong> trước!</em>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:13px; font-weight:700; color:#0f172a; display:block; margin-bottom:6px;">
+          🔑 Telegram Bot Token:
+        </label>
+        <input type="password" id="tgInputToken" class="search-input" placeholder="Dán mã Token (ví dụ: 7123456789:AAHqj...)" style="width:100%; font-family:monospace; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+          <span style="font-size:11.5px; color:#94A3B8;">Lưu trữ an toàn trên trình duyệt của bạn (localStorage)</span>
+          <a href="javascript:void(0)" onclick="toggleTokenVisibility()" style="font-size:11.5px; color:#0284C7; font-weight:600;">👁️ Hiện/Ẩn Token</a>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="font-size:13px; font-weight:700; color:#0f172a; display:block; margin-bottom:6px;">
+          💬 Chat ID Nhận Báo Cáo:
+        </label>
+        <input type="text" id="tgInputChatId" class="search-input" placeholder="VD: 8935343795 hoặc ID nhóm -100..." style="width:100%; font-size:13px;" value="8935343795">
+        <span style="font-size:11.5px; color:#94A3B8; display:block; margin-top:4px;">Gợi ý: Nhập ID người nhận hoặc ID nhóm để cả team cùng nhận báo cáo.</span>
+      </div>
+
+      <div style="margin-bottom:18px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:600; color:#334155;">
+          <input type="checkbox" id="tgIncludeExcel" checked style="width:16px; height:16px; accent-color:#0284C7;">
+          <span>Gửi kèm cả file Excel <code>Team_CamGiang_Report.xlsx</code> (5 sheets) sau khi gửi 4 ảnh</span>
+        </label>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-top:1px solid #E2E8F0; padding-top:14px;">
+        <button class="btn btn-outline" onclick="testTelegramConnection()" id="btnTestTg" style="color:#0284C7; border-color:#BAE6FD;">
+          🧪 Kiểm Tra Kết Nối
+        </button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-outline" onclick="closeModal('telegramConfigModal')">Hủy</button>
+          <button class="btn btn-telegram" onclick="saveTelegramConfig()">
+            💾 Lưu Cấu Hình
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Edit Target Table -->
@@ -2427,6 +2553,13 @@ const DEFAULT_FM_STORES = [
       // Lưu lên Google Apps Script Properties
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run.saveCustomMasterData(currentMaster);
+      }
+
+      // Lưu vào localStorage (cho Vercel / Web tĩnh riêng)
+      try {
+        localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster));
+      } catch (e) {
+        console.warn('Lỗi lưu localStorage:', e);
       }
 
       updateTargetBannerUI();
@@ -3853,6 +3986,473 @@ const DEFAULT_FM_STORES = [
     // 6. EXPORT EXCEL PIXEL-PERFECT (USING EXCELJS)
     // =========================================================================
 
+
+    // =========================================================================
+    // 🌐 TÍCH HỢP BOT TELEGRAM (TRỰC TIẾP TỪ WEB VERCEL)
+    // =========================================================================
+
+    function openTelegramConfigModal() {
+      const token = localStorage.getItem('TELEGRAM_BOT_TOKEN') || '';
+      const chatId = localStorage.getItem('TELEGRAM_CHAT_ID') || '8935343795';
+      const includeExcel = localStorage.getItem('TELEGRAM_INCLUDE_EXCEL') !== 'false';
+
+      const inpToken = document.getElementById('tgInputToken');
+      const inpChat = document.getElementById('tgInputChatId');
+      const chkExcel = document.getElementById('tgIncludeExcel');
+
+      if (inpToken) inpToken.value = token;
+      if (inpChat) inpChat.value = chatId;
+      if (chkExcel) chkExcel.checked = includeExcel;
+
+      showModal('telegramConfigModal');
+    }
+
+    function saveTelegramConfig() {
+      const token = (document.getElementById('tgInputToken').value || '').trim();
+      const chatId = (document.getElementById('tgInputChatId').value || '').trim();
+      const includeExcel = document.getElementById('tgIncludeExcel') ? document.getElementById('tgIncludeExcel').checked : true;
+
+      if (!token) {
+        alert('⚠️ Vui lòng dán mã Bot Token từ @BotFather!');
+        return;
+      }
+      if (!chatId) {
+        alert('⚠️ Vui lòng nhập Chat ID người nhận hoặc ID nhóm Telegram!');
+        return;
+      }
+
+      localStorage.setItem('TELEGRAM_BOT_TOKEN', token);
+      localStorage.setItem('TELEGRAM_CHAT_ID', chatId);
+      localStorage.setItem('TELEGRAM_INCLUDE_EXCEL', includeExcel ? 'true' : 'false');
+
+      closeModal('telegramConfigModal');
+      alert('💾 Đã lưu cấu hình Bot Telegram thành công!');
+    }
+
+    function toggleTokenVisibility() {
+      const inp = document.getElementById('tgInputToken');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        inp.dataset.keepShow = 'true';
+      } else {
+        inp.type = 'password';
+        delete inp.dataset.keepShow;
+      }
+    }
+
+    async function sendMessageToTelegram(token, chatId, text) {
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: text,
+          parse_mode: 'HTML'
+        })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        throw new Error(data.description || 'Lỗi gửi tin nhắn Telegram');
+      }
+      return data;
+    }
+
+    async function sendPhotoToTelegram(token, chatId, blob, fileName, caption = '') {
+      const formData = new FormData();
+      formData.append('chat_id', chatId);
+      formData.append('photo', blob, fileName);
+      if (caption) {
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'HTML');
+      }
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        throw new Error(data.description || 'Lỗi gửi ảnh Telegram');
+      }
+      return data;
+    }
+
+    async function sendDocumentToTelegram(token, chatId, blob, fileName, caption = '') {
+      const formData = new FormData();
+      formData.append('chat_id', chatId);
+      formData.append('document', blob, fileName);
+      if (caption) {
+        formData.append('caption', caption);
+        formData.append('parse_mode', 'HTML');
+      }
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        throw new Error(data.description || 'Lỗi gửi file Excel Telegram');
+      }
+      return data;
+    }
+
+    async function testTelegramConnection() {
+      const token = (document.getElementById('tgInputToken').value || '').trim();
+      const chatId = (document.getElementById('tgInputChatId').value || '').trim();
+
+      if (!token) {
+        alert('Vui lòng nhập Bot Token trước!');
+        return;
+      }
+      if (!chatId) {
+        alert('Vui lòng nhập Chat ID trước!');
+        return;
+      }
+
+      const btn = document.getElementById('btnTestTg');
+      btn.disabled = true;
+      btn.innerText = '⏳ Đang kiểm tra...';
+
+      try {
+        const meRes = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+        const meData = await meRes.json();
+        if (!meData.ok) {
+          throw new Error('Mã Token không đúng: ' + (meData.description || ''));
+        }
+
+        const now = new Date();
+        const testMsg = `🔔 <b>KIỂM TRA KẾT NỐI THÀNH CÔNG!</b>\n\n🤖 <b>Bot:</b> @${meData.result.username} (${meData.result.first_name})\n🌐 <b>Nguồn:</b> Web Báo Cáo Doanh Số Team (Vercel)\n🕒 <b>Thời gian:</b> ${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN')}\n\n👉 Hệ thống đã kết nối sẵn sàng nhận ảnh bảng biểu & báo cáo!`;
+
+        await sendMessageToTelegram(token, chatId, testMsg);
+
+        alert(`🎉 KẾT NỐI THÀNH CÔNG 100%!\n\nĐã nhận diện Bot: @${meData.result.username}\nĐã gửi 1 tin nhắn thử nghiệm tới Chat ID ${chatId}.\nHãy mở Telegram kiểm tra ngay nhé!`);
+      } catch (err) {
+        alert('❌ Kiểm tra kết nối thất bại: ' + err.message + '\n\n👉 Mẹo: Nếu gửi tin nhắn cá nhân, bạn phải vào Bot trên Telegram và bấm /start trước.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🧪 Kiểm Tra Kết Nối';
+      }
+    }
+
+    async function generateTableBlob(sheetKey, customOnlyFmSummary = null) {
+      let containerId = '';
+      let baseName = '';
+      let subTitle = '';
+      let onlyFmSummary = false;
+
+      const empTeam = document.getElementById('filterTeamEmp') ? document.getElementById('filterTeamEmp').value : '';
+      const empRank = document.getElementById('filterRankEmp') ? document.getElementById('filterRankEmp').value : '';
+      const empStores = document.getElementById('filterEmp') ? document.getElementById('filterEmp').value : '';
+      const chainStores = document.getElementById('filterChain') ? document.getElementById('filterChain').value : '';
+      const empBhx = document.getElementById('filterBhxEmp') ? document.getElementById('filterBhxEmp').value : '';
+      const pgFm = document.getElementById('filterFmPg') ? document.getElementById('filterFmPg').value : '';
+
+      if (sheetKey === 'tabTeam') {
+        containerId = 'teamTableContainer';
+        baseName = empTeam ? ('Tien_Do_' + empTeam.replace(/\s+/g, '_')) : 'Tien_Do_Toan_Team';
+        subTitle = empTeam ? ('Tiến Độ Nhân Viên: ' + empTeam) : 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
+      } else if (sheetKey === 'tabRank') {
+        containerId = 'rankTableContainer';
+        baseName = empRank ? ('Xep_Hang_' + empRank.replace(/\s+/g, '_')) : 'Bang_Xep_Hang_Team';
+        subTitle = empRank ? ('Xếp Hạng Nhân Viên: ' + empRank) : 'Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team';
+      } else if (sheetKey === 'tabStores') {
+        containerId = 'storesTableContainer';
+        baseName = 'Chi_Tiet_CVS_' + (empStores ? empStores.replace(/\s+/g, '_') : 'Full') + (chainStores ? ('_' + chainStores.replace(/\s+/g, '_')) : '');
+        subTitle = 'Chi Tiết Cửa Hàng CVS' + (empStores ? (' - NV: ' + empStores) : '') + (chainStores ? (' - Chuỗi: ' + chainStores) : ' (142 Cửa hàng)');
+      } else if (sheetKey === 'tabBhxDist') {
+        containerId = 'bhxDistTableContainer';
+        baseName = 'Phan_Bo_BHX_' + (empBhx ? empBhx.replace(/\s+/g, '_') : 'Full');
+        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (empBhx ? (' - NV: ' + empBhx) : ' (10 Nhân Viên)');
+      } else if (sheetKey === 'tabBhxHubs') {
+        containerId = 'bhxHubsTableContainer';
+        baseName = 'Doanh_So_5_Hubs_BHX';
+        subTitle = 'Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)';
+      } else if (sheetKey === 'tabFmSku') {
+        containerId = 'fmSkuTableContainer';
+        baseName = 'Tong_Hop_FamilyMart_' + (pgFm ? pgFm.replace(/\s+/g, '_') : 'Full');
+        subTitle = 'Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart' + (pgFm ? (' - PG: ' + pgFm) : ' (35 Cửa Hàng)');
+        onlyFmSummary = (customOnlyFmSummary !== null) ? customOnlyFmSummary : true;
+      } else if (sheetKey === 'tabFmSkuFull') {
+        containerId = 'fmSkuTableContainer';
+        baseName = 'Chi_Tiet_46_SKU_FamilyMart_' + (pgFm ? pgFm.replace(/\s+/g, '_') : 'Full');
+        subTitle = 'Chi Tiết Đơn Hàng & 46 SKU FamilyMart' + (pgFm ? (' - PG: ' + pgFm) : ' (35 Cửa Hàng)');
+        onlyFmSummary = false;
+      }
+
+      const sourceElem = document.getElementById(containerId);
+      if (!sourceElem) throw new Error('Không tìm thấy bảng: ' + containerId);
+
+      // Clone table container
+      const clone = sourceElem.cloneNode(true);
+
+      if (containerId === 'fmSkuTableContainer' && onlyFmSummary) {
+        const trsHead = clone.querySelectorAll('thead tr');
+        if (trsHead.length >= 2) {
+          const thsRow0 = Array.from(trsHead[0].children);
+          for (let i = 2; i < thsRow0.length; i++) thsRow0[i].remove();
+          const thsRow1 = Array.from(trsHead[1].children);
+          for (let i = 8; i < thsRow1.length; i++) thsRow1[i].remove();
+        }
+        const trsBody = clone.querySelectorAll('tbody tr');
+        trsBody.forEach(tr => {
+          const tds = Array.from(tr.children);
+          for (let i = 8; i < tds.length; i++) tds[i].remove();
+        });
+        const trsFoot = clone.querySelectorAll('tfoot tr');
+        trsFoot.forEach(tr => {
+          const cells = Array.from(tr.children);
+          for (let i = 4; i < cells.length; i++) cells[i].remove();
+        });
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.id = '__capture_wrapper__';
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-99999px';
+      wrapper.style.top = '0';
+      wrapper.style.zIndex = '-9999';
+      wrapper.style.background = '#FFFFFF';
+      wrapper.style.padding = '22px 26px';
+      wrapper.style.borderRadius = '14px';
+      wrapper.style.display = 'block';
+
+      const p = processedReportData || {};
+      const headerDiv = document.createElement('div');
+      headerDiv.style.display = 'flex';
+      headerDiv.style.justifyContent = 'space-between';
+      headerDiv.style.alignItems = 'center';
+      headerDiv.style.marginBottom = '14px';
+      headerDiv.style.paddingBottom = '10px';
+      headerDiv.style.borderBottom = '2px solid #14b8a6';
+
+      const titleH = document.createElement('div');
+      titleH.innerHTML = `
+        <div style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px;">
+          📊 BÁO CÁO DOANH SỐ TEAM CẨM GIANG (${p.month ? ('Tháng ' + p.month + '/' + p.year) : ''})
+        </div>
+        <div style="font-size:14px; font-weight:700; color:#0d9488;">
+          ${subTitle}
+        </div>
+        <div style="display:flex; gap:10px; margin-top:6px; font-size:12px;">
+          <span style="background:#FEF3C7; color:#92400E; font-weight:700; padding:2px 8px; border-radius:6px;">⏳ % Timegone (Tiến độ tháng): ${p.timegone || 0}%</span>
+          <span style="background:${(p.pct_total >= (p.timegone || 0)) ? '#DCFCE7' : '#FEE2E2'}; color:${(p.pct_total >= (p.timegone || 0)) ? '#166534' : '#991B1B'}; font-weight:700; padding:2px 8px; border-radius:6px;">
+            ${(p.pct_total >= (p.timegone || 0)) ? '🟢' : '🔴'} % Đạt Toàn Team: ${(p.pct_total || 0).toFixed(2)}% (${((p.pct_total || 0) - (p.timegone || 0) >= 0 ? '+' : '')}${((p.pct_total || 0) - (p.timegone || 0)).toFixed(1)}%)
+          </span>
+        </div>
+      `;
+
+      const metaH = document.createElement('div');
+      metaH.style.textAlign = 'right';
+      metaH.style.fontSize = '12px';
+      metaH.style.color = '#64748B';
+      const now = new Date();
+      metaH.innerHTML = `
+        <div>Team Lead: <strong>${p.team_lead || 'Trần Thị Cẩm Giang'}</strong></div>
+        <div>⏳ Timegone: <strong>${p.timegone || 0}%</strong></div>
+        <div style="margin-top:2px;">Ngày xuất: ${now.toLocaleDateString('vi-VN')} | ${now.toLocaleTimeString('vi-VN')}</div>
+      `;
+
+      headerDiv.appendChild(titleH);
+      headerDiv.appendChild(metaH);
+      wrapper.appendChild(headerDiv);
+
+      clone.style.overflow = 'visible';
+      clone.style.maxHeight = 'none';
+      clone.style.width = 'max-content';
+      clone.style.maxWidth = 'none';
+      clone.style.boxShadow = 'none';
+      clone.style.margin = '0';
+      clone.style.display = 'block';
+
+      clone.querySelectorAll('*').forEach(el => {
+        if (getComputedStyle(el).position === 'sticky') {
+          el.style.position = 'static';
+        }
+      });
+
+      const tbl = clone.querySelector('table');
+      if (tbl) {
+        tbl.style.width = 'max-content';
+        tbl.style.maxWidth = 'none';
+      }
+
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      try {
+        const fullWidth = Math.max(wrapper.scrollWidth, 750);
+        const fullHeight = wrapper.scrollHeight;
+
+        const canvas = await html2canvas(wrapper, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#FFFFFF',
+          width: fullWidth,
+          height: fullHeight,
+          windowWidth: fullWidth + 100,
+          windowHeight: fullHeight + 100,
+          scrollX: 0,
+          scrollY: 0,
+          logging: false
+        });
+
+        document.body.removeChild(wrapper);
+
+        const fileNameWithDate = `${baseName}_${now.toISOString().slice(0, 10)}.png`;
+        const dataUrl = canvas.toDataURL('image/png');
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+
+        return { blob, dataUrl, fileName: fileNameWithDate, subTitle, canvas };
+      } catch (err) {
+        if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+        throw err;
+      }
+    }
+
+    async function sendSheetToTelegram(sheetKey) {
+      if (!processedReportData) {
+        alert('Vui lòng nạp 2 file doanh số hoặc bấm "Xem Thử Với Dữ Liệu Mẫu" trước!');
+        return;
+      }
+
+      const token = (localStorage.getItem('TELEGRAM_BOT_TOKEN') || '').trim();
+      const chatId = (localStorage.getItem('TELEGRAM_CHAT_ID') || '').trim();
+
+      if (!token || !chatId) {
+        alert('⚠️ Bạn chưa cấu hình Token hoặc Chat ID cho Bot Telegram!\nHãy cài đặt trong cửa sổ cấu hình.');
+        openTelegramConfigModal();
+        return;
+      }
+
+      showModal('loadingModal', 'Đang chụp ảnh & tải lên Telegram...', 'Hệ thống đang chụp bảng Retina và gửi qua Telegram API...');
+
+      try {
+        const imgRes = await generateTableBlob(sheetKey);
+        const p = processedReportData;
+        const caption = `📊 <b>${imgRes.subTitle}</b>\n👤 Team Lead: ${p.team_lead} | 📅 Tháng ${p.month}/${p.year}\n🎯 Target: ${formatNumber(p.total_target)} đ | Thực hiện: ${formatNumber(p.total_actual)} đ (${p.pct_total.toFixed(2)}%)`;
+
+        await sendPhotoToTelegram(token, chatId, imgRes.blob, imgRes.fileName, caption);
+        closeModal('loadingModal');
+        alert(`✅ Đã gửi thành công ảnh "${imgRes.subTitle}" sang Telegram!`);
+      } catch (err) {
+        closeModal('loadingModal');
+        alert('❌ Lỗi gửi Telegram: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    async function sendFullReportToTelegram() {
+      if (!processedReportData) {
+        alert('Vui lòng nạp 2 file doanh số hoặc bấm "Xem Thử Với Dữ Liệu Mẫu" trước khi gửi Telegram!');
+        return;
+      }
+
+      const token = (localStorage.getItem('TELEGRAM_BOT_TOKEN') || '').trim();
+      const chatId = (localStorage.getItem('TELEGRAM_CHAT_ID') || '').trim();
+
+      if (!token || !chatId) {
+        alert('⚠️ Bạn chưa cài đặt Token hoặc Chat ID cho Bot Telegram!\nHãy nhập thông tin trong bảng cấu hình để bắt đầu.');
+        openTelegramConfigModal();
+        return;
+      }
+
+      const p = processedReportData;
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('vi-VN');
+      const timeStr = now.toLocaleTimeString('vi-VN');
+
+      const diff = (p.pct_total - p.timegone).toFixed(1);
+      const statusEmoji = p.pct_total >= p.timegone ? '🟢' : '🔴';
+      const statusText = p.pct_total >= p.timegone ? `VƯỢT TIẾN ĐỘ (+${diff}%)` : `CHẬM TIẾN ĐỘ (${diff}%)`;
+
+      showModal('loadingModal', 'Đang chuẩn bị báo cáo Telegram...', 'Đang gửi tin nhắn tóm tắt số liệu tổng hợp...');
+
+      try {
+        // 1. Gửi tin nhắn tóm tắt chuẩn như Bot
+        const summaryMsg = 
+`🎉 <b>BÁO CÁO DOANH SỐ TEAM ĐÃ HOÀN TẤT!</b>
+🕒 <b>Thời gian:</b> ${timeStr} ngày ${dateStr}
+
+👤 <b>Team Lead:</b> ${p.team_lead} (Tháng ${p.month}/${p.year})
+⏳ <b>Tiến độ tháng (% Timegone):</b> ${p.timegone}%
+
+🎯 <b>Target Team:</b> <code>${formatNumber(p.total_target)} đ</code>
+🛒 <b>Thực hiện BHX:</b> <code>${formatNumber(p.total_actual_bhx)} đ</code>
+🏪 <b>Thực hiện CVS:</b> <code>${formatNumber(p.total_actual_cvs)} đ</code>
+📊 <b>TỔNG THỰC HIỆN:</b> <b>${formatNumber(p.total_actual)} đ</b>
+📈 <b>% ĐẠT:</b> <b>${p.pct_total.toFixed(2)}%</b>
+🚦 <b>Trạng thái:</b> ${statusEmoji} Team đang <b>${statusText}</b>
+
+<i>📸 Đang tự động gửi lần lượt 4 ảnh bảng biểu sắc nét bên dưới...</i>`;
+
+        await sendMessageToTelegram(token, chatId, summaryMsg);
+
+        // 2. Chụp và gửi 4 ảnh chính
+        const sheetsToSend = [
+          { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(p.total_target)} đ | Thực hiện: ${formatNumber(p.total_actual)} đ (${p.pct_total.toFixed(2)}%)` },
+          { key: 'tabRank', caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusEmoji} ${statusText}` },
+          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatNumber(p.total_actual_bhx)} đ` },
+          { key: 'tabFmSku', caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart` }
+        ];
+
+        for (let i = 0; i < sheetsToSend.length; i++) {
+          const item = sheetsToSend[i];
+          showModal('loadingModal', `Đang xuất & gửi ảnh ${i + 1}/4...`, `Đang xử lý: ${item.caption.split('\n')[0]}...`);
+          const imgRes = await generateTableBlob(item.key);
+          await sendPhotoToTelegram(token, chatId, imgRes.blob, imgRes.fileName, item.caption);
+          await new Promise(r => setTimeout(r, 600));
+        }
+
+        // 3. Gửi kèm file Excel nếu bật tuỳ chọn
+        const includeExcel = localStorage.getItem('TELEGRAM_INCLUDE_EXCEL') !== 'false';
+        if (includeExcel) {
+          showModal('loadingModal', 'Đang gửi file Excel đính kèm...', 'Đang tạo file Excel 5 sheets chuẩn Team_CamGiang_Report...');
+          const wb = await buildExcelWorkbook(p);
+          const buffer = await wb.xlsx.writeBuffer();
+          const excelBlob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const excelFileName = `Team_${p.team_lead.replace(/\s+/g, '_')}_Report_Thang_${p.month}_${p.year}.xlsx`;
+          await sendDocumentToTelegram(token, chatId, excelBlob, excelFileName, `📁 File báo cáo chi tiết Excel chuẩn 5 sheets:\n<b>${excelFileName}</b>`);
+        }
+
+        closeModal('loadingModal');
+        alert('🎉 ĐÃ GỬI BÁO CÁO VÀ TOÀN BỘ 4 ẢNH BẢNG BIỂU SANG TELEGRAM THÀNH CÔNG!');
+
+      } catch (err) {
+        closeModal('loadingModal');
+        alert('❌ Lỗi gửi Telegram: ' + err.message + '\n\n👉 Vui lòng kiểm tra lại Bot Token, Chat ID hoặc đảm bảo đã mở Bot trên Telegram bấm /start.');
+        console.error(err);
+      }
+    }
+
+    async function sendCurrentCapturedImageToTelegram() {
+      if (!currentCapturedBlob) {
+        alert('Chưa có ảnh nào được tạo!');
+        return;
+      }
+
+      const token = (localStorage.getItem('TELEGRAM_BOT_TOKEN') || '').trim();
+      const chatId = (localStorage.getItem('TELEGRAM_CHAT_ID') || '').trim();
+
+      if (!token || !chatId) {
+        alert('⚠️ Bạn chưa cài đặt Token hoặc Chat ID cho Bot Telegram!');
+        openTelegramConfigModal();
+        return;
+      }
+
+      showModal('loadingModal', 'Đang gửi ảnh sang Telegram...', 'Đang tải ảnh đang xem lên Telegram...');
+
+      try {
+        const p = processedReportData || {};
+        const caption = `📊 <b>Ảnh Báo Cáo Doanh Số</b>\n👤 Team Lead: ${p.team_lead || 'Trần Thị Cẩm Giang'}\n📅 Tháng ${p.month || 9}/${p.year || 2026}`;
+        await sendPhotoToTelegram(token, chatId, currentCapturedBlob, currentCapturedFileName || 'Bao_Cao.png', caption);
+        closeModal('loadingModal');
+        alert('✅ Đã gửi ảnh này sang Telegram thành công!');
+      } catch (err) {
+        closeModal('loadingModal');
+        alert('❌ Lỗi gửi Telegram: ' + err.message);
+      }
+    }
+
     function openpyxlColLetter(colIdx) {
       let temp = colIdx;
       let letter = '';
@@ -3864,14 +4464,8 @@ const DEFAULT_FM_STORES = [
       return letter;
     }
 
-    async function exportToExcelPerfect() {
-      if (!processedReportData) return;
-      const p = processedReportData;
-
-      showModal('loadingModal', 'Đang kết xuất file Excel chuẩn...', 'Đang áp dụng màu sắc, viền khung, độ rộng cột và công thức giống Team_CamGiang_Report.xlsx...');
-
-      try {
-        const wb = new ExcelJS.Workbook();
+    async function buildExcelWorkbook(p) {
+      const wb = new ExcelJS.Workbook();
         wb.creator = 'Team Lead ' + p.team_lead;
         wb.created = new Date();
 
@@ -4731,9 +5325,17 @@ const DEFAULT_FM_STORES = [
         // Freeze Panes at column I (freeze 8 columns, 5 rows)
         ws6.views = [{ state: 'frozen', xSplit: 8, ySplit: 5 }];
 
-        // -------------------------------------------------------------
-        // XUẤT FILE VỀ MÁY NGƯỜI DÙNG
-        // -------------------------------------------------------------
+        return wb;
+    }
+
+    async function exportToExcelPerfect() {
+      if (!processedReportData) return;
+      const p = processedReportData;
+
+      showModal('loadingModal', 'Đang kết xuất file Excel chuẩn...', 'Đang áp dụng màu sắc, viền khung, độ rộng cột và công thức giống Team_CamGiang_Report.xlsx...');
+
+      try {
+        const wb = await buildExcelWorkbook(p);
         const buffer = await wb.xlsx.writeBuffer();
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url = window.URL.createObjectURL(blob);
@@ -4744,7 +5346,6 @@ const DEFAULT_FM_STORES = [
         window.URL.revokeObjectURL(url);
 
         closeModal('loadingModal');
-
       } catch (err) {
         closeModal('loadingModal');
         alert('Lỗi kết xuất Excel: ' + err.message);
@@ -4922,6 +5523,19 @@ const DEFAULT_FM_STORES = [
 
     // Khởi tạo
     window.onload = function() {
+      // Tải cấu hình Master Data / Target từ localStorage nếu có (Vercel)
+      try {
+        const savedMaster = localStorage.getItem('CUSTOM_MASTER_DATA');
+        if (savedMaster) {
+          const parsed = JSON.parse(savedMaster);
+          if (parsed && parsed.employees) {
+            currentMaster = parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi đọc localStorage:', e);
+      }
+
       setupDragAndDrop();
       updateTargetBannerUI();
 
@@ -4951,6 +5565,9 @@ const DEFAULT_FM_STORES = [
         <img id="previewCapturedImg" src="" alt="Captured Table" style="max-width:100%; height:auto; display:block; margin:0 auto; border-radius:6px; box-shadow:0 3px 12px rgba(0,0,0,0.1);">
       </div>
       <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
+        <button class="btn btn-telegram" id="btnSendPreviewToTg" onclick="sendCurrentCapturedImageToTelegram()">
+          ✈️ Gửi Ảnh Này Sang Telegram
+        </button>
         <button class="btn btn-primary" id="btnCopyImgAgain" onclick="copyImageAgain()">
           📋 Sao Chép Lại Ảnh
         </button>
