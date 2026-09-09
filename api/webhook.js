@@ -202,7 +202,7 @@ function getCompressedTableUrl(type, payload) {
 async function fetchScreenshotImage(targetUrl) {
   // 1. Microlink Screenshot API
   try {
-    const microApi = `https://api.microlink.io?url=${encodeURIComponent(targetUrl)}&screenshot=true&screenshot.element=%23renderCard&meta=false`;
+    const microApi = `https://api.microlink.io?url=${encodeURIComponent(targetUrl)}&screenshot=true&screenshot.element=%23renderCard&viewport.width=1920&viewport.deviceScaleFactor=2&meta=false`;
     const res = await fetch(microApi, { signal: AbortSignal.timeout(14000) });
     const json = await res.json();
     if (json && json.status === 'success' && json.data && json.data.screenshot && json.data.screenshot.url) {
