@@ -1388,6 +1388,19 @@
         <span style="font-size:11.5px; color:#94A3B8; display:block; margin-top:4px;">Gợi ý: Nhập ID người nhận hoặc ID nhóm để cả team cùng nhận báo cáo.</span>
       </div>
 
+      <div style="background:#ECFDF5; border:1.5px dashed #10B981; border-radius:10px; padding:12px 14px; margin-bottom:16px;">
+        <div style="font-size:13px; font-weight:800; color:#065F46; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+          <span>⚡</span>
+          <span>Kích Hoạt Bot Chạy Trực Tiếp Trên Vercel (1-Click Webhook)</span>
+        </div>
+        <p style="font-size:12px; color:#047857; margin:0 0 10px 0; line-height:1.4;">
+          Cho phép bạn gửi thẳng 2 file <code>.xlsb</code> vào Bot trên ứng dụng Telegram — Bot trên Vercel sẽ tự động trả về <strong>Ảnh biểu đồ + File Excel + Báo cáo</strong> mà không cần mở web!
+        </p>
+        <button class="btn btn-success" type="button" onclick="activateVercelBotWebhook()" id="btnActivateWebhook" style="font-size:12.5px; padding:8px 16px; width:100%; justify-content:center; box-shadow:0 3px 10px rgba(16, 185, 129, 0.25);">
+          🔗 Kích Hoạt Bot Ngay (Kết Nối Vercel)
+        </button>
+      </div>
+
       <div style="margin-bottom:18px;">
         <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:600; color:#334155;">
           <input type="checkbox" id="tgIncludeExcel" checked style="width:16px; height:16px; accent-color:#0284C7;">
@@ -4005,6 +4018,48 @@ const DEFAULT_FM_STORES = [
       if (chkExcel) chkExcel.checked = includeExcel;
 
       showModal('telegramConfigModal');
+    }
+
+    async function activateVercelBotWebhook() {
+      const token = (document.getElementById('tgInputToken').value || '').trim();
+      if (!token) {
+        alert('⚠️ Vui lòng dán mã Bot Token từ @BotFather trước!');
+        return;
+      }
+
+      const btn = document.getElementById('btnActivateWebhook');
+      btn.disabled = true;
+      btn.innerText = '⏳ Đang kết nối Webhook với Vercel...';
+
+      try {
+        const origin = window.location.origin;
+        if (!origin || origin.includes('file:') || origin.includes('localhost')) {
+          const customDomain = prompt('Nhập tên miền Vercel của bạn (ví dụ: bcgiang.vercel.app):', 'bcgiang.vercel.app');
+          if (!customDomain) {
+            btn.disabled = false;
+            btn.innerText = '🔗 Kích Hoạt Bot Ngay (Kết Nối Vercel)';
+            return;
+          }
+          var webhookUrl = `https://${customDomain.replace(/^https?:\/\//, '')}/api/webhook?token=${token}`;
+        } else {
+          var webhookUrl = `${origin}/api/webhook?token=${token}`;
+        }
+
+        const tgUrl = `https://api.telegram.org/bot${token}/setWebhook?url=${encodeURIComponent(webhookUrl)}`;
+        const res = await fetch(tgUrl);
+        const data = await res.json();
+
+        if (data.ok) {
+          alert(`🎉 KÍCH HOẠT THÀNH CÔNG 100%!\n\nBot Telegram của bạn đã được kết nối trực tiếp với Vercel:\n${webhookUrl}\n\n👉 Bây giờ bạn có thể mở ứng dụng Telegram trên điện thoại, gửi 2 file .xlsb vào Bot để nhận ngay Ảnh biểu đồ + File Excel + Báo cáo!`);
+        } else {
+          throw new Error(data.description || 'Lỗi từ Telegram');
+        }
+      } catch (err) {
+        alert('❌ Không thể kích hoạt Webhook: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔗 Kích Hoạt Bot Ngay (Kết Nối Vercel)';
+      }
     }
 
     function saveTelegramConfig() {
