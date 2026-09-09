@@ -401,6 +401,16 @@ function generateAndSendReport(chatId, fileSTInfo, fileCVSInfo) {
       '• Tổng Thực Hiện: ' + (payload.total_actual || 0).toLocaleString('vi-VN') + ' ₫ (' + payload.percent_achieved + '%)\n' +
       '• Tình trạng: ' + (payload.percent_achieved >= payload.timegone ? '🟢 VƯỢT' : (payload.percent_achieved >= payload.timegone * 0.75 ? '🟠 CẬN' : '🔴 CHẬM')) + ' TIẾN ĐỘ';
 
+    // 6.1 Tự động tạo và gửi Ảnh biểu đồ tiến độ & bảng xếp hạng trực quan
+    try {
+      var chartBlob = generateRankingChartImage(payload);
+      if (chartBlob) {
+        sendTelegramPhoto(chatId, chartBlob, '📊 <b>ẢNH BIỂU ĐỒ TIẾN ĐỘ & XẾP HẠNG DOANH SỐ TEAM ' + payload.team_lead.toUpperCase() + '</b>\nTháng ' + payload.month + '/' + payload.year + ' | ⏳ % Timegone: ' + payload.timegone + '% | 🎯 % Đạt Team: ' + payload.percent_achieved + '%');
+      }
+    } catch (eImg) {
+      Logger.log('Bỏ qua lỗi ảnh biểu đồ: ' + eImg);
+    }
+
     sendTelegramDocument(chatId, xlsxBlob, caption);
 
     // 7. Gửi Tin Nhắn Tóm Tắt Chi Tiết & Link Google Sheets
@@ -543,6 +553,94 @@ function sendTelegramDocument(chatId, blob, caption) {
   }
 
   return res;
+}
+
+/**
+ * Gửi ảnh (Photo) qua Telegram Bot
+ */
+function sendTelegramPhoto(chatId, blob, caption) {
+  var token = getTelegramBotToken();
+  var url = 'https://api.telegram.org/bot' + token + '/sendPhoto';
+
+  var payload = {
+    chat_id: String(chatId),
+    caption: caption || '',
+    parse_mode: 'HTML',
+    photo: blob
+  };
+
+  var res = UrlFetchApp.fetch(url, {
+    method: 'post',
+    payload: payload,
+    muteHttpExceptions: true
+  });
+
+  return res;
+}
+
+/**
+ * Tạo ảnh biểu đồ thanh ngang Top 10 nhân viên & tiến độ team từ QuickChart API
+ */
+function generateRankingChartImage(payload) {
+  try {
+    var emps = (payload.employees || []).slice().sort(function(a, b) {
+      return (b.percent || 0) - (a.percent || 0);
+    });
+
+    var labels = emps.map(function(e) { return e.name; });
+    var pcts = emps.map(function(e) { return e.percent || 0; });
+    var timegone = payload.timegone || 0;
+
+    var chartConfig = {
+      type: 'horizontalBar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '% Đạt Doanh Số',
+          data: pcts,
+          backgroundColor: pcts.map(function(p) {
+            return p >= timegone ? 'rgba(16, 185, 129, 0.85)' : (p >= timegone * 0.75 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(239, 68, 68, 0.85)');
+          }),
+          borderColor: pcts.map(function(p) {
+            return p >= timegone ? '#059669' : (p >= timegone * 0.75 ? '#D97706' : '#DC2626');
+          }),
+          borderWidth: 1.5
+        }]
+      },
+      options: {
+        title: {
+          display: true,
+          text: 'TIẾN ĐỘ DOANH SỐ TEAM ' + payload.team_lead.toUpperCase() + ' (Tháng ' + payload.month + '/' + payload.year + ' - Timegone: ' + timegone + '%)',
+          fontSize: 16,
+          fontColor: '#1E293B',
+          fontStyle: 'bold'
+        },
+        legend: { display: false },
+        scales: {
+          xAxes: [{
+            ticks: {
+              beginAtZero: true,
+              callback: function(val) { return val + '%'; }
+            },
+            gridLines: { color: 'rgba(226, 232, 240, 0.8)' }
+          }],
+          yAxes: [{
+            ticks: { fontStyle: 'bold', fontColor: '#334155' },
+            gridLines: { display: false }
+          }]
+        }
+      }
+    };
+
+    var chartUrl = 'https://quickchart.io/chart?w=850&h=480&bkg=white&devicePixelRatio=2&c=' + encodeURIComponent(JSON.stringify(chartConfig));
+    var res = UrlFetchApp.fetch(chartUrl, { muteHttpExceptions: true });
+    if (res.getResponseCode() === 200) {
+      return res.getBlob().setName('Tien_Do_Doanh_So_Team_' + payload.month + '_' + payload.year + '.png');
+    }
+  } catch (e) {
+    Logger.log('Lỗi tạo ảnh biểu đồ QuickChart: ' + e);
+  }
+  return null;
 }
 
 /**
