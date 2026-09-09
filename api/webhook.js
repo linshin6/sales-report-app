@@ -1,5 +1,6 @@
 const XLSX = require('xlsx');
 global.XLSX = XLSX;
+const zlib = require('zlib');
 
 const masterData = require('../master_data.js');
 const { detectFileType, processTwoWorkbooks } = require('../ReportEngine.gs');
@@ -54,10 +55,26 @@ async function sendChatAction(token, chatId, action) {
   } catch (e) {}
 }
 
-async function sendPhoto(token, chatId, imageBuffer, fileName, caption) {
+async function sendPhoto(token, chatId, imageSource, fileName, caption) {
+  // 1. Nếu imageSource là URL string
+  if (typeof imageSource === 'string' && imageSource.startsWith('http')) {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: String(chatId),
+        photo: imageSource,
+        caption: caption || '',
+        parse_mode: 'HTML'
+      })
+    });
+    return res.json();
+  }
+
+  // 2. Nếu imageSource là Buffer
   const formData = new FormData();
   formData.append('chat_id', String(chatId));
-  formData.append('photo', new Blob([imageBuffer], { type: 'image/png' }), fileName || 'Bieu_Do_Tien_Do.png');
+  formData.append('photo', new Blob([imageSource], { type: 'image/png' }), fileName || 'Bao_Cao.png');
   if (caption) {
     formData.append('caption', caption);
     formData.append('parse_mode', 'HTML');
@@ -99,60 +116,122 @@ async function downloadTelegramFileBuffer(token, fileId) {
   return Buffer.from(arrayBuffer);
 }
 
-// Tạo ảnh biểu đồ thanh ngang đẹp từ QuickChart API
-async function generateRankingChartBuffer(payload) {
-  try {
-    const emps = (payload.employees || []).slice().sort((a, b) => (b.percent || 0) - (a.percent || 0));
-    const labels = emps.map(e => e.name);
-    const pcts = emps.map(e => e.percent || 0);
-    const timegone = payload.timegone || 0;
+// Nén dữ liệu và tạo đường dẫn render 4 bảng báo cáo HTML
+function getCompressedTableUrl(type, payload) {
+  const common = {
+    m: payload.month || 9,
+    y: payload.year || 2026,
+    tl: payload.team_lead || 'Trần Thị Cẩm Giang',
+    tg: payload.timegone || 0,
+    pct: payload.percent_achieved || 0,
+    dt: new Date().toLocaleDateString('vi-VN') + ' | ' + new Date().toLocaleTimeString('vi-VN')
+  };
 
-    const chartConfig = {
-      type: 'horizontalBar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: '% Đạt Doanh Số',
-          data: pcts,
-          backgroundColor: pcts.map(p => p >= timegone ? 'rgba(16, 185, 129, 0.9)' : (p >= timegone * 0.75 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)')),
-          borderColor: pcts.map(p => p >= timegone ? '#059669' : (p >= timegone * 0.75 ? '#D97706' : '#DC2626')),
-          borderWidth: 1.5
-        }]
-      },
-      options: {
-        title: {
-          display: true,
-          text: `TIẾN ĐỘ DOANH SỐ TEAM ${payload.team_lead.toUpperCase()} (Tháng ${payload.month}/${payload.year} - Timegone: ${timegone}%)`,
-          fontSize: 16,
-          fontColor: '#1E293B',
-          fontStyle: 'bold'
-        },
-        legend: { display: false },
-        scales: {
-          xAxes: [{
-            ticks: {
-              beginAtZero: true,
-              callback: (val) => val + '%'
-            },
-            gridLines: { color: 'rgba(226, 232, 240, 0.8)' }
-          }],
-          yAxes: [{
-            ticks: { fontStyle: 'bold', fontColor: '#334155' },
-            gridLines: { display: false }
-          }]
-        }
-      }
+  let dataObj = null;
+
+  if (type === 1) {
+    // 1. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)
+    dataObj = {
+      ...common,
+      emps: (payload.employees || []).map(e => [
+        e.name,
+        e.target || 0,
+        e.bhx_actual || 0,
+        e.gs25_actual || 0,
+        e.se_actual || 0,
+        e.fm_actual || 0,
+        e.ck_actual || 0,
+        e.hd_actual || 0,
+        e.wmp_actual || 0,
+        e.total_actual || 0,
+        e.percent || 0
+      ])
     };
-
-    const chartUrl = `https://quickchart.io/chart?w=850&h=480&bkg=white&devicePixelRatio=2&c=${encodeURIComponent(JSON.stringify(chartConfig))}`;
-    const chartRes = await fetch(chartUrl);
-    if (chartRes.ok) {
-      const arr = await chartRes.arrayBuffer();
-      return Buffer.from(arr);
-    }
-  } catch (e) {
-    console.error('Lỗi tạo ảnh biểu đồ:', e);
+  } else if (type === 2) {
+    // 2. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team
+    const sorted = (payload.employees || []).slice().sort((a, b) => (b.percent || 0) - (a.percent || 0));
+    dataObj = {
+      ...common,
+      ranks: sorted.map(e => [
+        e.name,
+        e.target || 0,
+        e.bhx_actual || 0,
+        e.cvs_total || 0,
+        e.total_actual || 0,
+        e.percent || 0,
+        e.status || 'CHẬM'
+      ])
+    };
+  } else if (type === 3) {
+    // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)
+    dataObj = {
+      ...common,
+      pricePerStore: payload.bhx_per_store || 0,
+      bhxDist: (payload.employees || []).map(e => [
+        e.name,
+        e.bhx_stores || 0,
+        payload.bhx_per_store || 0,
+        e.bhx_actual || 0,
+        payload.total_actual_bhx > 0 ? ((e.bhx_actual / payload.total_actual_bhx) * 100).toFixed(1) : '0.0'
+      ])
+    };
+  } else if (type === 4) {
+    // 4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart (8 cột rõ nét)
+    const fmStores = (payload.fm_sku_matrix && payload.fm_sku_matrix.stores) ? payload.fm_sku_matrix.stores : [];
+    dataObj = {
+      ...common,
+      stores: fmStores.map(s => [
+        s.addr || '',
+        s.location || 'ST00_CVS_FM',
+        s.ma_pg || '',
+        s.ten_pg || '',
+        s.vtcv || 'SR',
+        s.target || 0,
+        s.actual || 0,
+        s.target > 0 ? ((s.actual / s.target) * 100) : 0
+      ])
+    };
   }
+
+  const jsonStr = JSON.stringify(dataObj);
+  const compressed = zlib.deflateSync(jsonStr).toString('base64url');
+  return `https://bcgiang.vercel.app/render.html?t=${type}&d=${compressed}`;
+}
+
+// Chụp ảnh bảng HTML chuẩn Retina từ Microlink hoặc Fallback Thum.io
+async function fetchScreenshotImage(targetUrl) {
+  // 1. Microlink Screenshot API
+  try {
+    const microApi = `https://api.microlink.io?url=${encodeURIComponent(targetUrl)}&screenshot=true&screenshot.element=%23renderCard&meta=false`;
+    const res = await fetch(microApi, { signal: AbortSignal.timeout(14000) });
+    const json = await res.json();
+    if (json && json.status === 'success' && json.data && json.data.screenshot && json.data.screenshot.url) {
+      try {
+        const imgRes = await fetch(json.data.screenshot.url, { signal: AbortSignal.timeout(9000) });
+        if (imgRes.ok) {
+          const arr = await imgRes.arrayBuffer();
+          return { buffer: Buffer.from(arr), url: json.data.screenshot.url };
+        }
+      } catch (eBuf) {
+        return { buffer: null, url: json.data.screenshot.url };
+      }
+    }
+  } catch (e1) {
+    console.warn('Microlink error, falling back:', e1.message);
+  }
+
+  // 2. Thum.io fallback
+  try {
+    const thumUrl = `https://image.thum.io/get/width/1400/crop/1200/noanimate/${encodeURIComponent(targetUrl)}`;
+    const res = await fetch(thumUrl, { signal: AbortSignal.timeout(14000) });
+    if (res.ok) {
+      const arr = await res.arrayBuffer();
+      return { buffer: Buffer.from(arr), url: thumUrl };
+    }
+  } catch (e2) {
+    console.warn('thum.io fallback error:', e2.message);
+  }
+
   return null;
 }
 
@@ -300,15 +379,48 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
         // Bóc tách số liệu qua Report Engine
         const payload = processTwoWorkbooks(sess.fileST.wb, sess.fileCVS.wb, masterData);
 
-        // 1. Tạo ảnh biểu đồ & Gửi trước
-        try {
-          const chartBuf = await generateRankingChartBuffer(payload);
-          if (chartBuf) {
-            const chartCaption = `📊 <b>ẢNH TIẾN ĐỘ & XẾP HẠNG DOANH SỐ TEAM ${payload.team_lead.toUpperCase()}</b>\nTháng ${payload.month}/${payload.year} | ⏳ % Timegone: ${payload.timegone}% | 🎯 % Đạt Team: ${payload.percent_achieved}%`;
-            await sendPhoto(token, chatId, chartBuf, `Tien_Do_Team_${payload.month}_${payload.year}.png`, chartCaption);
+        // 1. Chụp và gửi lần lượt 4 ảnh bảng biểu chuẩn theo đúng mẫu giao diện
+        const statusIcon = payload.percent_achieved >= payload.timegone ? '🟢' : (payload.percent_achieved >= payload.timegone * 0.75 ? '🟠' : '🔴');
+        const statusText = payload.percent_achieved >= payload.timegone ? 'VƯỢT TIẾN ĐỘ' : (payload.percent_achieved >= payload.timegone * 0.75 ? 'CẬN TIẾN ĐỘ' : 'CHẬM TIẾN ĐỘ');
+        const fmCount = (payload.fm_sku_matrix && payload.fm_sku_matrix.stores) ? payload.fm_sku_matrix.stores.length : 35;
+        const fmTarget = payload.fm_sku_matrix ? (payload.fm_sku_matrix.total_target || 0) : 0;
+        const fmActual = payload.fm_sku_matrix ? (payload.fm_sku_matrix.total_actual || 0) : 0;
+
+        const tableConfigs = [
+          {
+            type: 1,
+            fileName: `Bang_Tien_Do_10_NV_${payload.month}_${payload.year}.png`,
+            caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n👤 Team Lead: ${payload.team_lead} | 📅 Tháng ${payload.month}/${payload.year}\n🎯 Target: ${formatMoney(payload.total_target)} đ | Thực hiện: ${formatMoney(payload.total_actual)} đ (${payload.percent_achieved}%)`
+          },
+          {
+            type: 2,
+            fileName: `Bang_Xep_Hang_Team_${payload.month}_${payload.year}.png`,
+            caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusIcon} <b>${statusText}</b>\n⏳ % Timegone: ${payload.timegone}% | 🎯 % Đạt Team: ${payload.percent_achieved}%`
+          },
+          {
+            type: 3,
+            fileName: `Phan_Bo_5_Hubs_BHX_${payload.month}_${payload.year}.png`,
+            caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatMoney(payload.total_actual_bhx)} đ (${payload.total_stores_bhx || 178} Cửa hàng)\n🏷 Đơn giá phân bổ: ${formatMoney(payload.bhx_per_store)} đ/CH`
+          },
+          {
+            type: 4,
+            fileName: `Tong_Hop_FamilyMart_${payload.month}_${payload.year}.png`,
+            caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart (${fmCount} Cửa hàng)\n🎯 Chỉ tiêu: ${formatMoney(fmTarget)} đ | Thực hiện: ${formatMoney(fmActual)} đ`
           }
-        } catch (eImg) {
-          console.error('Lỗi gửi ảnh biểu đồ:', eImg);
+        ];
+
+        for (const cfg of tableConfigs) {
+          try {
+            await sendChatAction(token, chatId, 'upload_photo');
+            const targetUrl = getCompressedTableUrl(cfg.type, payload);
+            const shot = await fetchScreenshotImage(targetUrl);
+            if (shot) {
+              const photoData = shot.buffer || shot.url;
+              await sendPhoto(token, chatId, photoData, cfg.fileName, cfg.caption);
+            }
+          } catch (eShot) {
+            console.error(`Lỗi chụp/gửi ảnh bảng ${cfg.type}:`, eShot.message);
+          }
         }
 
         // 2. Tạo file Excel chuẩn 5 sheets qua ExcelJS & Gửi đính kèm
@@ -322,7 +434,7 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
 • Tổng TH: ${formatMoney(payload.total_actual)} ₫ (${payload.percent_achieved}%)
 • Tình trạng: ${payload.percent_achieved >= payload.timegone ? '🟢 VƯỢT' : (payload.percent_achieved >= payload.timegone * 0.75 ? '🟠 CẬN' : '🔴 CHẬM')} TIẾN ĐỘ`;
 
-          const excelFileName = `Team_${payload.team_lead.replace(/\\s+/g, '_')}_Report_Thang_${payload.month}_${payload.year}.xlsx`;
+          const excelFileName = `Team_${payload.team_lead.replace(/\s+/g, '_')}_Report_Thang_${payload.month}_${payload.year}.xlsx`;
           await sendDocument(token, chatId, excelBuffer, excelFileName, docCaption);
         } catch (eDoc) {
           console.error('Lỗi tạo file Excel:', eDoc);
@@ -344,13 +456,13 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
         for (let i = 0; i < Math.min(10, topEmployees.length); i++) {
           const emp = topEmployees[i];
           const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `${i + 1}.`));
-          const statusIcon = emp.percent >= payload.timegone ? '🟢' : (emp.percent >= payload.timegone * 0.75 ? '🟠' : '🔴');
-          summaryMsg += `${medal} ${statusIcon} <b>${emp.name}</b>: ${emp.percent}% (${formatMoney(emp.total_actual)} ₫)\n`;
+          const statusIconEmp = emp.percent >= payload.timegone ? '🟢' : (emp.percent >= payload.timegone * 0.75 ? '🟠' : '🔴');
+          summaryMsg += `${medal} ${statusIconEmp} <b>${emp.name}</b>: ${emp.percent}% (${formatMoney(emp.total_actual)} ₫)\n`;
         }
 
         summaryMsg += 
 `━━━━━━━━━━━━━━━━━━━━
-<i>Đã đính kèm ảnh biểu đồ và file Excel (.xlsx) ở phía trên!</i>`;
+<i>Đã đính kèm 4 ảnh chụp bảng biểu và file Excel (.xlsx) ở phía trên!</i>`;
 
         await sendMessage(token, chatId, summaryMsg);
 
