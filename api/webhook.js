@@ -135,7 +135,6 @@ function getCompressedTableUrl(type, payload) {
       ...common,
       emps: (payload.employees || []).map(e => [
         e.name,
-        e.target || 0,
         e.bhx_actual || 0,
         e.gs25_actual || 0,
         e.se_actual || 0,
@@ -143,27 +142,24 @@ function getCompressedTableUrl(type, payload) {
         e.ck_actual || 0,
         e.hd_actual || 0,
         e.wmp_actual || 0,
-        e.total_actual || 0,
-        e.percent || 0
+        e.total_actual || 0
       ])
     };
   } else if (type === 2) {
-    // 2. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team
-    const sorted = (payload.employees || []).slice().sort((a, b) => (b.percent || 0) - (a.percent || 0));
+    // 2. Bảng Xếp Hạng Doanh Số Toàn Team (Xếp theo Tổng Thực Hiện)
+    const sorted = (payload.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
     dataObj = {
       ...common,
       ranks: sorted.map(e => [
         e.name,
-        e.target || 0,
         e.bhx_actual || 0,
         e.cvs_total || 0,
-        e.total_actual || 0,
-        e.percent || 0,
-        e.status || 'CHẬM'
+        e.total_actual || 0
       ])
     };
   } else if (type === 3) {
     // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)
+    const totalBhxTeam = (payload.employees || []).reduce((a, e) => a + (e.bhx_actual || 0), 0) || payload.total_actual_bhx || 0;
     dataObj = {
       ...common,
       pricePerStore: payload.bhx_per_store || 0,
@@ -172,11 +168,11 @@ function getCompressedTableUrl(type, payload) {
         e.bhx_stores || 0,
         payload.bhx_per_store || 0,
         e.bhx_actual || 0,
-        payload.total_actual_bhx > 0 ? ((e.bhx_actual / payload.total_actual_bhx) * 100).toFixed(1) : '0.0'
+        totalBhxTeam > 0 ? ((e.bhx_actual / totalBhxTeam) * 100).toFixed(1) : '0.0'
       ])
     };
   } else if (type === 4) {
-    // 4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart (8 cột rõ nét)
+    // 4. Bảng Tổng Hợp Doanh Số Nhập FamilyMart (Bỏ cột Target và % Đạt)
     const fmStores = (payload.fm_sku_matrix && payload.fm_sku_matrix.stores) ? payload.fm_sku_matrix.stores : [];
     dataObj = {
       ...common,
@@ -186,9 +182,7 @@ function getCompressedTableUrl(type, payload) {
         s.ma_pg || '',
         s.ten_pg || '',
         s.vtcv || 'SR',
-        s.target || 0,
-        s.actual || 0,
-        s.target > 0 ? ((s.actual / s.target) * 100) : 0
+        s.actual || 0
       ])
     };
   }
@@ -380,32 +374,29 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
         const payload = processTwoWorkbooks(sess.fileST.wb, sess.fileCVS.wb, masterData);
 
         // 1. Chụp và gửi lần lượt 4 ảnh bảng biểu chuẩn theo đúng mẫu giao diện
-        const statusIcon = payload.percent_achieved >= payload.timegone ? '🟢' : (payload.percent_achieved >= payload.timegone * 0.75 ? '🟠' : '🔴');
-        const statusText = payload.percent_achieved >= payload.timegone ? 'VƯỢT TIẾN ĐỘ' : (payload.percent_achieved >= payload.timegone * 0.75 ? 'CẬN TIẾN ĐỘ' : 'CHẬM TIẾN ĐỘ');
         const fmCount = (payload.fm_sku_matrix && payload.fm_sku_matrix.stores) ? payload.fm_sku_matrix.stores.length : 35;
-        const fmTarget = payload.fm_sku_matrix ? (payload.fm_sku_matrix.total_target || 0) : 0;
         const fmActual = payload.fm_sku_matrix ? (payload.fm_sku_matrix.total_actual || 0) : 0;
 
         const tableConfigs = [
           {
             type: 1,
             fileName: `Bang_Tien_Do_10_NV_${payload.month}_${payload.year}.png`,
-            caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n👤 Team Lead: ${payload.team_lead} | 📅 Tháng ${payload.month}/${payload.year}\n🎯 Target: ${formatMoney(payload.total_target)} đ | Thực hiện: ${formatMoney(payload.total_actual)} đ (${payload.percent_achieved}%)`
+            caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n👤 Team Lead: ${payload.team_lead} | 📅 Tháng ${payload.month}/${payload.year}\n💰 Tổng Thực Hiện: ${formatMoney(payload.total_actual)} đ (BHX: ${formatMoney(payload.total_actual_bhx)} đ | CVS: ${formatMoney(payload.total_cvs)} đ)`
           },
           {
             type: 2,
             fileName: `Bang_Xep_Hang_Team_${payload.month}_${payload.year}.png`,
-            caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusIcon} <b>${statusText}</b>\n⏳ % Timegone: ${payload.timegone}% | 🎯 % Đạt Team: ${payload.percent_achieved}%`
+            caption: `🏆 <b>2/4. Bảng Xếp Hạng Doanh Số Toàn Team</b>\n👥 10 Nhân viên kinh doanh | 💰 Tổng TH: ${formatMoney(payload.total_actual)} đ\n⏳ % Timegone (tiến độ tháng): ${payload.timegone}%`
           },
           {
             type: 3,
             fileName: `Phan_Bo_5_Hubs_BHX_${payload.month}_${payload.year}.png`,
-            caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatMoney(payload.total_actual_bhx)} đ (${payload.total_stores_bhx || 178} Cửa hàng)\n🏷 Đơn giá phân bổ: ${formatMoney(payload.bhx_per_store)} đ/CH`
+            caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatMoney(payload.total_actual_bhx)} đ (${payload.total_stores_bhx_team || 178} Cửa hàng)\n🏷 Đơn giá phân bổ: ${formatMoney(payload.bhx_per_store)} đ/CH`
           },
           {
             type: 4,
             fileName: `Tong_Hop_FamilyMart_${payload.month}_${payload.year}.png`,
-            caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart (${fmCount} Cửa hàng)\n🎯 Chỉ tiêu: ${formatMoney(fmTarget)} đ | Thực hiện: ${formatMoney(fmActual)} đ`
+            caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số Nhập FamilyMart</b>\n🏪 Kênh CVS FamilyMart (${fmCount} Cửa hàng)\n💰 Tổng thực hiện nhập: ${formatMoney(fmActual)} đ`
           }
         ];
 
@@ -430,9 +421,9 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
           const docCaption = 
 `📊 <b>BÁO CÁO DOANH SỐ TEAM ${payload.team_lead.toUpperCase()}</b>
 Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
-• Target: ${formatMoney(payload.total_target)} ₫
-• Tổng TH: ${formatMoney(payload.total_actual)} ₫ (${payload.percent_achieved}%)
-• Tình trạng: ${payload.percent_achieved >= payload.timegone ? '🟢 VƯỢT' : (payload.percent_achieved >= payload.timegone * 0.75 ? '🟠 CẬN' : '🔴 CHẬM')} TIẾN ĐỘ`;
+• Tổng Thực Hiện: ${formatMoney(payload.total_actual)} ₫
+• BHX: ${formatMoney(payload.total_actual_bhx)} ₫
+• CVS: ${formatMoney(payload.total_cvs)} ₫`;
 
           const excelFileName = `Team_${payload.team_lead.replace(/\s+/g, '_')}_Report_Thang_${payload.month}_${payload.year}.xlsx`;
           await sendDocument(token, chatId, excelBuffer, excelFileName, docCaption);
@@ -441,23 +432,22 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
         }
 
         // 3. Gửi tin nhắn tóm tắt số liệu chi tiết
-        const topEmployees = (payload.employees || []).slice().sort((a, b) => (b.percent || 0) - (a.percent || 0));
+        const topEmployees = (payload.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
         let summaryMsg = 
-`🎯 <b>TỔNG HỢP DOANH SỐ CHI TIẾT:</b>
+`🎯 <b>TỔNG HỢP DOANH SỐ TOÀN TEAM:</b>
 ━━━━━━━━━━━━━━━━━━━━
-• <b>Target Team:</b> <code>${formatMoney(payload.total_target)} ₫</code>
 • <b>Thực Hiện BHX:</b> <code>${formatMoney(payload.total_actual_bhx)} ₫</code> (TB ${formatMoney(payload.bhx_per_store)} ₫/CH)
 • <b>Thực Hiện CVS:</b> <code>${formatMoney(payload.total_cvs)} ₫</code>
 • <b>Tổng Thực Hiện:</b> <b>${formatMoney(payload.total_actual)} ₫</b>
-• <b>% ĐẠT:</b> <b>${payload.percent_achieved}%</b> (vs Timegone ${payload.timegone}%)
+• <b>Tiến Độ Thời Gian Tháng:</b> <b>${payload.timegone}%</b>
 ━━━━━━━━━━━━━━━━━━━━
-🏆 <b>BẢNG XẾP HẠNG NHÂN VIÊN:</b>\n`;
+🏆 <b>BẢNG XẾP HẠNG DOANH SỐ NHÂN VIÊN:</b>\n`;
 
         for (let i = 0; i < Math.min(10, topEmployees.length); i++) {
           const emp = topEmployees[i];
           const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `${i + 1}.`));
-          const statusIconEmp = emp.percent >= payload.timegone ? '🟢' : (emp.percent >= payload.timegone * 0.75 ? '🟠' : '🔴');
-          summaryMsg += `${medal} ${statusIconEmp} <b>${emp.name}</b>: ${emp.percent}% (${formatMoney(emp.total_actual)} ₫)\n`;
+          const pctShare = payload.total_actual > 0 ? (((emp.total_actual || 0) / payload.total_actual) * 100).toFixed(1) : '0.0';
+          summaryMsg += `${medal} <b>${emp.name}</b>: <b>${formatMoney(emp.total_actual)} ₫</b> (${pctShare}% team)\n`;
         }
 
         summaryMsg += 

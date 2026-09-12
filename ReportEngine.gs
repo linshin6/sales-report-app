@@ -249,7 +249,7 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
 
   var gs25PerStore = Math.round((totalGs25Dcs * 0.2046) / 72);
   var sePerStore = Math.round((totalSeDcs * 0.0362) / 5);
-  var totalCkStoresSystem = Object.keys(ckStoresSo).length > 0 ? Object.keys(ckStoresSo).length : 233;
+  var totalCkStoresSystem = Object.keys(ckStoresSo).length;
   var tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
   // 3. BÓC TÁCH ĐƠN HÀNG SKU FAMILYMART TỪ SHEET NPP
@@ -471,7 +471,9 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
     });
   }
 
-  var totalActualTeam = totalActualBhx + totalCvsTeam;
+  var totalBhxTeam = employeesSummary.reduce(function(acc, e) { return acc + (e.bhx_actual || 0); }, 0);
+  var totalStoresBhxTeam = employeesSummary.reduce(function(acc, e) { return acc + (e.bhx_stores || 0); }, 0);
+  var totalActualTeam = totalBhxTeam + totalCvsTeam;
   var teamPct = totalTargetTeam > 0 ? parseFloat(((totalActualTeam / totalTargetTeam) * 100).toFixed(2)) : 0;
 
   var bhxHubsFormatted = master.bhx_hubs.map(function(h) {
@@ -505,7 +507,9 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
     year: year,
     timegone: timePct,
     total_target: totalTargetTeam,
-    total_actual_bhx: Math.round(totalActualBhx),
+    total_actual_bhx: totalBhxTeam,
+    total_actual_bhx_hubs: Math.round(totalActualBhx),
+    total_stores_bhx_team: totalStoresBhxTeam,
     total_stores_bhx: totalStoresBhx,
     bhx_per_store: Math.round(bhxPerStore),
     total_cvs: totalCvsTeam,

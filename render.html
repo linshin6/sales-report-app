@@ -270,9 +270,6 @@
       const month = data.m || 9;
       const year = data.y || 2026;
       const timegone = data.tg || 0;
-      const teamPct = (data.pct || 0);
-      const diffPct = (teamPct - timegone).toFixed(1);
-      const isAhead = diffPct >= 0;
 
       document.getElementById('mainTitle').innerHTML = `<span>📊</span> BÁO CÁO DOANH SỐ TEAM CẨM GIANG (Tháng ${month}/${year})`;
       document.getElementById('metaTeamLead').innerText = data.tl || 'Trần Thị Cẩm Giang';
@@ -280,8 +277,8 @@
       document.getElementById('badgeTime').innerHTML = `<span>⏳</span> % Timegone (Tiến độ tháng): ${timegone}%`;
       
       const badgeTeam = document.getElementById('badgeTeamPct');
-      badgeTeam.className = isAhead ? 'badge-pct-pass' : 'badge-pct-fail';
-      badgeTeam.innerHTML = `<span>${isAhead ? '🟢' : '🔴'}</span> % Đạt Toàn Team: ${teamPct}% (${isAhead ? '+' : ''}${diffPct}%)`;
+      badgeTeam.className = 'badge-pct-pass';
+      badgeTeam.innerHTML = `<span>👥</span> Đội ngũ: 10 Nhân viên kinh doanh`;
 
       const now = new Date();
       document.getElementById('metaDate').innerText = `Ngày xuất: ${data.dt || (now.toLocaleDateString('vi-VN') + ' | ' + now.toLocaleTimeString('vi-VN'))}`;
@@ -302,7 +299,7 @@
       window.__RENDER_DONE = true;
     }
 
-    // 1. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)
+    // 1. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS) - Không Target, % Đạt
     function renderTable1(d, container) {
       document.getElementById('subTitle').innerText = 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
 
@@ -312,7 +309,6 @@
             <tr>
               <th class="text-center" style="width:45px;">STT</th>
               <th style="min-width:160px;">NHÂN VIÊN</th>
-              <th class="text-right">TARGET</th>
               <th class="text-right" style="color:#059669 !important;">BHX (CỐ ĐỊNH)</th>
               <th class="text-right">GS25</th>
               <th class="text-right">7-ELEVEN</th>
@@ -321,26 +317,29 @@
               <th class="text-right">HOÀNG ĐỨC</th>
               <th class="text-right">WINMART+</th>
               <th class="text-right" style="color:#0F766E !important; font-weight:800;">TỔNG TH (BHX+CVS)</th>
-              <th class="text-center" style="width:75px;">% ĐẠT</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      let sumTarget = 0, sumBhx = 0, sumGs25 = 0, sumSe = 0, sumFm = 0, sumCk = 0, sumHd = 0, sumWmp = 0, sumTotal = 0;
+      let sumBhx = 0, sumGs25 = 0, sumSe = 0, sumFm = 0, sumCk = 0, sumHd = 0, sumWmp = 0, sumTotal = 0;
 
       (d.emps || []).forEach((e, idx) => {
-        // e = [name, target, bhx, gs25, se, fm, ck, hd, wmp, total, pct]
-        const name = e[0], target = e[1], bhx = e[2], gs25 = e[3], se = e[4], fm = e[5], ck = e[6], hd = e[7], wmp = e[8], total = e[9], pct = e[10];
-        sumTarget += target; sumBhx += bhx; sumGs25 += gs25; sumSe += se; sumFm += fm; sumCk += ck; sumHd += hd; sumWmp += wmp; sumTotal += total;
+        // Hỗ trợ cả định dạng cũ 11 phần tử và mới
+        let name, bhx, gs25, se, fm, ck, hd, wmp, total;
+        if (e.length >= 11) {
+          name = e[0]; bhx = e[2]; gs25 = e[3]; se = e[4]; fm = e[5]; ck = e[6]; hd = e[7]; wmp = e[8]; total = e[9];
+        } else {
+          name = e[0]; bhx = e[1]; gs25 = e[2]; se = e[3]; fm = e[4]; ck = e[5]; hd = e[6]; wmp = e[7]; total = e[8];
+        }
 
-        const chipClass = pct >= d.tg ? 'chip-pass' : (pct >= d.tg * 0.75 ? 'chip-warn' : 'chip-fail');
+        sumBhx += (bhx || 0); sumGs25 += (gs25 || 0); sumSe += (se || 0); sumFm += (fm || 0);
+        sumCk += (ck || 0); sumHd += (hd || 0); sumWmp += (wmp || 0); sumTotal += (total || 0);
 
         html += `
           <tr>
             <td class="text-center font-bold">${idx + 1}</td>
             <td class="font-bold">${name}</td>
-            <td class="text-right">${formatMoney(target)}</td>
             <td class="text-right font-bold" style="color:#059669;">${formatMoney(bhx)}</td>
             <td class="text-right">${formatMoney(gs25)}</td>
             <td class="text-right">${formatMoney(se)}</td>
@@ -348,20 +347,16 @@
             <td class="text-right">${formatMoney(ck)}</td>
             <td class="text-right">${formatMoney(hd)}</td>
             <td class="text-right">${formatMoney(wmp)}</td>
-            <td class="text-right font-bold" style="color:#0F766E;">${formatMoney(total)}</td>
-            <td class="text-center"><span class="${chipClass}">${pct}%</span></td>
+            <td class="text-right font-bold" style="color:#0F766E; font-size:13.5px;">${formatMoney(total)}</td>
           </tr>
         `;
       });
-
-      const totalTeamPct = sumTarget > 0 ? ((sumTotal / sumTarget) * 100).toFixed(2) : '0.00';
 
       html += `
           </tbody>
           <tfoot>
             <tr>
               <td colspan="2" class="text-center font-bold" style="font-size:13.5px; letter-spacing:0.04em;">TỔNG TEAM</td>
-              <td class="text-right font-bold">${formatMoney(sumTarget)}</td>
               <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumBhx)}</td>
               <td class="text-right font-bold">${formatMoney(sumGs25)}</td>
               <td class="text-right font-bold">${formatMoney(sumSe)}</td>
@@ -369,8 +364,7 @@
               <td class="text-right font-bold">${formatMoney(sumCk)}</td>
               <td class="text-right font-bold">${formatMoney(sumHd)}</td>
               <td class="text-right font-bold">${formatMoney(sumWmp)}</td>
-              <td class="text-right font-bold" style="color:#93C5FD !important; font-size:13.5px;">${formatMoney(sumTotal)}</td>
-              <td class="text-center font-bold" style="color:#FDE047 !important; font-size:13.5px;">${totalTeamPct}%</td>
+              <td class="text-right font-bold" style="color:#93C5FD !important; font-size:14px;">${formatMoney(sumTotal)}</td>
             </tr>
           </tfoot>
         </table>
@@ -379,9 +373,9 @@
       container.innerHTML = html;
     }
 
-    // 2. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team
+    // 2. Bảng Xếp Hạng Doanh Số Toàn Team (Xếp theo Tổng Thực Hiện)
     function renderTable2(d, container) {
-      document.getElementById('subTitle').innerText = 'Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team';
+      document.getElementById('subTitle').innerText = 'Bảng Xếp Hạng Doanh Số Toàn Team';
 
       let html = `
         <table>
@@ -389,38 +383,56 @@
             <tr>
               <th class="text-center" style="width:55px;">HẠNG</th>
               <th style="min-width:180px;">NHÂN VIÊN</th>
-              <th class="text-right">TARGET</th>
-              <th class="text-right">BHX</th>
-              <th class="text-right">CVS</th>
-              <th class="text-right font-bold">TỔNG TH</th>
-              <th class="text-center" style="width:85px;">% ĐẠT</th>
-              <th class="text-center" style="width:110px;">TRẠNG THÁI</th>
+              <th class="text-right">DOANH SỐ BHX</th>
+              <th class="text-right">DOANH SỐ CVS</th>
+              <th class="text-right font-bold">TỔNG THỰC HIỆN</th>
+              <th class="text-center" style="width:100px;">TỶ TRỌNG DS</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      // e = [name, target, bhx, cvs, total, pct, status]
-      (d.ranks || []).forEach((e, idx) => {
-        const name = e[0], target = e[1], bhx = e[2], cvs = e[3], total = e[4], pct = e[5], status = e[6];
-        const chipClass = pct >= d.tg ? 'chip-pass' : (pct >= d.tg * 0.75 ? 'chip-warn' : 'chip-fail');
+      // Chuẩn hóa dữ liệu ranks và sort theo total giảm dần
+      const rawRanks = (d.ranks || []).map(e => {
+        if (e.length >= 7) {
+          return { name: e[0], bhx: e[2] || 0, cvs: e[3] || 0, total: e[4] || 0 };
+        } else if (e.length >= 4) {
+          return { name: e[0], bhx: e[1] || 0, cvs: e[2] || 0, total: e[3] || 0 };
+        }
+        return { name: e[0], bhx: 0, cvs: 0, total: 0 };
+      }).sort((a, b) => b.total - a.total);
+
+      const sumAll = rawRanks.reduce((acc, x) => acc + x.total, 0);
+      let sumBhx = 0, sumCvs = 0;
+
+      rawRanks.forEach((e, idx) => {
+        sumBhx += e.bhx;
+        sumCvs += e.cvs;
+        const pctShare = sumAll > 0 ? ((e.total / sumAll) * 100).toFixed(1) : '0.0';
 
         html += `
           <tr>
             <td class="text-center font-bold" style="font-size:14px;">${idx + 1}</td>
-            <td class="font-bold">${name}</td>
-            <td class="text-right">${formatMoney(target)}</td>
-            <td class="text-right">${formatMoney(bhx)}</td>
-            <td class="text-right">${formatMoney(cvs)}</td>
-            <td class="text-right font-bold">${formatMoney(total)}</td>
-            <td class="text-center"><span class="${chipClass}">${pct} %</span></td>
-            <td class="text-center font-bold" style="letter-spacing:0.02em;">${status}</td>
+            <td class="font-bold">${e.name}</td>
+            <td class="text-right font-semibold" style="color:#059669;">${formatMoney(e.bhx)}</td>
+            <td class="text-right">${formatMoney(e.cvs)}</td>
+            <td class="text-right font-bold" style="color:#0F766E; font-size:13.5px;">${formatMoney(e.total)}</td>
+            <td class="text-center font-bold" style="color:#2563EB;">${pctShare}%</td>
           </tr>
         `;
       });
 
       html += `
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" class="text-center font-bold" style="font-size:13.5px; letter-spacing:0.04em;">TỔNG CỘNG TEAM</td>
+              <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumBhx)}</td>
+              <td class="text-right font-bold">${formatMoney(sumCvs)}</td>
+              <td class="text-right font-bold" style="color:#93C5FD !important; font-size:14px;">${formatMoney(sumAll)}</td>
+              <td class="text-center font-bold" style="color:#FDE047 !important; font-size:13.5px;">100.0%</td>
+            </tr>
+          </tfoot>
         </table>
       `;
 
@@ -448,11 +460,10 @@
 
       let sumStores = 0, sumBhx = 0;
 
-      // e = [name, stores, pricePerStore, bhxAmount, sharePct]
-      (d.bhxDist || []).forEach((e, idx) => {
-        const name = e[0], stores = e[1], price = e[2], amount = e[3], share = e[4];
+      (d.bhxDist || []).forEach((row, idx) => {
+        const name = row[0], stores = row[1], price = row[2], bhx = row[3], pct = row[4];
         sumStores += stores;
-        sumBhx += amount;
+        sumBhx += bhx;
 
         html += `
           <tr>
@@ -460,8 +471,8 @@
             <td class="font-bold">${name}</td>
             <td class="text-center font-semibold">${stores} Cửa hàng</td>
             <td class="text-right">${formatMoney(price)}</td>
-            <td class="text-right font-bold" style="color:#059669;">${formatMoney(amount)}</td>
-            <td class="text-center">${share} %</td>
+            <td class="text-right font-bold" style="color:#059669;">${formatMoney(bhx)}</td>
+            <td class="text-center font-bold" style="color:#1D4ED8;">${pct}%</td>
           </tr>
         `;
       });
@@ -470,7 +481,7 @@
           </tbody>
           <tfoot>
             <tr>
-              <td colspan="2" class="text-center font-bold" style="font-size:13.5px;">TỔNG CỘNG</td>
+              <td colspan="2" class="text-center font-bold" style="font-size:13.5px; letter-spacing:0.04em;">TỔNG CỘNG TEAM</td>
               <td class="text-center font-bold">${sumStores} Cửa hàng</td>
               <td class="text-right font-bold">${formatMoney(d.pricePerStore || 0)}</td>
               <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumBhx)}</td>
@@ -483,16 +494,16 @@
       container.innerHTML = html;
     }
 
-    // 4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart (8 Cột Gửi Zalo/Tele Rõ Nét)
+    // 4. Bảng Tổng Hợp Doanh Số Nhập FamilyMart (Bỏ cột Chỉ tiêu và % Đạt)
     function renderTable4(d, container) {
-      document.getElementById('subTitle').innerText = 'Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart' + (d.pgFilter ? (' - PG: ' + d.pgFilter) : '');
+      document.getElementById('subTitle').innerText = 'Bảng Tổng Hợp Doanh Số Nhập FamilyMart' + (d.pgFilter ? (' - PG: ' + d.pgFilter) : '');
 
       let html = `
         <table>
           <thead>
             <tr>
-              <th colspan="5" style="background:#FFFFFF !important; border:none !important;"></th>
-              <th colspan="3" style="background:#CCFBF1 !important; color:#0F766E !important; font-size:12.5px; font-weight:800; text-align:center; border:1px solid #99F6E4 !important; padding:8px;">THÔNG TIN ĐIỂM BÁN (STORE MASTER)</th>
+              <th colspan="5" style="background:#FFF2CC !important; color:#1F4E78 !important; font-size:12.5px; font-weight:800; text-align:center; border:1px solid #B4B4B4 !important; padding:8px;">THÔNG TIN ĐIỂM BÁN (STORE MASTER)</th>
+              <th style="background:#FCE4D6 !important; color:#1F4E78 !important; font-size:12.5px; font-weight:800; text-align:center; border:1px solid #B4B4B4 !important; padding:8px;">TỔNG THỰC HIỆN</th>
             </tr>
             <tr>
               <th style="min-width:260px;">ĐỊA CHỈ STORE (SHIP TO)</th>
@@ -500,23 +511,19 @@
               <th style="min-width:90px;" class="text-center">MÃ PG</th>
               <th style="min-width:150px;">HỌ TÊN PG</th>
               <th style="min-width:60px;" class="text-center">VTCV</th>
-              <th style="min-width:140px; background:#FEF3C7 !important; color:#B45309 !important; border:1px solid #FCD34D !important;" class="text-right">CHỈ TIÊU DOANH SỐ NHẬP (VND)</th>
-              <th style="min-width:160px;" class="text-right">TỔNG DOANH SỐ NHẬP THỰC HIỆN (VND)</th>
-              <th style="min-width:75px;" class="text-center">% ĐẠT</th>
+              <th style="min-width:180px;" class="text-right">TỔNG DOANH SỐ NHẬP THỰC HIỆN (VND)</th>
             </tr>
           </thead>
           <tbody>
       `;
 
-      let sumTarget = 0, sumActual = 0;
+      let sumActual = 0;
 
-      // s = [address, location, pgCode, pgName, vtcv, target, actual, pct]
       (d.stores || []).forEach(s => {
-        const addr = s[0], loc = s[1], pgCode = s[2], pgName = s[3], vtcv = s[4], target = s[5], actual = s[6], pct = s[7];
-        sumTarget += target;
-        sumActual += actual;
-
-        const chipClass = pct >= d.tg ? 'chip-pass' : (pct >= d.tg * 0.75 ? 'chip-warn' : 'chip-fail');
+        // s = [address, location, pgCode, pgName, vtcv, target, actual, pct] or [address, location, pgCode, pgName, vtcv, actual]
+        const addr = s[0], loc = s[1], pgCode = s[2], pgName = s[3], vtcv = s[4];
+        const actual = s.length >= 8 ? s[6] : (s.length === 6 ? s[5] : (s[6] || s[5] || 0));
+        sumActual += (actual || 0);
 
         html += `
           <tr>
@@ -525,23 +532,17 @@
             <td class="text-center">${pgCode || ''}</td>
             <td class="font-bold">${pgName || ''}</td>
             <td class="text-center">${vtcv || ''}</td>
-            <td class="text-right" style="background:#FFFDF5; font-weight:600;">${formatMoney(target)}</td>
             <td class="text-right font-bold" style="color:#0F766E;">${formatMoney(actual)}</td>
-            <td class="text-center"><span class="${chipClass}">${pct.toFixed(1)}%</span></td>
           </tr>
         `;
       });
-
-      const totalFmPct = sumTarget > 0 ? ((sumActual / sumTarget) * 100).toFixed(1) : '0.0';
 
       html += `
           </tbody>
           <tfoot>
             <tr>
               <td colspan="5" class="text-center font-bold" style="font-size:13.5px; letter-spacing:0.04em;">TỔNG CỘNG (${(d.stores || []).length} CỬA HÀNG FAMILYMART)</td>
-              <td class="text-right font-bold">${formatMoney(sumTarget)}</td>
               <td class="text-right font-bold" style="color:#93C5FD !important; font-size:13.5px;">${formatMoney(sumActual)}</td>
-              <td class="text-center font-bold" style="color:#FDE047 !important; font-size:13.5px;">${totalFmPct} %</td>
             </tr>
           </tfoot>
         </table>

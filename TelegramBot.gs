@@ -422,7 +422,7 @@ function generateAndSendReport(chatId, fileSTInfo, fileCVSInfo) {
       '🎯 <b>TỔNG HỢP DOANH SỐ CHI TIẾT:</b>\n' +
       '━━━━━━━━━━━━━━━━━━━━\n' +
       '• <b>Target Team:</b> ' + (payload.total_target || 0).toLocaleString('vi-VN') + ' ₫\n' +
-      '• <b>Thực Hiện BHX:</b> ' + (payload.total_actual_bhx || 0).toLocaleString('vi-VN') + ' ₫ (TB ' + (payload.bhx_per_store || 0).toLocaleString('vi-VN') + ' ₫/CH)\n' +
+      '• <b>Thực Hiện BHX:</b> ' + (payload.total_actual_bhx || 0).toLocaleString('vi-VN') + ' ₫ (TB ' + (payload.bhx_per_store || 0).toLocaleString('vi-VN') + ' ₫/CH - ' + (payload.total_stores_bhx_team || 178) + '/' + (payload.total_stores_bhx || 232) + ' CH)\n' +
       '• <b>Thực Hiện CVS:</b> ' + (payload.total_cvs || 0).toLocaleString('vi-VN') + ' ₫\n' +
       '• <b>Tổng Thực Hiện:</b> ' + (payload.total_actual || 0).toLocaleString('vi-VN') + ' ₫\n' +
       '• <b>% Đạt Team:</b> <b>' + payload.percent_achieved + '%</b> (vs Timegone ' + payload.timegone + '%)\n' +
