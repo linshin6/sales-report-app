@@ -1034,8 +1034,8 @@
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
           </button>
-          <button class="btn btn-success" onclick="exportToGoogleSheet()">
-            📊 Tạo Báo Cáo Trên Google Sheets
+          <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Sao chép link xem đầy đủ 100% thông tin báo cáo trực tuyến">
+            🔗 Copy Link Báo Cáo
           </button>
         </div>
       </div>
@@ -1046,7 +1046,7 @@
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabStores', this)">🏪 Chi Tiết 142 Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
-        <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU FamilyMart</button>
+        <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
 
       <!-- Tab 1: Tiến độ 10 Nhân Viên -->
@@ -2326,10 +2326,8 @@ const DEFAULT_FM_STORES = [
       const y = year || now.getFullYear();
       const daysInMonth = new Date(y, m, 0).getDate();
 
-      // Nghiệp vụ bán hàng: Báo cáo nạp vào sáng ngày D là số liệu đã chốt lũy kế đến hết ngày D-1 (hôm qua).
-      // Ví dụ: Hôm nay ngày 10/9 => Đã chốt trọn vẹn 9 ngày => 9 / 30 = 30.0%
-      let day = now.getDate() - 1;
-      if (day < 0) day = 0;
+      // Tính % Timegone chuẩn theo thời gian thực tế mỗi lần gửi file báo cáo
+      let day = now.getDate();
 
       if (y === now.getFullYear() && m === (now.getMonth() + 1)) {
         day = Math.min(day, daysInMonth);
@@ -2338,7 +2336,7 @@ const DEFAULT_FM_STORES = [
       } else {
         day = 0;
       }
-      return parseFloat(((day / daysInMonth) * 100).toFixed(2));
+      return parseFloat(((day / daysInMonth) * 100).toFixed(1));
     }
 
     function promptCustomTimegone() {
@@ -5518,6 +5516,149 @@ const DEFAULT_FM_STORES = [
         exportToExcelPerfect();
       }
     }
+
+    // =========================================================================
+    // 7.1. TẠO LINK BÁO CÁO TRỰC TUYẾN GỬI CẤP TRÊN (VERCEL VIEW.HTML)
+    // =========================================================================
+    async function compressDeflateData(text) {
+      if (typeof CompressionStream !== 'undefined') {
+        const cs = new CompressionStream('deflate');
+        const writer = cs.writable.getWriter();
+        writer.write(new TextEncoder().encode(text));
+        writer.close();
+        const reader = cs.readable.getReader();
+        const chunks = [];
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+        let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
+        let res = new Uint8Array(totalLen);
+        let off = 0;
+        for (const c of chunks) {
+          res.set(c, off);
+          off += c.length;
+        }
+        return res;
+      }
+      return new TextEncoder().encode(text);
+    }
+
+    function uint8ArrayToBase64Url(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) {
+        bin += String.fromCharCode(bytes[i]);
+      }
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    async function getOnlineReportUrl() {
+      if (!processedReportData) return null;
+      const p = processedReportData;
+
+      let allSkus = [];
+      if (typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.fm_categories) {
+        DEFAULT_MASTER.fm_categories.forEach(cat => allSkus.push(...cat.skus));
+      }
+
+      // 1. Hubs (5 số)
+      const h = (p.bhx_hubs || []).map(hub => hub.amount !== undefined ? hub.amount : (hub.actual_sales || 0));
+
+      // 2. Stores [ [storeIndex, sales], ... ]
+      const s = [];
+      (p.stores || p.cvs_stores || []).forEach((st, idx) => {
+        const val = st.actual_sales || st.actual || 0;
+        if (val > 0) {
+          let storeIdx = idx;
+          if (st.store_code && typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.stores) {
+            const found = DEFAULT_MASTER.stores.findIndex(ms => ms.store_code === st.store_code);
+            if (found !== -1) storeIdx = found;
+          }
+          s.push([storeIdx, val]);
+        }
+      });
+
+      // 3. FM matrix [ [fmStoreIndex, [ [skuIdx, amt], ... ]] ]
+      const f = [];
+      const fmStores = (p.fm_sku_matrix && p.fm_sku_matrix.stores) ? p.fm_sku_matrix.stores : [];
+      fmStores.forEach((st, sIdx) => {
+        if (st.orders) {
+          const ordersList = [];
+          allSkus.forEach((sku, skuIdx) => {
+            const amt = st.orders[sku.code] || 0;
+            if (amt > 0) {
+              ordersList.push([skuIdx, amt]);
+            }
+          });
+          if (ordersList.length > 0) {
+            f.push([sIdx, ordersList]);
+          }
+        }
+      });
+
+      const compactObj = {
+        v: 2,
+        m: p.month || (new Date().getMonth() + 1),
+        y: p.year || new Date().getFullYear(),
+        tg: p.timegone || 0,
+        h, s, f
+      };
+
+      const jsonStr = JSON.stringify(compactObj);
+      const compressed = await compressDeflateData(jsonStr);
+      const b64 = uint8ArrayToBase64Url(compressed);
+      
+      let baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+      if (!baseUrl.startsWith('http') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+        baseUrl = 'https://bcgiang.vercel.app/';
+      }
+      return baseUrl + 'r#d=' + b64;
+    }
+
+    async function copySupervisorLink() {
+      if (!processedReportData) {
+        alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước khi lấy link báo cáo!');
+        return;
+      }
+      try {
+        const fullUrl = await getOnlineReportUrl();
+        if (!fullUrl) return;
+
+        let finalUrl = fullUrl;
+        // Tự động rút gọn link siêu ngắn qua API TinyURL / da.gd
+        try {
+          const apiEndpoint = (window.location.origin && window.location.origin.includes('vercel.app')) 
+            ? '/api/shorten' 
+            : 'https://bcgiang.vercel.app/api/shorten';
+
+          const shortRes = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: fullUrl })
+          });
+          if (shortRes.ok) {
+            const data = await shortRes.json();
+            if (data && data.shortUrl) {
+              finalUrl = data.shortUrl;
+            }
+          }
+        } catch (eShort) {
+          console.warn('Rút gọn link fallback:', eShort);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(finalUrl);
+          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO:\n\n' + finalUrl + '\n\n(Link rút gọn đẹp mắt để gửi cấp trên, xem trực tiếp đầy đủ 100% số liệu và tải file Excel)');
+        } else {
+          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', finalUrl);
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Lỗi tạo link báo cáo: ' + e.message);
+      }
+    }
+
 
     // =========================================================================
     // 8. SAMPLE DEMO DATA

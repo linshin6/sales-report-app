@@ -1034,8 +1034,8 @@
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
           </button>
-          <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Tạo link xem đầy đủ 100% thông tin báo cáo trực tuyến gửi cấp trên">
-            🔗 Copy Link Báo Cáo Cho Cấp Trên
+          <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Sao chép link xem đầy đủ 100% thông tin báo cáo trực tuyến">
+            🔗 Copy Link Báo Cáo
           </button>
         </div>
       </div>
@@ -5609,7 +5609,10 @@ const DEFAULT_FM_STORES = [
       const compressed = await compressDeflateData(jsonStr);
       const b64 = uint8ArrayToBase64Url(compressed);
       
-      const baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+      let baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+      if (!baseUrl.startsWith('http') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+        baseUrl = 'https://bcgiang.vercel.app/';
+      }
       return baseUrl + 'r#d=' + b64;
     }
 
@@ -5619,13 +5622,36 @@ const DEFAULT_FM_STORES = [
         return;
       }
       try {
-        const url = await getOnlineReportUrl();
-        if (!url) return;
+        const fullUrl = await getOnlineReportUrl();
+        if (!fullUrl) return;
+
+        let finalUrl = fullUrl;
+        // Tự động rút gọn link siêu ngắn qua API TinyURL / da.gd
+        try {
+          const apiEndpoint = (window.location.origin && window.location.origin.includes('vercel.app')) 
+            ? '/api/shorten' 
+            : 'https://bcgiang.vercel.app/api/shorten';
+
+          const shortRes = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: fullUrl })
+          });
+          if (shortRes.ok) {
+            const data = await shortRes.json();
+            if (data && data.shortUrl) {
+              finalUrl = data.shortUrl;
+            }
+          }
+        } catch (eShort) {
+          console.warn('Rút gọn link fallback:', eShort);
+        }
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(url);
-          alert('✅ ĐÃ SAO CHÉP ĐƯỜNG LINK RÚT GỌN CHO CẤP TRÊN!\n\n' + url + '\n\n(Cấp trên có thể mở link xem trực tiếp đầy đủ 100% số liệu và tải file Excel)');
+          await navigator.clipboard.writeText(finalUrl);
+          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO:\n\n' + finalUrl + '\n\n(Link rút gọn đẹp mắt để gửi cấp trên, xem trực tiếp đầy đủ 100% số liệu và tải file Excel)');
         } else {
-          prompt('Đường link xem báo cáo trực tuyến rút gọn (Nhấn Ctrl+C để sao chép):', url);
+          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', finalUrl);
         }
       } catch (e) {
         console.error(e);

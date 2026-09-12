@@ -5,7 +5,7 @@ const zlib = require('zlib');
 const masterData = require('../master_data.js');
 const { detectFileType, processTwoWorkbooks } = require('../ReportEngine.gs');
 const { buildExcelWorkbook } = require('../lib/excel-builder.js');
-const { generateReportUrl } = require('../lib/report-share.js');
+const { generateReportUrl, shortenReportUrl } = require('../lib/report-share.js');
 
 // Bộ nhớ đệm phiên làm việc trên Vercel Serverless
 global.__TG_SESSIONS = global.__TG_SESSIONS || new Map();
@@ -391,8 +391,9 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
         // Bóc tách số liệu qua Report Engine
         const payload = processTwoWorkbooks(sess.fileST.wb, sess.fileCVS.wb, masterData);
 
-        // Tạo link xem báo cáo trực tuyến trên Vercel
-        const reportWebUrl = generateReportUrl(req, payload);
+        // Tạo link xem báo cáo trực tuyến trên Vercel và tự động rút gọn link siêu ngắn (TinyURL)
+        const reportLongUrl = generateReportUrl(req, payload);
+        const reportWebUrl = await shortenReportUrl(reportLongUrl);
         global.__LAST_REPORT_URL = reportWebUrl;
 
         // Tùy chọn gọi Google Apps Script tạo Google Sheet nếu có cấu hình GOOGLE_WEBAPP_URL
@@ -495,8 +496,8 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
         summaryMsg += 
 `━━━━━━━━━━━━━━━━━━━━
 🌐 <b>LINK XEM BÁO CÁO TRỰC TUYẾN:</b>
-👉 <a href="${reportWebUrl}">Bấm vào đây để mở Báo Cáo Trên Web</a>
-<i>(Cấp trên có thể bấm link xem trực tiếp đầy đủ 6 bảng biểu trên điện thoại & máy tính, tải file Excel ngay trên web)</i>\n`;
+👉 <b><a href="${reportWebUrl}">${reportWebUrl}</a></b>
+<i>(Cấp trên có thể bấm link xem trực tiếp đầy đủ 5 bảng biểu trên điện thoại & máy tính, tải file Excel ngay trên web)</i>\n`;
 
         if (googleSheetUrl) {
           summaryMsg += 
