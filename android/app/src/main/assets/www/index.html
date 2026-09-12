@@ -1034,6 +1034,9 @@
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
           </button>
+          <button class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; font-weight: 700;" onclick="exportToGoogleSheet()" title="Đẩy toàn bộ dữ liệu tạo Google Spreadsheet trực tuyến gửi cấp trên">
+            📊 Đẩy Sang Google Sheet
+          </button>
           <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Sao chép link xem đầy đủ 100% thông tin báo cáo trực tuyến">
             🔗 Copy Link Báo Cáo
           </button>
@@ -5655,37 +5658,65 @@ const DEFAULT_FM_STORES = [
         const fullUrl = await getOnlineReportUrl();
         if (!fullUrl) return;
 
-        let finalUrl = fullUrl;
-        // Tự động rút gọn link siêu ngắn qua API TinyURL / da.gd
-        try {
-          const apiEndpoint = (window.location.origin && window.location.origin.includes('vercel.app')) 
-            ? '/api/shorten' 
-            : 'https://bcgiang.vercel.app/api/shorten';
-
-          const shortRes = await fetch(apiEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: fullUrl })
-          });
-          if (shortRes.ok) {
-            const data = await shortRes.json();
-            if (data && data.shortUrl) {
-              finalUrl = data.shortUrl;
-            }
-          }
-        } catch (eShort) {
-          console.warn('Rút gọn link fallback:', eShort);
-        }
-
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(finalUrl);
-          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO:\n\n' + finalUrl + '\n\n(Link rút gọn đẹp mắt để gửi cấp trên, xem trực tiếp đầy đủ 100% số liệu và tải file Excel)');
+          await navigator.clipboard.writeText(fullUrl);
+          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO TRỰC TUYẾN!\n\n' + fullUrl + '\n\n(Link mở trực tiếp 100% số liệu trên web trong 0.1 giây, không quảng cáo, không đếm ngược).\n\n💡 Gợi ý: Bạn có thể bấm nút [📊 Đẩy Sang Google Sheet] để nhận link Google Sheet gửi cấp trên!');
         } else {
-          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', finalUrl);
+          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', fullUrl);
         }
       } catch (e) {
         console.error(e);
         alert('Lỗi tạo link báo cáo: ' + e.message);
+      }
+    }
+
+    async function exportToGoogleSheet() {
+      if (!processedReportData) {
+        alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước khi đẩy sang Google Sheet!');
+        return;
+      }
+
+      let gasUrl = localStorage.getItem('GOOGLE_WEBAPP_URL');
+      if (!gasUrl) {
+        gasUrl = prompt(
+          '📌 Vui lòng dán Web App URL của Google Apps Script (ví dụ: https://script.google.com/macros/s/.../exec):\n\n(Hệ thống sẽ lưu lại trong trình duyệt để bạn không cần nhập lại các lần sau)',
+          ''
+        );
+        if (!gasUrl || !gasUrl.trim()) return;
+        gasUrl = gasUrl.trim();
+        localStorage.setItem('GOOGLE_WEBAPP_URL', gasUrl);
+      }
+
+      showModal('loadingModal', 'Đang tạo Google Spreadsheet...', 'Đang khởi tạo 6 Sheet tự động trên Google Drive...');
+
+      try {
+        const res = await fetch(gasUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'create_sheet', payload: processedReportData })
+        });
+        const data = await res.json();
+        hideModal('loadingModal');
+
+        if (data && data.url) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(data.url);
+          }
+          const openNow = confirm('✅ ĐÃ TẠO VÀ SAO CHÉP LINK GOOGLE SHEET THÀNH CÔNG!\n\nLink: ' + data.url + '\n\nBạn có muốn mở ngay Google Sheet trên tab mới không?');
+          if (openNow) {
+            window.open(data.url, '_blank');
+          }
+        } else {
+          alert('❌ Có lỗi từ Google Apps Script: ' + (data.error || JSON.stringify(data)));
+        }
+      } catch (err) {
+        hideModal('loadingModal');
+        console.error('Lỗi tạo sheet:', err);
+        const retry = confirm('⚠️ Không thể kết nối đến Google Apps Script (' + err.message + ').\n\nBạn có muốn nhập lại Web App URL không?');
+        if (retry) {
+          localStorage.removeItem('GOOGLE_WEBAPP_URL');
+          exportToGoogleSheet();
+        }
       }
     }
 

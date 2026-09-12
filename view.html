@@ -639,28 +639,16 @@
       setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
 
-    async function copyShareLink() {
-      let finalUrl = window.location.href;
-      try {
-        const shortRes = await fetch('/api/shorten', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: finalUrl })
-        });
-        if (shortRes.ok) {
-          const data = await shortRes.json();
-          if (data && data.shortUrl) finalUrl = data.shortUrl;
-        }
-      } catch (e) {}
-
+    function copyShareLink() {
+      const url = window.location.href;
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(finalUrl).then(() => {
-          showToast('✅ Đã sao chép link báo cáo rút gọn! Bạn có thể dán gửi cho cấp trên.');
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('✅ Đã sao chép link báo cáo trực tuyến! Bạn có thể dán gửi cho cấp trên.');
         }).catch(() => {
-          prompt('Copy đường link bên dưới:', finalUrl);
+          prompt('Copy đường link bên dưới:', url);
         });
       } else {
-        prompt('Copy đường link bên dưới:', finalUrl);
+        prompt('Copy đường link bên dưới:', url);
       }
     }
 

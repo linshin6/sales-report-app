@@ -119,6 +119,14 @@ function createGoogleSheetReport(payload) {
     var dash = ss.getSheetByName('Dashboard');
     if (dash) ss.setActiveSheet(dash);
 
+    // Tự động cấp quyền xem cho bất kỳ ai có liên kết để cấp trên xem trực tiếp không cần cấp quyền thủ công
+    try {
+      var file = DriveApp.getFileById(ss.getId());
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch (eShare) {
+      Logger.log('Không thể set quyền public tự động: ' + eShare);
+    }
+
     return {
       success: true,
       url: ss.getUrl(),
