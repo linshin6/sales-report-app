@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Báo Cáo Thực Đạt Team Cẩm Giang - Trực Tuyến</title>
+  <script>
+    if (window.location.protocol !== 'file:') {
+      var baseEl = document.createElement('base');
+      baseEl.href = '/';
+      document.head.prepend(baseEl);
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -751,11 +758,16 @@
         const totalStoresBhx = m.total_stores_bhx || 232;
         const bhxPerStore = Math.round(totalBhxHubs / totalStoresBhx);
 
-        const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => ({
-          hub: 'Hub ' + (idx + 1),
-          name: typeof hName === 'string' ? hName : (hName.name || hName.hub),
-          actual_sales: hubAmounts[idx] || 0
-        }));
+        const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => {
+          const name = typeof hName === 'string' ? hName : (hName.name || hName.hub);
+          const amt = hubAmounts[idx] || 0;
+          return {
+            hub: 'Hub ' + (idx + 1),
+            name: name,
+            amount: amt,
+            actual_sales: amt
+          };
+        });
 
         // 2. Stores
         const storeSalesMap = {};
@@ -767,8 +779,10 @@
           chain: s.chain,
           employee_name: s.employee_name,
           store_code: s.store_code,
-          store_name: s.store_name || s.store_code,
+          store_name: s.store_name || s.name || (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : '')),
           address: s.address || s.store_address || '',
+          store_address: s.store_address || s.address || '',
+          actual: storeSalesMap[idx] || 0,
           actual_sales: storeSalesMap[idx] || 0
         }));
 
@@ -902,8 +916,10 @@
         chain: s.chain,
         employee_name: s.employee_name,
         store_code: s.store_code,
-        store_name: s.store_name || s.store_code,
+        store_name: s.store_name || s.name || (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : '')),
         address: s.address || s.store_address || '',
+        store_address: s.store_address || s.address || '',
+        actual: storeSalesMap[s.store_code] || 0,
         actual_sales: storeSalesMap[s.store_code] || 0
       }));
 
@@ -956,6 +972,7 @@
         return {
           hub: 'Hub ' + (i + 1),
           name: hName,
+          amount: amt,
           actual_sales: amt
         };
       });
@@ -1027,18 +1044,46 @@
           }
         }
 
+        const normalizeReportData = (data) => {
+          if (!data) return null;
+          // 1. Chuẩn hoá Hubs BHX (hỗ trợ cả amount và actual_sales)
+          if (Array.isArray(data.bhx_hubs)) {
+            data.bhx_hubs.forEach(h => {
+              const val = (h.amount !== undefined && h.amount !== null) ? h.amount : ((h.actual_sales !== undefined && h.actual_sales !== null) ? h.actual_sales : 0);
+              h.amount = val;
+              h.actual_sales = val;
+            });
+          }
+          // 2. Chuẩn hoá 142 Điểm bán CVS (hỗ trợ cả actual & actual_sales, store_address & address, store_name)
+          if (Array.isArray(data.stores)) {
+            data.stores.forEach(s => {
+              const val = (s.actual !== undefined && s.actual !== null) ? s.actual : ((s.actual_sales !== undefined && s.actual_sales !== null) ? s.actual_sales : 0);
+              s.actual = val;
+              s.actual_sales = val;
+              const addr = s.store_address || s.address || '';
+              s.store_address = addr;
+              s.address = addr;
+              if (!s.store_name || s.store_name === 'undefined') {
+                const chain = s.chain || '';
+                const codeSuffix = s.store_code ? s.store_code.replace(/^CVS_[^.]+\.\d+\./, '#') : '';
+                s.store_name = s.name || (chain ? (chain + (codeSuffix ? ' ' + codeSuffix : '')) : (s.store_code || 'Điểm bán CVS'));
+              }
+            });
+          }
+          return data;
+        };
+
         const parseDataPayload = (d) => {
           if (!d) return null;
+          let parsed = null;
           if (d.payload && (d.payload.employees || d.payload.bhx_hubs)) {
-            return d.payload;
+            parsed = d.payload;
+          } else if (d.employees || d.bhx_hubs) {
+            parsed = d;
+          } else if (d.h || d.emps || d.s) {
+            parsed = reconstitutePayload(d);
           }
-          if (d.employees || d.bhx_hubs) {
-            return d;
-          }
-          if (d.h || d.emps || d.s) {
-            return reconstitutePayload(d);
-          }
-          return null;
+          return normalizeReportData(parsed);
         };
 
         if (idParam) {
@@ -1781,13 +1826,14 @@
       let sumHubs = 0;
 
       (data.bhx_hubs || []).forEach((h, idx) => {
-        sumHubs += (h.actual_sales || 0);
+        const val = (h.actual_sales !== undefined && h.actual_sales !== null) ? h.actual_sales : ((h.amount !== undefined && h.amount !== null) ? h.amount : 0);
+        sumHubs += val;
 
         tbody.innerHTML += `
           <tr>
             <td class="text-center font-bold">${idx + 1}</td>
             <td class="font-bold">${h.name}</td>
-            <td class="text-right font-bold" style="color:#059669;">${formatMoney(h.actual_sales)}</td>
+            <td class="text-right font-bold" style="color:#059669;">${formatMoney(val)}</td>
             <td>Khách hàng XH4001</td>
           </tr>
         `;
@@ -1796,8 +1842,8 @@
       tfoot.innerHTML = `
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
-          <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumHubs)}</td>
-          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ 232 CH)</td>
+          <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(data.total_actual_bhx_hubs || sumHubs)}</td>
+          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 232} CH)</td>
         </tr>
       `;
     }
@@ -1835,7 +1881,7 @@
 
     function filterCvsTable() {
       if (!reportData) return;
-      const search = (document.getElementById('searchCvs').value || '').toLowerCase();
+      const search = (document.getElementById('searchCvs').value || '').toLowerCase().trim();
       const chain = document.getElementById('filterCvsChain').value;
       const emp = document.getElementById('filterCvsEmp').value;
 
@@ -1844,7 +1890,10 @@
       tbody.innerHTML = '';
 
       const filtered = (reportData.stores || []).filter(s => {
-        const matchSearch = !search || s.store_code.toLowerCase().includes(search) || s.store_name.toLowerCase().includes(search) || (s.address && s.address.toLowerCase().includes(search));
+        const sCode = (s.store_code || '').toLowerCase();
+        const sName = (s.store_name || s.name || '').toLowerCase();
+        const sAddr = (s.store_address || s.address || '').toLowerCase();
+        const matchSearch = !search || sCode.includes(search) || sName.includes(search) || sAddr.includes(search);
         const matchChain = !chain || s.chain === chain;
         const matchEmp = !emp || s.employee_name === emp;
         return matchSearch && matchChain && matchEmp;
@@ -1856,7 +1905,8 @@
       let lastEmp = null;
 
       filtered.forEach((s, idx) => {
-        sumCvs += (s.actual_sales || 0);
+        const val = (s.actual_sales !== undefined && s.actual_sales !== null) ? s.actual_sales : ((s.actual !== undefined && s.actual !== null) ? s.actual : 0);
+        sumCvs += val;
         const isNewEmp = lastEmp !== null && s.employee_name !== lastEmp;
         const isFirstOfEmp = lastEmp !== s.employee_name;
         lastEmp = s.employee_name;
@@ -1873,15 +1923,20 @@
           ? `<span style="display:inline-flex; align-items:center; gap:6px; font-weight:800; color:#0F172A; background:#F1F5F9; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1;">👤 ${s.employee_name}</span>`
           : `<span style="color:#64748B; font-weight:500; padding-left:14px;">${s.employee_name}</span>`;
 
+        const displayName = (s.store_name && s.store_name !== 'undefined')
+          ? s.store_name
+          : (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : ''));
+        const displayAddr = s.store_address || s.address || '';
+
         tbody.innerHTML += `
           <tr ${isFirstOfEmp ? 'style="border-top:2px solid #0F766E; background:#FAFDFD;"' : ''}>
             <td class="text-center font-bold" style="color:#64748B;">${idx + 1}</td>
             <td>${getCvsChainBadge(s.chain)}</td>
             <td>${empCell}</td>
-            <td class="font-bold" style="color:#1E293B;">${s.store_code}</td>
-            <td style="font-weight:600;">${s.store_name}</td>
-            <td style="max-width:350px; font-size:11.5px; color:#475569;">${s.address || ''}</td>
-            <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${formatMoney(s.actual_sales)}</td>
+            <td class="font-bold" style="color:#1E293B;"><code>${s.store_code || '-'}</code></td>
+            <td style="font-weight:600;">${displayName}</td>
+            <td style="max-width:350px; font-size:11.5px; color:#475569;">${displayAddr}</td>
+            <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${formatMoney(val)}</td>
           </tr>
         `;
       });
@@ -2459,7 +2514,7 @@
           sLbl.border = thinBorder;
 
           const sTot = ws3.getCell(`F${curR3}`);
-          const empTotVal = empStores.reduce((a,x)=>a+(x.actual||0), 0);
+          const empTotVal = empStores.reduce((a,x)=>a+((x.actual !== undefined && x.actual !== null) ? x.actual : (x.actual_sales || 0)), 0);
           sTot.value = empTotVal;
           sTot.numFmt = '#,##0';
           sTot.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
@@ -2488,8 +2543,9 @@
             chCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
 
             setS('D', st.store_code || '', null, false, 'left');
-            setS('E', st.store_address || '', null, false, 'left');
-            setS('F', st.actual || 0, '#,##0', false, 'right');
+            setS('E', st.store_address || st.address || '', null, false, 'left');
+            const stActual = (st.actual !== undefined && st.actual !== null) ? st.actual : (st.actual_sales || 0);
+            setS('F', stActual, '#,##0', false, 'right');
 
             ws3.getRow(curR3).height = 20;
             curR3++;

@@ -3216,8 +3216,11 @@ const DEFAULT_FM_STORES = [
           employee_name: s.employee_name,
           chain: s.chain,
           store_code: s.store_code,
+          store_name: s.store_name || s.name || (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : '')),
           store_address: s.store_address,
-          actual: actual
+          address: s.store_address,
+          actual: actual,
+          actual_sales: actual
         });
       }
 
@@ -3281,7 +3284,8 @@ const DEFAULT_FM_STORES = [
 
       const bhxHubsFormatted = DEFAULT_MASTER.bhx_hubs.map(h => ({
         name: h,
-        amount: Math.round(bhxHubAmounts[h] || 0)
+        amount: Math.round(bhxHubAmounts[h] || 0),
+        actual_sales: Math.round(bhxHubAmounts[h] || 0)
       }));
 
       const totFmTgt = matchedFmMatrix.reduce((a, b) => a + (b.target || 0), 0);

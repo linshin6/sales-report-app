@@ -11,6 +11,7 @@
     }
   },
   "rewrites": [
+    { "source": "/r/:file(.*\\..*)", "destination": "/:file" },
     { "source": "/r/:id", "destination": "/view.html?id=:id" },
     { "source": "/r", "destination": "/view.html" },
     { "source": "/view", "destination": "/view.html" }
