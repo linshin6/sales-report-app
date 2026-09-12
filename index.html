@@ -3275,7 +3275,8 @@ const DEFAULT_FM_STORES = [
         });
       }
 
-      const totalActualTeam = totalActualBhx + totalCvsTeam;
+      const totalBhxTeam = employeesSummary.reduce((acc, e) => acc + (e.bhx_actual || 0), 0);
+      const totalActualTeam = totalBhxTeam + totalCvsTeam;
       const teamPct = totalTargetTeam > 0 ? parseFloat(((totalActualTeam / totalTargetTeam) * 100).toFixed(2)) : 0;
 
       const bhxHubsFormatted = DEFAULT_MASTER.bhx_hubs.map(h => ({
@@ -3307,7 +3308,8 @@ const DEFAULT_FM_STORES = [
         year: year,
         timegone: timePct,
         total_target: totalTargetTeam,
-        total_actual_bhx: Math.round(totalActualBhx),
+        total_actual_bhx: totalBhxTeam,
+        total_actual_bhx_hubs: Math.round(totalActualBhx),
         total_stores_bhx: totalStoresBhx,
         total_stores_bhx_team: totalStoresBhxTeam,
         bhx_per_store: Math.round(bhxPerStore),
@@ -6898,8 +6900,10 @@ const DEFAULT_FM_STORES = [
           };
         });
 
-        const totalActual = totalActualBhx + totalCvs;
-        const teamPct = parseFloat(((totalActual / totalTarget) * 100).toFixed(2));
+        const totalBhxTeam = emps.reduce((acc, e) => acc + (e.bhx_actual || 0), 0);
+        const totalStoresBhxTeam = emps.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
+        const totalActual = totalBhxTeam + totalCvs;
+        const teamPct = totalTarget > 0 ? parseFloat(((totalActual / totalTarget) * 100).toFixed(2)) : 0;
 
         processedReportData = {
           mode: window.currentReportMode || 'actual',
@@ -6908,8 +6912,10 @@ const DEFAULT_FM_STORES = [
           year: year,
           timegone: timePct,
           total_target: totalTarget,
-          total_actual_bhx: totalActualBhx,
+          total_actual_bhx: totalBhxTeam,
+          total_actual_bhx_hubs: totalActualBhx,
           total_stores_bhx: totalStoresBhx,
+          total_stores_bhx_team: totalStoresBhxTeam,
           bhx_per_store: bhxPerStore,
           total_cvs: totalCvs,
           total_actual: totalActual,

@@ -558,10 +558,10 @@ function createBhxDataSheet(ss, p) {
   ws.setRowHeight(1, 28);
 
   // Top Summary
-  ws.getRange('A3').setValue('Tổng Thực Hiện BHX:').setFontWeight('bold').setBackground('#FFF2CC');
-  ws.getRange('B3').setValue(p.total_actual_bhx || 0).setNumberFormat('#,##0').setFontWeight('bold').setFontColor('#C00000').setBackground('#FFF9E6');
+  ws.getRange('A3').setValue('Tổng DS 5 Hubs Hệ Thống:').setFontWeight('bold').setBackground('#FFF2CC');
+  ws.getRange('B3').setValue(p.total_actual_bhx_hubs || p.total_actual_bhx || 0).setNumberFormat('#,##0').setFontWeight('bold').setFontColor('#C00000').setBackground('#FFF9E6');
 
-  ws.getRange('A4').setValue('Tổng số cửa hàng:').setFontWeight('bold').setBackground('#FFF2CC');
+  ws.getRange('A4').setValue('Tổng số CH hệ thống:').setFontWeight('bold').setBackground('#FFF2CC');
   ws.getRange('B4').setValue(p.total_stores_bhx || 232).setFontWeight('bold').setBackground('#FFF9E6');
 
   ws.getRange('A5').setValue('TB doanh số/CH:').setFontWeight('bold').setBackground('#FFF2CC');
@@ -577,6 +577,7 @@ function createBhxDataSheet(ss, p) {
 
   var emps = p.employees || [];
   var startRow = 8;
+  var totalRow = startRow + emps.length;
   for (var k = 0; k < emps.length; k++) {
     var r = startRow + k;
     ws.getRange(r, 1).setValue(k + 1).setHorizontalAlignment('center');
@@ -584,20 +585,19 @@ function createBhxDataSheet(ss, p) {
     ws.getRange(r, 3).setValue(emps[k].bhx_stores).setHorizontalAlignment('center');
     ws.getRange(r, 4).setFormula('=$B$5').setNumberFormat('#,##0').setHorizontalAlignment('right');
     ws.getRange(r, 5).setFormula('=C' + r + '*D' + r).setNumberFormat('#,##0').setFontWeight('bold').setHorizontalAlignment('right');
-    ws.getRange(r, 6).setFormula('=IF($B$3>0, E' + r + '/$B$3, 0)').setNumberFormat('0.0%').setHorizontalAlignment('center');
+    ws.getRange(r, 6).setFormula('=IF($E$' + totalRow + '>0, E' + r + '/$E$' + totalRow + ', 0)').setNumberFormat('0.0%').setHorizontalAlignment('center');
     ws.setRowHeight(r, 20);
   }
 
   // Row Total
-  var totalRow = startRow + emps.length;
   var totLabel = ws.getRange(totalRow, 1, 1, 2);
   totLabel.merge();
-  totLabel.setValue('TỔNG CỘNG').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('center');
+  totLabel.setValue('TỔNG CỘNG TEAM').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('center');
 
   ws.getRange(totalRow, 3).setFormula('=SUM(C' + startRow + ':C' + (totalRow - 1) + ')').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('center');
   ws.getRange(totalRow, 4).setFormula('=$B$5').setNumberFormat('#,##0').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('right');
-  ws.getRange(totalRow, 5).setFormula('=$B$3').setNumberFormat('#,##0').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('right');
-  ws.getRange(totalRow, 6).setValue(1).setNumberFormat('0.0%').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('center');
+  ws.getRange(totalRow, 5).setFormula('=SUM(E' + startRow + ':E' + (totalRow - 1) + ')').setNumberFormat('#,##0').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('right');
+  ws.getRange(totalRow, 6).setFormula('=SUM(F' + startRow + ':F' + (totalRow - 1) + ')').setNumberFormat('0.0%').setFontWeight('bold').setBackground('#D9E1F2').setHorizontalAlignment('center');
   ws.setRowHeight(totalRow, 24);
 
   ws.getRange('A7:F' + totalRow).setBorder(true, true, true, true, true, true, '#B4B4B4', SpreadsheetApp.BorderStyle.SOLID);
