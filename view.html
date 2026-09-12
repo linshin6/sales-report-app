@@ -1069,6 +1069,21 @@
                 s.store_name = s.name || (chain ? (chain + (codeSuffix ? ' ' + codeSuffix : '')) : (s.store_code || 'Điểm bán CVS'));
               }
             });
+
+            // Gộp tất cả cửa hàng của cùng một nhân viên đứng liền nhau (không bị ngắt quãng)
+            const empOrderMap = {};
+            (data.employees || []).forEach((e, i) => { empOrderMap[e.name] = i; });
+            const chainOrder = { 'Circle K': 1, 'FamilyMart': 2, 'GS25': 3, '7-Eleven': 4, 'Hoàng Đức': 5, 'WinMart+': 6 };
+
+            data.stores.sort((a, b) => {
+              const idxA = empOrderMap[a.employee_name] !== undefined ? empOrderMap[a.employee_name] : 999;
+              const idxB = empOrderMap[b.employee_name] !== undefined ? empOrderMap[b.employee_name] : 999;
+              if (idxA !== idxB) return idxA - idxB;
+              const cA = chainOrder[a.chain] || 99;
+              const cB = chainOrder[b.chain] || 99;
+              if (cA !== cB) return cA - cB;
+              return (a.store_code || '').localeCompare(b.store_code || '');
+            });
           }
           return data;
         };

@@ -3224,6 +3224,20 @@ const DEFAULT_FM_STORES = [
         });
       }
 
+      // Sắp xếp và gộp các cửa hàng của cùng một nhân viên đứng liền nhau
+      const empOrderMap = {};
+      (currentMaster.employees || []).forEach((e, idx) => { empOrderMap[e.name] = idx; });
+      const chainOrder = { 'Circle K': 1, 'FamilyMart': 2, 'GS25': 3, '7-Eleven': 4, 'Hoàng Đức': 5, 'WinMart+': 6 };
+      updatedStores.sort((a, b) => {
+        const idxA = empOrderMap[a.employee_name] !== undefined ? empOrderMap[a.employee_name] : 999;
+        const idxB = empOrderMap[b.employee_name] !== undefined ? empOrderMap[b.employee_name] : 999;
+        if (idxA !== idxB) return idxA - idxB;
+        const cA = chainOrder[a.chain] || 99;
+        const cB = chainOrder[b.chain] || 99;
+        if (cA !== cB) return cA - cB;
+        return (a.store_code || '').localeCompare(b.store_code || '');
+      });
+
       allStoresList = updatedStores;
 
       const month = currentMaster.month;
@@ -3709,6 +3723,20 @@ const DEFAULT_FM_STORES = [
     function renderStoresTable(stores) {
       const tbody = document.getElementById('storesTableBody');
       tbody.innerHTML = '';
+      if (!stores || !stores.length) return;
+
+      const empOrderMap = {};
+      (DEFAULT_MASTER.employees || []).forEach((e, idx) => { empOrderMap[e.name] = idx; });
+      const chainOrder = { 'Circle K': 1, 'FamilyMart': 2, 'GS25': 3, '7-Eleven': 4, 'Hoàng Đức': 5, 'WinMart+': 6 };
+      const sortedStores = [...stores].sort((a, b) => {
+        const idxA = empOrderMap[a.employee_name] !== undefined ? empOrderMap[a.employee_name] : 999;
+        const idxB = empOrderMap[b.employee_name] !== undefined ? empOrderMap[b.employee_name] : 999;
+        if (idxA !== idxB) return idxA - idxB;
+        const cA = chainOrder[a.chain] || 99;
+        const cB = chainOrder[b.chain] || 99;
+        if (cA !== cB) return cA - cB;
+        return (a.store_code || '').localeCompare(b.store_code || '');
+      });
 
       function getChainBadgeLocal(chain) {
         const c = (chain || '').trim();
@@ -3730,7 +3758,7 @@ const DEFAULT_FM_STORES = [
       }
 
       let lastEmp = null;
-      stores.forEach((s, idx) => {
+      sortedStores.forEach((s, idx) => {
         const isNewEmp = lastEmp !== null && s.employee_name !== lastEmp;
         const isFirstOfEmp = lastEmp !== s.employee_name;
         lastEmp = s.employee_name;
