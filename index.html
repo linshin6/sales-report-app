@@ -851,20 +851,150 @@
       border-color: #14b8a6;
       box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
     }
+
+    /* Mode Switcher in Navbar */
+    .mode-switcher-nav {
+      display: inline-flex;
+      align-items: center;
+      background: #e2e8f0;
+      padding: 3px;
+      border-radius: 30px;
+      gap: 3px;
+    }
+    .mode-pill {
+      border: none;
+      background: transparent;
+      padding: 6px 13px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .mode-pill:hover {
+      color: #0f172a;
+    }
+    .mode-pill.active.pill-target {
+      background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.35);
+    }
+    .mode-pill.active.pill-actual {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+    }
+    .mode-pill-icon {
+      background: transparent;
+      border: none;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+    }
+    .mode-pill-icon:hover {
+      transform: rotate(30deg);
+      background: rgba(0,0,0,0.06);
+    }
+    .mode-choice-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .mode-choice-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.15);
+    }
   </style>
 </head>
 <body>
+
+  <!-- Mode Choice Modal (Hiển thị khi vào ứng dụng hoặc bấm cấu hình chế độ) -->
+  <div class="modal-overlay" id="modeChoiceModal">
+    <div class="modal-content" style="max-width: 660px; padding: 28px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);">
+      <div style="text-align: center; margin-bottom: 22px;">
+        <div style="display:inline-block; font-size:38px; margin-bottom:8px;">📊</div>
+        <h2 style="font-size: 22px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">CHỌN LOẠI BÁO CÁO</h2>
+        <p style="font-size: 14px; color: #475569; max-width: 520px; margin: 0 auto;">
+          Vui lòng chọn loại báo cáo bạn muốn thực hiện. Bạn có thể dễ dàng chuyển đổi linh hoạt bất kỳ lúc nào trên thanh điều hướng.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 20px;">
+        <!-- Option 1: Có Target -->
+        <div class="mode-choice-card" onclick="selectReportModeAndClose('target')" style="border: 2px solid #0d9488; background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <span style="font-size: 28px;">🎯</span>
+            <span style="background: #ccfbf1; color: #0f766e; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;">Kế Hoạch & KPI</span>
+          </div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #0f766e; margin-bottom: 8px;">1. Báo Cáo Có Target</h3>
+          <p style="font-size: 13px; color: #334155; line-height: 1.5; flex: 1; margin-bottom: 16px;">
+            Cho phép <strong>nạp file Target</strong> hoặc <strong>sửa chỉ tiêu 10 nhân viên</strong>. Báo cáo hiển thị cột Target, tính % Đạt so với % Timegone, xếp hạng theo tiến độ và xuất file Excel có Target.
+          </p>
+          <button class="btn" style="background: #0d9488; color: #ffffff; font-weight: 700; width: 100%; border: none; border-radius: 10px; padding: 10px; font-size: 13.5px; pointer-events: none;">
+            👉 Chọn Báo Cáo Có Target
+          </button>
+        </div>
+
+        <!-- Option 2: Không có Target (Thực Đạt) -->
+        <div class="mode-choice-card" onclick="selectReportModeAndClose('actual')" style="border: 2px solid #3b82f6; background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <span style="font-size: 28px;">📦</span>
+            <span style="background: #dbeafe; color: #1e40af; font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;">Doanh Số Thực Đạt</span>
+          </div>
+          <h3 style="font-size: 17px; font-weight: 800; color: #1d4ed8; margin-bottom: 8px;">2. Báo Cáo Không Có Target</h3>
+          <p style="font-size: 13px; color: #334155; line-height: 1.5; flex: 1; margin-bottom: 16px;">
+            Ẩn phần nạp target, nạp thẳng 2 file doanh số hàng ngày. Báo cáo tập trung 100% vào <strong>doanh số thực tế đã về</strong>, xếp hạng theo Tổng Thực Hiện (như bản hiện tại).
+          </p>
+          <button class="btn" style="background: #2563eb; color: #ffffff; font-weight: 700; width: 100%; border: none; border-radius: 10px; padding: 10px; font-size: 13.5px; pointer-events: none;">
+            👉 Chọn Báo Cáo Thực Đạt
+          </button>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+        <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #64748b; cursor: pointer;">
+          <input type="checkbox" id="chkRememberMode" checked style="accent-color: #0d9488;"> Ghi nhớ lựa chọn này
+        </label>
+        <button class="btn btn-outline" onclick="closeModal('modeChoiceModal')" style="padding: 6px 14px; font-size: 12.5px;">Đóng</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Top Navbar -->
   <nav class="navbar">
     <div class="brand">
       <div class="brand-icon">📊</div>
       <div class="brand-title">
-        <h1>BÁO CÁO THỰC ĐẠT (CVS & BHX)</h1>
-        <p>Hệ Thống Phân Bổ Tự Động - Chuẩn Format Team_CamGiang_Report</p>
+        <h1 id="navbarMainTitle">BÁO CÁO DOANH SỐ & TARGET KPI</h1>
+        <p id="navbarMainDesc">Hệ Thống Phân Bổ Tự Động - Chuẩn Format Team_CamGiang_Report</p>
       </div>
     </div>
     <div class="nav-meta">
+      <!-- Mode Switcher Segmented Pills -->
+      <div class="mode-switcher-nav" id="modeSwitcherNav" title="Chuyển đổi giữa 2 chế độ báo cáo">
+        <button class="mode-pill active pill-target" id="btnModeTarget" onclick="setReportMode('target')">
+          🎯 Có Target
+        </button>
+        <button class="mode-pill" id="btnModeActual" onclick="setReportMode('actual')">
+          📊 Thực Đạt
+        </button>
+        <button class="mode-pill-icon" onclick="openModeChoiceModal()" title="Mở hộp thoại chọn chế độ">
+          ⚙️
+        </button>
+      </div>
+
       <div class="pill-badge">
         <span>👤 Team Lead:</span>
         <strong id="headerTeamLead">Trần Thị Cẩm Giang</strong>
@@ -884,7 +1014,7 @@
   <div class="container">
 
     <!-- 1. TARGET / KPI CẬP NHẬT THÁNG MỚI (NEW FEATURE REQUESTED BY USER) -->
-    <section class="card">
+    <section class="card" id="sectionTarget">
       <div class="card-header">
         <div class="card-title">
           <span>🎯</span>
@@ -921,7 +1051,7 @@
     </section>
 
     <!-- 2. NẠP 2 FILE DOANH SỐ HÀNG NGÀY -->
-    <section class="card">
+    <section class="card" id="sectionUploadDaily">
       <div class="card-header">
         <div class="card-title">
           <span>📥</span>
@@ -994,29 +1124,8 @@
     <!-- 3. DASHBOARD BÁO CÁO (HIỂN THỊ KHI TÍNH TOÁN XONG) -->
     <div id="reportDashboard" style="display: none;">
 
-      <!-- 4 KPI Cards Tập Trung Doanh Số Thực Tế -->
-      <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-        <div class="kpi-card bhx">
-          <div class="kpi-title">Thực Hiện BHX <span>📦</span></div>
-          <div class="kpi-value" id="kpiBhx">0 ₫</div>
-          <div class="kpi-sub" id="kpiBhxPerStore">TB: 0 ₫/CH</div>
-        </div>
-        <div class="kpi-card cvs">
-          <div class="kpi-title">Thực Hiện CVS & NPP <span>🏪</span></div>
-          <div class="kpi-value" id="kpiCvs">0 ₫</div>
-          <div class="kpi-sub" id="kpiCvsStoresCount">142 Cửa hàng CVS</div>
-        </div>
-        <div class="kpi-card total">
-          <div class="kpi-title">Tổng Doanh Số Thực Hiện <span>💰</span></div>
-          <div class="kpi-value" id="kpiTotal">0 ₫</div>
-          <div class="kpi-sub" id="kpiTotalSub">Toàn bộ BHX + CVS</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-title">Quy Mô Đội Ngũ <span>👥</span></div>
-          <div class="kpi-value" id="kpiTeamSize">10 Nhân Viên</div>
-          <div class="kpi-sub" id="kpiTimegoneDiff">Tiến độ tháng: 0.0%</div>
-        </div>
-      </div>
+      <!-- KPI Cards Container: Hiển thị linh hoạt theo Chế Độ Báo Cáo -->
+      <div class="kpi-grid" id="kpiGridContainer" style="margin-bottom: 20px;"></div>
 
       <!-- Status Banner -->
       <div class="status-banner pass" id="statusBar">
@@ -1079,20 +1188,7 @@
         </div>
         <div class="table-container" id="teamTableContainer">
           <table>
-            <thead>
-              <tr>
-                <th class="text-center" style="width:45px;">STT</th>
-                <th>Nhân Viên</th>
-                <th class="text-right">BHX (cố định)</th>
-                <th class="text-right">GS25</th>
-                <th class="text-right">7-Eleven</th>
-                <th class="text-right">FamilyMart</th>
-                <th class="text-right">Circle K</th>
-                <th class="text-right">Hoàng Đức</th>
-                <th class="text-right">WinMart+</th>
-                <th class="text-right" style="background:#2E75B6;">Tổng TH (BHX+CVS)</th>
-              </tr>
-            </thead>
+            <thead id="teamTableHead"></thead>
             <tbody id="teamTableBody"></tbody>
             <tfoot id="teamTableFoot" style="background:#1F4E78; color:white; font-weight:700;"></tfoot>
           </table>
@@ -1125,17 +1221,9 @@
         </div>
         <div class="table-container" id="rankTableContainer">
           <table>
-            <thead>
-              <tr>
-                <th class="text-center" style="background:#4472C4; width:60px;">Hạng</th>
-                <th style="background:#4472C4;">Nhân Viên</th>
-                <th class="text-right" style="background:#4472C4;">Doanh Số BHX</th>
-                <th class="text-right" style="background:#4472C4;">Doanh Số CVS</th>
-                <th class="text-right" style="background:#4472C4;">Tổng Thực Hiện</th>
-                <th class="text-center" style="background:#4472C4;">Tỷ Trọng DS (%)</th>
-              </tr>
-            </thead>
+            <thead id="rankTableHead"></thead>
             <tbody id="rankTableBody"></tbody>
+            <tfoot id="rankTableFoot"></tfoot>
           </table>
         </div>
       </div>
@@ -1149,24 +1237,24 @@
               <option value="">Tất cả chuỗi cửa hàng</option>
               <option value="GS25">GS25</option>
               <option value="7-Eleven">7-Eleven</option>
-              <option value="Circle K">Circle K</option>
               <option value="FamilyMart">FamilyMart</option>
-              <option value="WinMart+">WinMart+</option>
+              <option value="Circle K">Circle K</option>
               <option value="Hoàng Đức">Hoàng Đức</option>
+              <option value="WinMart+">WinMart+</option>
             </select>
             <select class="search-input" id="filterEmp" onchange="filterStoresTable()" style="padding:6px 12px; font-size:13px;">
               <option value="">Tất cả nhân viên</option>
             </select>
-            <span id="storesCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">142 CH</span>
+            <span id="storeCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">142 Cửa hàng</span>
           </div>
           <div class="sheet-toolbar-right">
-            <button class="btn-zalo" onclick="captureAndSendToZalo('tabStores')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp danh sách CH và gửi ngay sang Zalo">
+            <button class="btn-zalo" onclick="captureAndSendToZalo('tabStores')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
               💬 Gửi Zalo
             </button>
             <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabStores')" title="Gửi danh sách cửa hàng vào Telegram">
               ✈️ Gửi Telegram
             </button>
-            <button class="btn-capture" onclick="captureCurrentSheet('tabStores')" title="Chụp và sao chép ảnh danh sách cửa hàng đang lọc">
+            <button class="btn-capture" onclick="captureCurrentSheet('tabStores')" title="Chụp ảnh danh sách cửa hàng">
               📸 Copy Danh Sách CH
             </button>
             <button class="btn-capture-outline" onclick="downloadCurrentSheetImage('tabStores')" title="Tải ảnh về máy">
@@ -1178,15 +1266,17 @@
           <table>
             <thead>
               <tr>
-                <th class="text-center" style="background:#2E75B6; width:50px;">STT</th>
-                <th style="background:#2E75B6;">Nhân Viên</th>
-                <th class="text-center" style="background:#2E75B6;">Chuỗi</th>
-                <th style="background:#2E75B6;">Mã CH</th>
-                <th style="background:#2E75B6;">Địa Chỉ Cửa Hàng</th>
-                <th class="text-right" style="background:#2E75B6;">Thực Hiện (VNĐ)</th>
+                <th class="text-center" style="width:45px;">STT</th>
+                <th>Chuỗi</th>
+                <th>Nhân Viên Quản Lý</th>
+                <th>Mã CH</th>
+                <th>Tên Cửa Hàng</th>
+                <th>Địa Chỉ</th>
+                <th class="text-right">Doanh Số (VNĐ)</th>
               </tr>
             </thead>
             <tbody id="storesTableBody"></tbody>
+            <tfoot id="storesTableFoot" style="background:#1F4E78; color:white; font-weight:700;"></tfoot>
           </table>
         </div>
       </div>
@@ -1213,10 +1303,10 @@
           <table>
             <thead>
               <tr>
-                <th class="text-center" style="background:#2E75B6; width:50px;">STT</th>
-                <th style="background:#2E75B6;">Hub Bách Hóa Xanh (XH4001)</th>
-                <th class="text-right" style="background:#2E75B6;">Doanh Số Thực Tế (VNĐ)</th>
-                <th style="background:#2E75B6;">Ghi Chú</th>
+                <th class="text-center" style="width:50px;">STT</th>
+                <th>Hub Bách Hóa Xanh (XH4001)</th>
+                <th class="text-right" style="color:#86EFAC; width:220px;">Doanh Số Thực Tế (VNĐ)</th>
+                <th style="width:200px;">Ghi Chú</th>
               </tr>
             </thead>
             <tbody id="bhxHubsTableBody"></tbody>
@@ -1280,29 +1370,8 @@
           </div>
         </div>
 
-        <!-- 5 KPI Summary Cards Tập Trung Doanh Số Thực Tế -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:20px;">
-          <div class="kpi-card" style="padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Số Cửa Hàng</div>
-            <div id="fmKpiStores" style="font-size:18px; font-weight:800; color:#0F172A; margin-top:4px;">35 CH</div>
-          </div>
-          <div class="kpi-card" style="padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tổng Thực Hiện Nhập</div>
-            <div id="fmKpiActual" style="font-size:17px; font-weight:800; color:#059669; margin-top:4px;">0 ₫</div>
-          </div>
-          <div class="kpi-card" style="padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">TB Doanh Số/CH</div>
-            <div id="fmKpiAvg" style="font-size:17px; font-weight:800; color:#1E3A5F; margin-top:4px;">0 ₫</div>
-          </div>
-          <div class="kpi-card" style="padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">CH Có Phát Sinh Đơn</div>
-            <div id="fmKpiOrdered" style="font-size:16px; font-weight:800; color:#2563EB; margin-top:4px;">0/35 CH</div>
-          </div>
-          <div class="kpi-card" style="padding:14px; text-align:center;">
-            <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tỷ Lệ CH Có Đơn</div>
-            <div id="fmKpiOrderedPct" style="font-size:16px; font-weight:800; color:#D97706; margin-top:4px;">0.0%</div>
-          </div>
-        </div>
+        <!-- KPI Summary Cards Container (Hiển thị linh hoạt theo Chế Độ Báo Cáo) -->
+        <div id="fmKpiCardsContainer" style="display:grid; gap:12px; margin-bottom:20px;"></div>
 
         <!-- Filter Controls -->
         <div class="sheet-toolbar">
@@ -2364,13 +2433,91 @@ const DEFAULT_FM_STORES = [
       }
     }
 
+    // =========================================================================
+    // 2.1. REPORT MODE MANAGEMENT (CÓ TARGET VS THỰC ĐẠT)
+    // =========================================================================
+    window.currentReportMode = localStorage.getItem('PREFERRED_REPORT_MODE') || 'target';
+
+    function openModeChoiceModal() {
+      showModal('modeChoiceModal');
+    }
+
+    function selectReportModeAndClose(mode) {
+      const chk = document.getElementById('chkRememberMode');
+      if (chk && chk.checked) {
+        localStorage.setItem('PREFERRED_REPORT_MODE', mode);
+      } else {
+        localStorage.removeItem('PREFERRED_REPORT_MODE');
+      }
+      setReportMode(mode);
+      closeModal('modeChoiceModal');
+
+      setTimeout(() => {
+        if (mode === 'target') {
+          const secTarget = document.getElementById('sectionTarget');
+          if (secTarget) {
+            secTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        } else {
+          const secUpload = document.getElementById('sectionUploadDaily');
+          if (secUpload) {
+            secUpload.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 150);
+    }
+
+    function setReportMode(mode) {
+      window.currentReportMode = mode;
+      localStorage.setItem('PREFERRED_REPORT_MODE', mode);
+
+      const btnTarget = document.getElementById('btnModeTarget');
+      const btnActual = document.getElementById('btnModeActual');
+      if (btnTarget && btnActual) {
+        if (mode === 'target') {
+          btnTarget.classList.add('active', 'pill-target');
+          btnActual.classList.remove('active', 'pill-actual');
+        } else {
+          btnTarget.classList.remove('active', 'pill-target');
+          btnActual.classList.add('active', 'pill-actual');
+        }
+      }
+
+      const secTarget = document.getElementById('sectionTarget');
+      if (secTarget) {
+        secTarget.style.display = (mode === 'target') ? 'block' : 'none';
+      }
+
+      const h1 = document.getElementById('navbarMainTitle');
+      const desc = document.getElementById('navbarMainDesc');
+      if (h1) {
+        h1.innerText = (mode === 'target') ? 'BÁO CÁO DOANH SỐ & TARGET KPI' : 'BÁO CÁO THỰC ĐẠT (CVS & BHX)';
+      }
+      if (desc) {
+        desc.innerText = (mode === 'target') ? 'Hệ Thống Theo Dõi KPI, % Đạt & Phân Bổ Doanh Số Team' : 'Hệ Thống Phân Bổ Tự Động - Chuẩn Format Team_CamGiang_Report';
+      }
+
+      // Tự động vẽ lại toàn bộ bảng biểu và thẻ KPI nếu đã có dữ liệu
+      if (typeof processedReportData !== 'undefined' && processedReportData) {
+        renderDashboard(processedReportData);
+      }
+    }
+
     function updateTargetBannerUI() {
       const totalTgt = currentMaster.employees.reduce((acc, e) => acc + (e.target || 0), 0);
       const totalBhx = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
-      document.getElementById('targetStatusTitle').innerText = 'Target Đang Áp Dụng: Tháng ' + currentMaster.month + '/' + currentMaster.year;
-      document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX phụ trách';
-      document.getElementById('headerMonthYear').innerText = currentMaster.month + '/' + currentMaster.year;
-      document.getElementById('headerTimegone').innerText = calculateRealtimeTimegone(currentMaster.month, currentMaster.year) + '%';
+      if (document.getElementById('targetStatusTitle')) {
+        document.getElementById('targetStatusTitle').innerText = 'Target Đang Áp Dụng: Tháng ' + currentMaster.month + '/' + currentMaster.year;
+      }
+      if (document.getElementById('targetStatusDesc')) {
+        document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX phụ trách';
+      }
+      if (document.getElementById('headerMonthYear')) {
+        document.getElementById('headerMonthYear').innerText = currentMaster.month + '/' + currentMaster.year;
+      }
+      if (document.getElementById('headerTimegone')) {
+        document.getElementById('headerTimegone').innerText = calculateRealtimeTimegone(currentMaster.month, currentMaster.year) + '%';
+      }
     }
 
     // =========================================================================
@@ -3081,6 +3228,7 @@ const DEFAULT_FM_STORES = [
 
       let totalTargetTeam = 0;
       let totalCvsTeam = 0;
+      const totalStoresBhxTeam = currentMaster.employees ? currentMaster.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0) : 178;
       const employeesSummary = [];
 
       for (let emp of currentMaster.employees) {
@@ -3126,9 +3274,7 @@ const DEFAULT_FM_STORES = [
         });
       }
 
-      const totalBhxTeam = employeesSummary.reduce((acc, e) => acc + (e.bhx_actual || 0), 0);
-      const totalStoresBhxTeam = employeesSummary.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
-      const totalActualTeam = totalBhxTeam + totalCvsTeam;
+      const totalActualTeam = totalActualBhx + totalCvsTeam;
       const teamPct = totalTargetTeam > 0 ? parseFloat(((totalActualTeam / totalTargetTeam) * 100).toFixed(2)) : 0;
 
       const bhxHubsFormatted = DEFAULT_MASTER.bhx_hubs.map(h => ({
@@ -3159,10 +3305,9 @@ const DEFAULT_FM_STORES = [
         year: year,
         timegone: timePct,
         total_target: totalTargetTeam,
-        total_actual_bhx: totalBhxTeam,
-        total_actual_bhx_hubs: Math.round(totalActualBhx),
-        total_stores_bhx_team: totalStoresBhxTeam,
+        total_actual_bhx: Math.round(totalActualBhx),
         total_stores_bhx: totalStoresBhx,
+        total_stores_bhx_team: totalStoresBhxTeam,
         bhx_per_store: Math.round(bhxPerStore),
         total_cvs: totalCvsTeam,
         total_actual: totalActualTeam,
@@ -3177,38 +3322,130 @@ const DEFAULT_FM_STORES = [
     }
 
     // =========================================================================
-    // 5. RENDER DASHBOARD UI
+    // 5. RENDER DASHBOARD UI (HỖ TRỢ CẢ 2 CHẾ ĐỘ: CÓ TARGET & THỰC ĐẠT)
     // =========================================================================
-    function renderDashboard(data) {
-      if (document.getElementById('kpiBhx')) document.getElementById('kpiBhx').innerText = formatMoney(data.total_actual_bhx);
+    function renderKpiCards(data, mode) {
+      const container = document.getElementById('kpiGridContainer');
+      if (!container) return;
       const stTeam = data.total_stores_bhx_team || 178;
       const stSys = data.total_stores_bhx || 232;
-      if (document.getElementById('kpiBhxPerStore')) document.getElementById('kpiBhxPerStore').innerText = 'TB: ' + formatMoney(data.bhx_per_store) + '/CH (' + stTeam + '/' + stSys + ' CH)';
-      if (document.getElementById('kpiCvs')) document.getElementById('kpiCvs').innerText = formatMoney(data.total_cvs);
-      if (document.getElementById('kpiTotal')) document.getElementById('kpiTotal').innerText = formatMoney(data.total_actual);
-      if (document.getElementById('kpiTotalSub')) document.getElementById('kpiTotalSub').innerText = 'BHX: ' + formatMoney(data.total_actual_bhx) + ' | CVS: ' + formatMoney(data.total_cvs);
-      if (document.getElementById('kpiTeamSize')) document.getElementById('kpiTeamSize').innerText = (data.employees ? data.employees.length : 10) + ' Nhân Viên';
-      if (document.getElementById('kpiTimegoneDiff')) document.getElementById('kpiTimegoneDiff').innerText = 'Tiến độ tháng: ' + (data.timegone || 0) + '%';
 
-      // Status Bar
-      const bar = document.getElementById('statusBar');
-      const sIcon = document.getElementById('statusIcon');
-      const sTitle = document.getElementById('statusTitle');
-      const sDesc = document.getElementById('statusDesc');
+      if (mode === 'target') {
+        const diffMissing = (data.total_target || 0) - (data.total_actual || 0);
+        const diffPct = (data.percent_achieved - data.timegone).toFixed(1);
+        const pctColor = data.percent_achieved >= data.timegone ? '#059669' : (data.percent_achieved >= data.timegone * 0.75 ? '#d97706' : '#dc2626');
 
-      bar.className = 'status-banner pass';
-      sIcon.innerText = '📊';
-      sTitle.innerText = 'BẢNG THEO DÕI DOANH SỐ - TEAM ' + (data.team_lead || 'CẨM GIANG').toUpperCase();
-      sDesc.innerText = 'Dữ liệu Tháng ' + data.month + '/' + data.year + ' | Tiến độ thời gian tháng: ' + data.timegone + '%';
+        container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+        container.innerHTML = `
+          <div class="kpi-card" style="border-left: 4px solid #0d9488;">
+            <div class="kpi-title">Target Toàn Team <span>🎯</span></div>
+            <div class="kpi-value" id="kpiTarget" style="color:#0f766e;">${formatMoney(data.total_target)}</div>
+            <div class="kpi-sub">${(data.employees ? data.employees.length : 10)} Nhân viên kinh doanh</div>
+          </div>
+          <div class="kpi-card bhx">
+            <div class="kpi-title">Thực Hiện BHX <span>📦</span></div>
+            <div class="kpi-value" id="kpiBhx">${formatMoney(data.total_actual_bhx)}</div>
+            <div class="kpi-sub" id="kpiBhxPerStore">TB: ${formatMoney(data.bhx_per_store)}/CH (${stTeam}/${stSys} CH)</div>
+          </div>
+          <div class="kpi-card cvs">
+            <div class="kpi-title">Thực Hiện CVS & NPP <span>🏪</span></div>
+            <div class="kpi-value" id="kpiCvs">${formatMoney(data.total_cvs)}</div>
+            <div class="kpi-sub" id="kpiCvsStoresCount">142 Cửa hàng CVS</div>
+          </div>
+          <div class="kpi-card total">
+            <div class="kpi-title">Tổng Doanh Số TH <span>💰</span></div>
+            <div class="kpi-value" id="kpiTotal">${formatMoney(data.total_actual)}</div>
+            <div class="kpi-sub" id="kpiMissing" style="font-weight:700; color:${diffMissing <= 0 ? '#059669' : '#be123c'};">
+              ${diffMissing <= 0 ? 'Vượt chỉ tiêu: +' + formatMoney(Math.abs(diffMissing)) : 'Còn thiếu: ' + formatMoney(diffMissing)}
+            </div>
+          </div>
+          <div class="kpi-card pct" style="border-left: 4px solid ${pctColor};">
+            <div class="kpi-title">% Đạt Toàn Team <span>📈</span></div>
+            <div class="kpi-value" id="kpiPercent" style="color:${pctColor};">${data.percent_achieved}%</div>
+            <div class="kpi-sub" id="kpiTimegoneDiff" style="font-weight:700; color:${diffPct >= 0 ? '#059669' : '#be123c'};">
+              ${diffPct >= 0 ? '+' : ''}${diffPct}% so với timegone (${data.timegone}%)
+            </div>
+          </div>
+        `;
+      } else {
+        container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(220px, 1fr))';
+        container.innerHTML = `
+          <div class="kpi-card bhx">
+            <div class="kpi-title">Thực Hiện BHX <span>📦</span></div>
+            <div class="kpi-value" id="kpiBhx">${formatMoney(data.total_actual_bhx)}</div>
+            <div class="kpi-sub" id="kpiBhxPerStore">TB: ${formatMoney(data.bhx_per_store)}/CH (${stTeam}/${stSys} CH)</div>
+          </div>
+          <div class="kpi-card cvs">
+            <div class="kpi-title">Thực Hiện CVS & NPP <span>🏪</span></div>
+            <div class="kpi-value" id="kpiCvs">${formatMoney(data.total_cvs)}</div>
+            <div class="kpi-sub" id="kpiCvsStoresCount">142 Cửa hàng CVS</div>
+          </div>
+          <div class="kpi-card total">
+            <div class="kpi-title">Tổng Doanh Số Thực Hiện <span>💰</span></div>
+            <div class="kpi-value" id="kpiTotal">${formatMoney(data.total_actual)}</div>
+            <div class="kpi-sub" id="kpiTotalSub">BHX: ${formatMoney(data.total_actual_bhx)} | CVS: ${formatMoney(data.total_cvs)}</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-title">Quy Mô Đội Ngũ <span>👥</span></div>
+            <div class="kpi-value" id="kpiTeamSize">${(data.employees ? data.employees.length : 10)} Nhân Viên</div>
+            <div class="kpi-sub" id="kpiTimegoneDiff">Tiến độ tháng: ${(data.timegone || 0)}%</div>
+          </div>
+        `;
+      }
+    }
 
-      // Tab 1: Tiến độ 10 Nhân Viên (Bỏ Target và % Đạt)
-      const tbodyTeam = document.getElementById('teamTableBody');
-      tbodyTeam.innerHTML = '';
-      data.employees.forEach((e, idx) => {
-        tbodyTeam.innerHTML += `
+    function renderTeamTable(data, mode) {
+      const thead = document.getElementById('teamTableHead');
+      const tbody = document.getElementById('teamTableBody');
+      const tfoot = document.getElementById('teamTableFoot');
+      if (!tbody || !tfoot) return;
+
+      const isTarget = (mode === 'target');
+
+      if (thead) {
+        if (isTarget) {
+          thead.innerHTML = `
+            <tr>
+              <th class="text-center" style="width:45px;">STT</th>
+              <th>Nhân Viên</th>
+              <th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>
+              <th class="text-right">BHX (cố định)</th>
+              <th class="text-right">GS25</th>
+              <th class="text-right">7-Eleven</th>
+              <th class="text-right">FamilyMart</th>
+              <th class="text-right">Circle K</th>
+              <th class="text-right">Hoàng Đức</th>
+              <th class="text-right">WinMart+</th>
+              <th class="text-right" style="background:#2E75B6; color:#fff;">Tổng TH (BHX+CVS)</th>
+              <th class="text-center" style="background:#1F4E78; color:#fff; min-width:85px;">% Đạt</th>
+            </tr>
+          `;
+        } else {
+          thead.innerHTML = `
+            <tr>
+              <th class="text-center" style="width:45px;">STT</th>
+              <th>Nhân Viên</th>
+              <th class="text-right">BHX (cố định)</th>
+              <th class="text-right">GS25</th>
+              <th class="text-right">7-Eleven</th>
+              <th class="text-right">FamilyMart</th>
+              <th class="text-right">Circle K</th>
+              <th class="text-right">Hoàng Đức</th>
+              <th class="text-right">WinMart+</th>
+              <th class="text-right" style="background:#2E75B6;">Tổng TH (BHX+CVS)</th>
+            </tr>
+          `;
+        }
+      }
+
+      tbody.innerHTML = '';
+      (data.employees || []).forEach((e, idx) => {
+        const chipClass = (e.percent >= data.timegone) ? 'chip-pass' : ((e.percent >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+        tbody.innerHTML += `
           <tr>
             <td class="text-center">${idx + 1}</td>
             <td class="font-bold">${e.name}</td>
+            ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
             <td class="text-right" style="color:#059669; font-weight:600;">${formatNumber(e.bhx_actual)}</td>
             <td class="text-right">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right">${formatNumber(e.se_actual)}</td>
@@ -3217,45 +3454,171 @@ const DEFAULT_FM_STORES = [
             <td class="text-right">${formatNumber(e.hd_actual)}</td>
             <td class="text-right">${formatNumber(e.wmp_actual)}</td>
             <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+            ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
           </tr>
         `;
       });
 
-      const tfootTeam = document.getElementById('teamTableFoot');
-      tfootTeam.innerHTML = `
+      tfoot.innerHTML = `
         <tr style="background:#1F4E78;">
           <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">TỔNG TEAM</td>
+          ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.total_target)}</td>` : ''}
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.gs25_actual, 0))}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.se_actual, 0))}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.fm_actual, 0))}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.ck_actual, 0))}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.hd_actual, 0))}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.employees.reduce((acc, x) => acc + x.wmp_actual, 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.gs25_actual || 0), 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.se_actual || 0), 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.fm_actual || 0), 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.ck_actual || 0), 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.hd_actual || 0), 0))}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.wmp_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#93C5FD !important; font-size:14px;">${formatNumber(data.total_actual)}</td>
+          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important; font-size:14px;">${data.percent_achieved}%</td>` : ''}
         </tr>
       `;
+    }
 
-      // Tab 2: Xếp Hạng Doanh Số (Xếp theo total_actual giảm dần)
-      const tbodyRank = document.getElementById('rankTableBody');
-      tbodyRank.innerHTML = '';
-      const sorted = (data.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
-      sorted.forEach((e, idx) => {
-        const pctShare = data.total_actual > 0 ? (((e.total_actual || 0) / data.total_actual) * 100).toFixed(1) : '0.0';
-        tbodyRank.innerHTML += `
-          <tr>
-            <td class="text-center font-bold" style="font-size:14px;">${idx + 1}</td>
-            <td class="font-bold">${e.name}</td>
-            <td class="text-right font-semibold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
-            <td class="text-right">${formatNumber(e.cvs_total)}</td>
-            <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
-            <td class="text-center font-bold" style="color:#2563EB;">${pctShare}%</td>
-          </tr>
-        `;
+    function renderRankTable(data, mode) {
+      const thead = document.getElementById('rankTableHead');
+      const tbody = document.getElementById('rankTableBody');
+      const tfoot = document.getElementById('rankTableFoot');
+      if (!tbody) return;
+
+      const isTarget = (mode === 'target');
+
+      if (thead) {
+        if (isTarget) {
+          thead.innerHTML = `
+            <tr>
+              <th class="text-center" style="background:#4472C4; width:60px;">Hạng</th>
+              <th style="background:#4472C4;">Nhân Viên</th>
+              <th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>
+              <th class="text-right" style="background:#4472C4;">Doanh Số BHX</th>
+              <th class="text-right" style="background:#4472C4;">Doanh Số CVS</th>
+              <th class="text-right" style="background:#2E75B6; color:#FFFFFF;">Tổng Thực Hiện</th>
+              <th class="text-center" style="background:#1F4E78; color:#FFFFFF; min-width:90px;">% Đạt</th>
+              <th class="text-center" style="background:#4472C4; color:#FFFFFF; min-width:100px;">Trạng Thái</th>
+            </tr>
+          `;
+        } else {
+          thead.innerHTML = `
+            <tr>
+              <th class="text-center" style="background:#4472C4; width:60px;">Hạng</th>
+              <th style="background:#4472C4;">Nhân Viên</th>
+              <th class="text-right" style="background:#4472C4;">Doanh Số BHX</th>
+              <th class="text-right" style="background:#4472C4;">Doanh Số CVS</th>
+              <th class="text-right" style="background:#4472C4;">Tổng Thực Hiện</th>
+              <th class="text-center" style="background:#4472C4;">Tỷ Trọng DS (%)</th>
+            </tr>
+          `;
+        }
+      }
+
+      tbody.innerHTML = '';
+      const sorted = (data.employees || []).slice().sort((a, b) => {
+        if (isTarget) {
+          return (b.percent || 0) - (a.percent || 0);
+        } else {
+          return (b.total_actual || 0) - (a.total_actual || 0);
+        }
       });
 
-      // Tab 3: Cửa Hàng CVS
+      sorted.forEach((e, idx) => {
+        if (isTarget) {
+          const chipClass = (e.percent >= data.timegone) ? 'chip-pass' : ((e.percent >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+          const statusColor = (e.status === 'VƯỢT') ? '#059669' : ((e.status === 'CẬN') ? '#d97706' : '#dc2626');
+          tbody.innerHTML += `
+            <tr>
+              <td class="text-center font-bold" style="font-size:14px;">${idx + 1}</td>
+              <td class="font-bold">${e.name}</td>
+              <td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>
+              <td class="text-right font-semibold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+              <td class="text-right">${formatNumber(e.cvs_total)}</td>
+              <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+              <td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>
+              <td class="text-center font-bold" style="color:${statusColor};">${e.status}</td>
+            </tr>
+          `;
+        } else {
+          const pctShare = data.total_actual > 0 ? (((e.total_actual || 0) / data.total_actual) * 100).toFixed(1) : '0.0';
+          tbody.innerHTML += `
+            <tr>
+              <td class="text-center font-bold" style="font-size:14px;">${idx + 1}</td>
+              <td class="font-bold">${e.name}</td>
+              <td class="text-right font-semibold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+              <td class="text-right">${formatNumber(e.cvs_total)}</td>
+              <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+              <td class="text-center font-bold" style="color:#2563EB;">${pctShare}%</td>
+            </tr>
+          `;
+        }
+      });
+
+      if (tfoot) {
+        if (isTarget) {
+          tfoot.innerHTML = `
+            <tr style="background:#1F4E78; color:#fff; font-weight:700;">
+              <td colspan="2" class="text-center font-bold" style="color:#fff !important;">TỔNG CỘNG TEAM</td>
+              <td class="text-right font-bold" style="color:#fff !important;">${formatNumber(data.total_target)}</td>
+              <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
+              <td class="text-right font-bold" style="color:#fff !important;">${formatNumber(data.total_cvs)}</td>
+              <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(data.total_actual)}</td>
+              <td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved}%</td>
+              <td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved >= data.timegone ? 'VƯỢT' : (data.percent_achieved >= data.timegone * 0.75 ? 'CẬN' : 'CHẬM')}</td>
+            </tr>
+          `;
+        } else {
+          tfoot.innerHTML = '';
+        }
+      }
+    }
+
+    function renderDashboard(data) {
+      const mode = window.currentReportMode || 'target';
+
+      // 1. KPI Cards Grid
+      renderKpiCards(data, mode);
+
+      // 2. Status Bar
+      const bar = document.getElementById('statusBar');
+      const sIcon = document.getElementById('statusIcon');
+      const sTitle = document.getElementById('statusTitle');
+      const sDesc = document.getElementById('statusDesc');
+
+      if (mode === 'target') {
+        const diffPct = (data.percent_achieved - data.timegone).toFixed(1);
+        bar.className = 'status-banner';
+        if (data.percent_achieved >= data.timegone) {
+          bar.classList.add('pass');
+          sIcon.innerText = '🟢';
+          sTitle.innerText = 'TIẾN ĐỘ ĐANG VƯỢT CHỈ TIÊU (+' + diffPct + '%)';
+          sDesc.innerText = 'Toàn team đang chạy vượt tiến độ thời gian trong tháng (Timegone: ' + data.timegone + '%).';
+        } else if (data.percent_achieved >= data.timegone * 0.75) {
+          bar.classList.add('warn');
+          sIcon.innerText = '🟠';
+          sTitle.innerText = 'TIẾN ĐỘ CẬN CHỈ TIÊU (' + diffPct + '%) - CẦN TĂNG TỐC';
+          sDesc.innerText = 'Cần đẩy mạnh bán hàng các cửa hàng trọng điểm.';
+        } else {
+          bar.classList.add('fail');
+          sIcon.innerText = '🔴';
+          sTitle.innerText = 'TIẾN ĐỘ ĐANG CHẬM CHỈ TIÊU (' + diffPct + '%) - BÁO ĐỘNG ĐỎ';
+          sDesc.innerText = 'Doanh số thực tế đang tụt so với % Timegone, cần kích hoạt push sale ngay!';
+        }
+      } else {
+        bar.className = 'status-banner pass';
+        sIcon.innerText = '📊';
+        sTitle.innerText = 'BẢNG THEO DÕI DOANH SỐ - TEAM ' + (data.team_lead || 'CẨM GIANG').toUpperCase();
+        sDesc.innerText = 'Dữ liệu Tháng ' + data.month + '/' + data.year + ' | Tiến độ thời gian tháng: ' + data.timegone + '%';
+      }
+
+      // 3. Tab 1: Tiến độ 10 Nhân Viên
+      renderTeamTable(data, mode);
+
+      // 4. Tab 2: Xếp Hạng Doanh Số
+      renderRankTable(data, mode);
+
+      // 5. Tab 3: Cửa Hàng CVS
       renderStoresTable(data.stores);
+
+      // 6. Tab 5: FamilyMart SKU Tab
       renderFmSkuTab(data);
 
       // Populate Employee Dropdowns across tabs
@@ -3389,7 +3752,6 @@ const DEFAULT_FM_STORES = [
       });
     }
 
-
     // =========================================================================
     // 5B. RENDER FAMILYMART SKU MATRIX
     // =========================================================================
@@ -3398,27 +3760,87 @@ const DEFAULT_FM_STORES = [
       const fm = data.fm_sku_matrix;
       const stores = fm.stores || [];
       const cats = fm.categories || FM_CATEGORIES;
+      const isTarget = (window.currentReportMode === 'target');
 
       const totalActual = fm.total_actual || 0;
       const storeCount = stores.length;
-      const avgSales = storeCount > 0 ? Math.round(totalActual / storeCount) : 0;
-      const orderedCount = stores.filter(s => (s.actual || 0) > 0).length;
-      const orderedPct = storeCount > 0 ? ((orderedCount / storeCount) * 100).toFixed(1) : '0.0';
+      const totFmTgt = fm.total_target || stores.reduce((a, b) => a + (b.target || 0), 0);
+      const pctFm = totFmTgt > 0 ? parseFloat(((totalActual / totFmTgt) * 100).toFixed(1)) : 0;
+      const passedFmCount = stores.filter(m => {
+        const p = m.target > 0 ? (m.actual / m.target * 100) : 0;
+        return p >= data.timegone;
+      }).length;
 
-      const elStores = document.getElementById('fmKpiStores');
-      if (elStores) elStores.innerText = storeCount + ' CH';
+      const container = document.getElementById('fmKpiCardsContainer');
+      if (container) {
+        if (isTarget) {
+          const diffFm = (pctFm - data.timegone).toFixed(1);
+          const evalText = pctFm >= data.timegone 
+            ? '🟢 VƯỢT (+' + diffFm + '%)' 
+            : (pctFm >= data.timegone * 0.75 ? '🟠 CẬN (' + diffFm + '%)' : '🔴 CHẬM (' + diffFm + '%)');
+          const evalColor = pctFm >= data.timegone ? '#059669' : (pctFm >= data.timegone * 0.75 ? '#d97706' : '#dc2626');
 
-      const elActual = document.getElementById('fmKpiActual');
-      if (elActual) elActual.innerText = formatMoney(totalActual);
+          container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(130px, 1fr))';
+          container.innerHTML = `
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Số Cửa Hàng</div>
+              <div style="font-size:18px; font-weight:800; color:#0F172A; margin-top:4px;">${storeCount} CH</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tổng Chỉ Tiêu</div>
+              <div style="font-size:17px; font-weight:800; color:#1E3A5F; margin-top:4px;">${formatMoney(totFmTgt)}</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tổng Thực Hiện</div>
+              <div style="font-size:17px; font-weight:800; color:#059669; margin-top:4px;">${formatMoney(totalActual)}</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">% Đạt</div>
+              <div style="font-size:18px; font-weight:800; color:${evalColor}; margin-top:4px;">${pctFm}%</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">% Timegone</div>
+              <div style="font-size:18px; font-weight:800; color:#D97706; margin-top:4px;">${data.timegone}%</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Đánh Giá</div>
+              <div style="font-size:12.5px; font-weight:800; color:${evalColor}; margin-top:6px;">${evalText}</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">CH Đạt Tiến Độ</div>
+              <div style="font-size:15px; font-weight:800; color:#2563EB; margin-top:4px;">${passedFmCount}/${storeCount} CH</div>
+            </div>
+          `;
+        } else {
+          const avgSales = storeCount > 0 ? Math.round(totalActual / storeCount) : 0;
+          const orderedCount = stores.filter(s => (s.actual || 0) > 0).length;
+          const orderedPct = storeCount > 0 ? ((orderedCount / storeCount) * 100).toFixed(1) : '0.0';
 
-      const elAvg = document.getElementById('fmKpiAvg');
-      if (elAvg) elAvg.innerText = formatMoney(avgSales);
-
-      const elOrdered = document.getElementById('fmKpiOrdered');
-      if (elOrdered) elOrdered.innerText = orderedCount + '/' + storeCount + ' CH';
-
-      const elOrderedPct = document.getElementById('fmKpiOrderedPct');
-      if (elOrderedPct) elOrderedPct.innerText = orderedPct + '%';
+          container.style.gridTemplateColumns = 'repeat(auto-fit, minmax(140px, 1fr))';
+          container.innerHTML = `
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Số Cửa Hàng</div>
+              <div style="font-size:18px; font-weight:800; color:#0F172A; margin-top:4px;">${storeCount} CH</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tổng Thực Hiện Nhập</div>
+              <div style="font-size:17px; font-weight:800; color:#059669; margin-top:4px;">${formatMoney(totalActual)}</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">TB Doanh Số/CH</div>
+              <div style="font-size:17px; font-weight:800; color:#1E3A5F; margin-top:4px;">${formatMoney(avgSales)}</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">CH Có Phát Sinh Đơn</div>
+              <div style="font-size:16px; font-weight:800; color:#2563EB; margin-top:4px;">${orderedCount}/${storeCount} CH</div>
+            </div>
+            <div class="kpi-card" style="padding:14px; text-align:center;">
+              <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Tỷ Lệ CH Có Đơn</div>
+              <div style="font-size:16px; font-weight:800; color:#D97706; margin-top:4px;">${orderedPct}%</div>
+            </div>
+          `;
+        }
+      }
 
       // Populate PG dropdown
       const selPg = document.getElementById('filterFmPg');
@@ -3436,9 +3858,18 @@ const DEFAULT_FM_STORES = [
 
     function renderFmSkuTableHead(cats) {
       const thead = document.getElementById('fmSkuTableHead');
+      if (!thead) return;
+      const isTarget = (window.currentReportMode === 'target');
+
       let h1 = '<tr>';
       h1 += '<th colspan="5" style="background:#FFF2CC; color:#1F4E78; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4; position:sticky; left:0; z-index:45;">THÔNG TIN ĐIỂM BÁN (STORE MASTER)</th>';
-      h1 += '<th colspan="1" style="background:#FCE4D6; color:#C00000; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4;">TỔNG THỰC HIỆN</th>';
+      if (isTarget) {
+        h1 += '<th colspan="1" style="background:#FFF2CC; color:#1F4E78; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4;">CHỈ TIÊU (TARGET)</th>';
+        h1 += '<th colspan="1" style="background:#FCE4D6; color:#C00000; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4;">TỔNG THỰC HIỆN</th>';
+        h1 += '<th colspan="1" style="background:#E2EFDA; color:#375623; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4;">% ĐẠT</th>';
+      } else {
+        h1 += '<th colspan="1" style="background:#FCE4D6; color:#C00000; font-size:12px; font-weight:800; text-align:center; border:1px solid #B4B4B4;">TỔNG THỰC HIỆN</th>';
+      }
 
       cats.forEach(c => {
         const bg = '#' + (c.headerBg ? c.headerBg.replace(/^FF/, '') : 'C6E0B4');
@@ -3452,9 +3883,16 @@ const DEFAULT_FM_STORES = [
         { name: 'Tên Store (Location)', width: '110px', bg: '#FFE699' },
         { name: 'Mã PG', width: '90px', bg: '#FFE699' },
         { name: 'Họ Tên PG', width: '150px', bg: '#FFE699' },
-        { name: 'VTCV', width: '60px', bg: '#FFE699' },
-        { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', width: '150px', bg: '#F4B084' }
+        { name: 'VTCV', width: '60px', bg: '#FFE699' }
       ];
+
+      if (isTarget) {
+        baseH.push({ name: 'Chỉ Tiêu Target (VND)', width: '130px', bg: '#FFF2CC', color: '#1F4E78' });
+        baseH.push({ name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', width: '150px', bg: '#F4B084', color: '#000000' });
+        baseH.push({ name: '% Đạt', width: '85px', bg: '#C6E0B4', color: '#000000' });
+      } else {
+        baseH.push({ name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', width: '150px', bg: '#F4B084', color: '#000000' });
+      }
 
       baseH.forEach(b => {
         h2 += '<th style="background:' + b.bg + '; color:' + (b.color || '#000000') + '; font-size:11px; font-weight:700; text-align:center; border:1px solid #B4B4B4; min-width:' + b.width + '; padding:8px 6px;">' + b.name + '</th>';
@@ -3474,7 +3912,10 @@ const DEFAULT_FM_STORES = [
     function renderFmSkuTableBody(stores, cats, timegone) {
       const tbody = document.getElementById('fmSkuTableBody');
       const tfoot = document.getElementById('fmSkuTableFoot');
+      if (!tbody || !tfoot) return;
       tbody.innerHTML = '';
+
+      const isTarget = (window.currentReportMode === 'target');
 
       const allSkus = [];
       cats.forEach(c => {
@@ -3484,12 +3925,16 @@ const DEFAULT_FM_STORES = [
         });
       });
 
+      let sumTarget = 0;
       let sumActual = 0;
       const skuSums = {};
       allSkus.forEach(s => skuSums[s.code] = 0);
 
       stores.forEach((st, idx) => {
-        sumActual += (st.actual || 0);
+        const tgt = st.target || 0;
+        const act = st.actual || 0;
+        sumTarget += tgt;
+        sumActual += act;
 
         const rowBg = idx % 2 === 0 ? '#FFFFFF' : '#FAFAFA';
 
@@ -3499,7 +3944,22 @@ const DEFAULT_FM_STORES = [
         rowHtml += '<td style="border:1px solid #B4B4B4; text-align:center; font-size:11px; padding:6px;">' + (st.ma_pg || '') + '</td>';
         rowHtml += '<td style="border:1px solid #B4B4B4; font-weight:600; font-size:11px; padding:6px 8px;">' + (st.ten_pg || '') + '</td>';
         rowHtml += '<td style="border:1px solid #B4B4B4; text-align:center; font-size:11px; padding:6px;">' + (st.vtcv || 'SR') + '</td>';
-        rowHtml += '<td style="border:1px solid #B4B4B4; text-align:right; font-weight:700; background:#F2F9F2; color:#1D4ED8; font-size:11px; padding:6px 8px;">' + formatNumber(st.actual) + '</td>';
+
+        if (isTarget) {
+          const pct = tgt > 0 ? (act / tgt * 100) : 0;
+          let pctBg = '#fee2e2', pctFg = '#b91c1c';
+          if (pct >= timegone) {
+            pctBg = '#d1fae5'; pctFg = '#065f46';
+          } else if (pct >= timegone * 0.75) {
+            pctBg = '#fef3c7'; pctFg = '#92400e';
+          }
+
+          rowHtml += '<td style="border:1px solid #B4B4B4; text-align:right; font-weight:700; background:#FFFFF9; color:#1F4E78; font-size:11px; padding:6px 8px;">' + formatNumber(tgt) + '</td>';
+          rowHtml += '<td style="border:1px solid #B4B4B4; text-align:right; font-weight:700; background:#F2F9F2; color:#1D4ED8; font-size:11px; padding:6px 8px;">' + formatNumber(act) + '</td>';
+          rowHtml += '<td style="border:1px solid #B4B4B4; text-align:center; font-weight:800; background:' + pctBg + '; color:' + pctFg + '; font-size:11px; padding:6px 4px;">' + pct.toFixed(1) + '%</td>';
+        } else {
+          rowHtml += '<td style="border:1px solid #B4B4B4; text-align:right; font-weight:700; background:#F2F9F2; color:#1D4ED8; font-size:11px; padding:6px 8px;">' + formatNumber(act) + '</td>';
+        }
 
         allSkus.forEach(s => {
           const val = (st.orders && st.orders[s.code]) ? st.orders[s.code] : 0;
@@ -3517,7 +3977,15 @@ const DEFAULT_FM_STORES = [
       // Tfoot
       let footHtml = '<tr style="background:#1F4E78;">';
       footHtml += '<td colspan="5" style="border:1px solid #336699; text-align:center; font-weight:800; font-size:12px; padding:8px; color:#FFFFFF !important;">TỔNG CỘNG (' + stores.length + ' CỬA HÀNG FAMILYMART)</td>';
-      footHtml += '<td style="border:1px solid #336699; text-align:right; font-weight:800; font-size:12.5px; color:#FDE047 !important; padding:8px;">' + formatNumber(sumActual) + '</td>';
+      
+      if (isTarget) {
+        const totPctFm = sumTarget > 0 ? ((sumActual / sumTarget) * 100).toFixed(1) : '0.0';
+        footHtml += '<td style="border:1px solid #336699; text-align:right; font-weight:800; font-size:12px; color:#FFFFFF !important; padding:8px;">' + formatNumber(sumTarget) + '</td>';
+        footHtml += '<td style="border:1px solid #336699; text-align:right; font-weight:800; font-size:12.5px; color:#FDE047 !important; padding:8px;">' + formatNumber(sumActual) + '</td>';
+        footHtml += '<td style="border:1px solid #336699; text-align:center; font-weight:800; font-size:12px; color:#FFFFFF !important; padding:8px;">' + totPctFm + '%</td>';
+      } else {
+        footHtml += '<td style="border:1px solid #336699; text-align:right; font-weight:800; font-size:12.5px; color:#FDE047 !important; padding:8px;">' + formatNumber(sumActual) + '</td>';
+      }
 
       allSkus.forEach(s => {
         const val = skuSums[s.code] || 0;
@@ -3567,12 +4035,11 @@ const DEFAULT_FM_STORES = [
     }
 
     // =========================================================================
-    
-    // =========================================================================
     // FILTER FUNCTIONS ACROSS TABS
     // =========================================================================
     function filterTeamTable() {
       if (!processedReportData) return;
+      const isTarget = (window.currentReportMode === 'target');
       const selEmp = document.getElementById('filterTeamEmp') ? document.getElementById('filterTeamEmp').value : '';
       const tbody = document.getElementById('teamTableBody');
       const tfoot = document.getElementById('teamTableFoot');
@@ -3585,11 +4052,105 @@ const DEFAULT_FM_STORES = [
       if (countBadge) countBadge.innerText = filtered.length + ' Nhân viên';
 
       filtered.forEach((e, idx) => {
+        const chipClass = (e.percent >= processedReportData.timegone) ? 'chip-pass' : ((e.percent >= processedReportData.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
         tbody.innerHTML += `
           <tr>
             <td class="text-center">${idx + 1}</td>
             <td class="font-bold">${e.name}</td>
+            ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
             <td class="text-right" style="color:#059669; font-weight:600;">${formatNumber(e.bhx_actual)}</td>
+            <td class="text-right">${formatNumber(e.gs25_actual)}</td>
+            <td class="text-right">${formatNumber(e.se_actual)}</td>
+            <td class="text-right">${formatNumber(e.fm_actual)}</td>
+            <td class="text-right">${formatNumber(e.ck_actual)}</td>
+            <td class="text-right">${formatNumber(e.hd_actual)}</td>
+            <td class="text-right">${formatNumber(e.wmp_actual)}</td>
+            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
+            ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
+          </tr>
+        `;
+      });
+
+      const totTgt = filtered.reduce((a, b) => a + (b.target || 0), 0);
+      const totBhx = filtered.reduce((a, b) => a + (b.bhx_actual || 0), 0);
+      const totGs = filtered.reduce((a, b) => a + (b.gs25_actual || 0), 0);
+      const totSe = filtered.reduce((a, b) => a + (b.se_actual || 0), 0);
+      const totFm = filtered.reduce((a, b) => a + (b.fm_actual || 0), 0);
+      const totCk = filtered.reduce((a, b) => a + (b.ck_actual || 0), 0);
+      const totHd = filtered.reduce((a, b) => a + (b.hd_actual || 0), 0);
+      const totWmp = filtered.reduce((a, b) => a + (b.wmp_actual || 0), 0);
+      const totAct = filtered.reduce((a, b) => a + (b.total_actual || 0), 0);
+      const totPct = totTgt > 0 ? parseFloat(((totAct / totTgt) * 100).toFixed(2)) : 0;
+
+      const footLabel = selEmp ? ('TỔNG (' + selEmp.toUpperCase() + ')') : 'TỔNG TEAM';
+
+      tfoot.innerHTML = `
+        <tr style="background:#1F4E78;">
+          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">${footLabel}</td>
+          ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totTgt)}</td>` : ''}
+          <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(totBhx)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totGs)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totSe)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totFm)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totCk)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totHd)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totWmp)}</td>
+          <td class="text-right font-bold" style="color:#93C5FD !important; font-size:13.5px;">${formatNumber(totAct)}</td>
+          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important; font-size:14px;">${totPct}%</td>` : ''}
+        </tr>
+      `;
+    }
+
+    function filterRankTable() {
+      if (!processedReportData) return;
+      const isTarget = (window.currentReportMode === 'target');
+      const selEmp = document.getElementById('filterRankEmp') ? document.getElementById('filterRankEmp').value : '';
+      const tbody = document.getElementById('rankTableBody');
+      tbody.innerHTML = '';
+
+      const totalTeam = processedReportData.total_actual_team || (processedReportData.employees || []).reduce((a, b) => a + (b.total_actual || 0), 0);
+      
+      const sorted = (processedReportData.employees || []).slice().sort((a, b) => {
+        if (isTarget) {
+          return (b.percent || 0) - (a.percent || 0);
+        } else {
+          return (b.total_actual || 0) - (a.total_actual || 0);
+        }
+      });
+      const filtered = selEmp ? sorted.filter(e => e.name === selEmp) : sorted;
+
+      filtered.forEach((e) => {
+        const rank = sorted.findIndex(s => s.name === e.name) + 1;
+        if (isTarget) {
+          const chipClass = (e.percent >= processedReportData.timegone) ? 'chip-pass' : ((e.percent >= processedReportData.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+          const statusColor = (e.status === 'VƯỢT') ? '#059669' : ((e.status === 'CẬN') ? '#d97706' : '#dc2626');
+          tbody.innerHTML += `
+            <tr>
+              <td class="text-center font-bold" style="font-size:14px;">${rank}</td>
+              <td class="font-bold">${e.name}</td>
+              <td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>
+              <td class="text-right font-semibold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+              <td class="text-right">${formatNumber(e.cvs_total)}</td>
+              <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+              <td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>
+              <td class="text-center font-bold" style="color:${statusColor};">${e.status}</td>
+            </tr>
+          `;
+        } else {
+          const pctShare = totalTeam > 0 ? (((e.total_actual || 0) / totalTeam) * 100).toFixed(1) : '0.0';
+          tbody.innerHTML += `
+            <tr>
+              <td class="text-center font-bold" style="font-size:14px;">${rank}</td>
+              <td class="font-bold">${e.name}</td>
+              <td class="text-right font-semibold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+              <td class="text-right">${formatNumber(e.cvs_total)}</td>
+              <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+              <td class="text-center font-bold" style="color:#1D4ED8;">${pctShare}%</td>
+            </tr>
+          `;
+        }
+      });
+    }er(e.bhx_actual)}</td>
             <td class="text-right">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right">${formatNumber(e.se_actual)}</td>
             <td class="text-right">${formatNumber(e.fm_actual)}</td>
@@ -4691,6 +5252,8 @@ const DEFAULT_FM_STORES = [
           right: { style: 'thin', color: { argb: 'FFB4B4B4' } }
         };
 
+        const isTargetMode = (window.currentReportMode === 'target');
+
         // -------------------------------------------------------------
         // SHEET 1: DASHBOARD
         // -------------------------------------------------------------
@@ -4729,263 +5292,532 @@ const DEFAULT_FM_STORES = [
         setMeta('H3', 'Cập nhật: ' + String(nowD.getDate()).padStart(2,'0') + '/' + String(nowD.getMonth()+1).padStart(2,'0') + '/' + nowD.getFullYear(), false, false);
         ws1.getRow(3).height = 24;
 
-        // Section Title B5:G5
-        ws1.mergeCells('B5:G5');
-        const b5 = ws1.getCell('B5');
-        b5.value = '🎯 TỔNG QUAN DOANH SỐ TEAM';
-        b5.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
-        b5.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws1.getRow(5).height = 26;
+        if (isTargetMode) {
+          // Section Title B5:H5
+          ws1.mergeCells('B5:H5');
+          const b5 = ws1.getCell('B5');
+          b5.value = '🎯 TỔNG QUAN TEAM';
+          b5.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
+          b5.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(5).height = 26;
 
-        // Row 6 & 7: Thẻ KPI Doanh Số Thực Tế (B to G)
-        const kpiDef = [
-          { col: 'B', lbl: 'Thực Hiện BHX', val: p.total_actual_bhx, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-          { col: 'C', lbl: 'Thực Hiện CVS', val: p.total_cvs, fmt: '#,##0', bg: 'FFED7D31', fg: 'FFFFFFFF' },
-          { col: 'D', lbl: 'Tổng Thực Hiện', val: p.total_actual, fmt: '#,##0', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
-          { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 178) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
-          { col: 'F', lbl: 'TB Doanh Số/CH BHX', val: p.bhx_per_store, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-          { col: 'G', lbl: 'Số Nhân Viên', val: (p.employees || []).length + ' NV', fmt: null, bg: 'FF595959', fg: 'FFFFFFFF' }
-        ];
+          // Row 6 & 7: 6 Thẻ KPI
+          const kpiDef = [
+            { col: 'B', lbl: 'Target Team', val: p.total_target, fmt: '#,##0', bg: 'FF4472C4', fg: 'FFFFFFFF' },
+            { col: 'C', lbl: 'Thực Hiện BHX', val: p.total_actual_bhx, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'D', lbl: 'Thực Hiện CVS', val: p.total_cvs, fmt: '#,##0', bg: 'FFED7D31', fg: 'FFFFFFFF' },
+            { col: 'E', lbl: 'Tổng Thực Hiện', val: p.total_actual, fmt: '#,##0', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
+            { col: 'F', lbl: 'Thiếu', val: p.total_target - p.total_actual, fmt: '#,##0;[Red](#,##0)', bg: 'FFDD2323', fg: 'FFFFFFFF' },
+            { col: 'G', lbl: '% Đạt Team', val: p.percent_achieved / 100, fmt: '0.0%', bg: (p.percent_achieved >= p.timegone ? 'FF28E11F' : 'FFDD2323'), fg: (p.percent_achieved >= p.timegone ? 'FF000000' : 'FFFFFFFF') }
+          ];
 
-        kpiDef.forEach(k => {
-          const lCell = ws1.getCell(k.col + '6');
-          lCell.value = k.lbl;
-          lCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: k.fg } };
-          lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
-          lCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          lCell.border = thinBorder;
+          kpiDef.forEach(k => {
+            const lCell = ws1.getCell(k.col + '6');
+            lCell.value = k.lbl;
+            lCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: k.fg } };
+            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
+            lCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            lCell.border = thinBorder;
 
-          const vCell = ws1.getCell(k.col + '7');
-          vCell.value = k.val;
-          if (k.fmt) vCell.numFmt = k.fmt;
-          vCell.font = { name: 'Calibri', size: 12, bold: true };
-          vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-          vCell.alignment = { horizontal: 'center', vertical: 'middle' };
-          vCell.border = thinBorder;
-        });
-        ws1.getRow(6).height = 30;
-        ws1.getRow(7).height = 28;
+            const vCell = ws1.getCell(k.col + '7');
+            vCell.value = k.val;
+            vCell.numFmt = k.fmt;
+            vCell.font = { name: 'Calibri', size: 12, bold: true };
+            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            vCell.border = thinBorder;
+          });
+          ws1.getRow(6).height = 30;
+          ws1.getRow(7).height = 28;
 
-        // Row 9: Status Bar B9:G9
-        ws1.mergeCells('B9:G9');
-        const b9 = ws1.getCell('B9');
-        b9.value = '📊 BẢNG THEO DÕI DOANH SỐ CHI TIẾT - TEAM ' + p.team_lead.toUpperCase() + ' - THÁNG ' + p.month + '/' + p.year;
-        b9.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        b9.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        b9.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws1.getRow(9).height = 25;
+          // Row 9: Status Bar B9:H9
+          ws1.mergeCells('B9:H9');
+          const b9 = ws1.getCell('B9');
+          const diff = p.percent_achieved - p.timegone;
+          let sTxt = '', sBg = 'FF28E11F', sFg = 'FF000000';
+          if (p.percent_achieved >= p.timegone) {
+            sTxt = '🟢 Team đang VƯỢT tiến độ: % Đạt (' + p.percent_achieved.toFixed(1) + '%) vs % Timegone (' + p.timegone.toFixed(1) + '%) → chênh lệch ' + (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%';
+            sBg = 'FF28E11F'; sFg = 'FF000000';
+          } else if (p.percent_achieved >= p.timegone * 0.75) {
+            sTxt = '🟠 Team đang CẬN tiến độ (CẢNH BÁO): % Đạt (' + p.percent_achieved.toFixed(1) + '%) vs % Timegone (' + p.timegone.toFixed(1) + '%) → chênh lệch ' + diff.toFixed(1) + '%';
+            sBg = 'FFF5991F'; sFg = 'FFFFFFFF';
+          } else {
+            sTxt = '🔴 Team đang CHẬM tiến độ: % Đạt (' + p.percent_achieved.toFixed(1) + '%) vs % Timegone (' + p.timegone.toFixed(1) + '%) → chênh lệch ' + diff.toFixed(1) + '%';
+            sBg = 'FFDD2323'; sFg = 'FFFFFFFF';
+          }
+          b9.value = sTxt;
+          b9.font = { name: 'Calibri', size: 11, bold: true, color: { argb: sFg } };
+          b9.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sBg } };
+          b9.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(9).height = 25;
 
-        // Row 11: Header Bảng Xếp Hạng
-        ws1.mergeCells('B11:G11');
-        const b11 = ws1.getCell('B11');
-        b11.value = 'XẾP HẠNG DOANH SỐ NHÂN VIÊN';
-        b11.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
-        b11.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws1.getRow(11).height = 26;
+          // Row 11: Header Bảng Xếp Hạng
+          ws1.mergeCells('B11:H11');
+          const b11 = ws1.getCell('B11');
+          b11.value = 'XẾP HẠNG NHÂN VIÊN';
+          b11.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
+          b11.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(11).height = 26;
 
-        // Row 12: Headers B12:G12 (Bỏ Target và % Đạt)
-        const rHeaders = ['Hạng', 'Nhân Viên', 'Doanh Số BHX', 'Doanh Số CVS', 'Tổng Thực Hiện', 'Tỷ Trọng DS'];
-        const rCols = ['B', 'C', 'D', 'E', 'F', 'G'];
-        rHeaders.forEach((h, i) => {
-          const c = ws1.getCell(rCols[i] + '12');
-          c.value = h;
-          c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
-          c.alignment = { horizontal: 'center', vertical: 'middle' };
-          c.border = thinBorder;
-        });
-        ws1.getRow(12).height = 26;
-
-        const sortedEmps = (p.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
-        const rankTotRow = 13 + sortedEmps.length;
-        sortedEmps.forEach((e, idx) => {
-          const rowNum = 13 + idx;
-          const setCell = (col, val, fmt, isBold, align) => {
-            const c = ws1.getCell(col + rowNum);
-            c.value = val;
-            if (fmt) c.numFmt = fmt;
-            c.font = { name: 'Calibri', bold: !!isBold };
-            c.alignment = { horizontal: align || 'left', vertical: 'middle' };
+          // Row 12: Headers B12:H12
+          const rHeaders = ['Hạng', 'Nhân Viên', 'Target', 'BHX', 'CVS', 'Tổng TH', '% Đạt'];
+          const rCols = ['B', 'C', 'D', 'E', 'F', 'G', 'H'];
+          rHeaders.forEach((h, i) => {
+            const c = ws1.getCell(rCols[i] + '12');
+            c.value = h;
+            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
             c.border = thinBorder;
-            return c;
+          });
+          ws1.getRow(12).height = 26;
+
+          const sortedEmps = (p.employees || []).slice().sort((a, b) => (b.percent || 0) - (a.percent || 0));
+          sortedEmps.forEach((e, idx) => {
+            const rowNum = 13 + idx;
+            const setCell = (col, val, fmt, isBold, align) => {
+              const c = ws1.getCell(col + rowNum);
+              c.value = val;
+              if (fmt) c.numFmt = fmt;
+              c.font = { name: 'Calibri', bold: !!isBold };
+              c.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              c.border = thinBorder;
+              return c;
+            };
+            setCell('B', idx + 1, null, true, 'center');
+            setCell('C', e.name, null, true, 'left');
+            setCell('D', e.target, '#,##0', false, 'right');
+            setCell('E', e.bhx_actual, '#,##0', false, 'right');
+            setCell('F', e.cvs_total, '#,##0', false, 'right');
+            setCell('G', e.total_actual, '#,##0', true, 'right');
+
+            const pctCell = setCell('H', (e.percent || 0) / 100, '0.0%', true, 'center');
+            if ((e.percent || 0) >= p.timegone) {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28E11F' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FF000000' } };
+            } else if ((e.percent || 0) >= p.timegone * 0.75) {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5991F' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            } else {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDD2323' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            }
+            ws1.getRow(rowNum).height = 22;
+          });
+        } else {
+          // Section Title B5:G5
+          ws1.mergeCells('B5:G5');
+          const b5 = ws1.getCell('B5');
+          b5.value = '🎯 TỔNG QUAN DOANH SỐ TEAM';
+          b5.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
+          b5.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(5).height = 26;
+
+          // Row 6 & 7: Thẻ KPI Doanh Số Thực Tế (B to G)
+          const kpiDef = [
+            { col: 'B', lbl: 'Thực Hiện BHX', val: p.total_actual_bhx, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'C', lbl: 'Thực Hiện CVS', val: p.total_cvs, fmt: '#,##0', bg: 'FFED7D31', fg: 'FFFFFFFF' },
+            { col: 'D', lbl: 'Tổng Thực Hiện', val: p.total_actual, fmt: '#,##0', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
+            { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 178) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
+            { col: 'F', lbl: 'TB Doanh Số/CH BHX', val: p.bhx_per_store, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'G', lbl: 'Số Nhân Viên', val: (p.employees || []).length + ' NV', fmt: null, bg: 'FF595959', fg: 'FFFFFFFF' }
+          ];
+
+          kpiDef.forEach(k => {
+            const lCell = ws1.getCell(k.col + '6');
+            lCell.value = k.lbl;
+            lCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: k.fg } };
+            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
+            lCell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            lCell.border = thinBorder;
+
+            const vCell = ws1.getCell(k.col + '7');
+            vCell.value = k.val;
+            if (k.fmt) vCell.numFmt = k.fmt;
+            vCell.font = { name: 'Calibri', size: 12, bold: true };
+            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            vCell.border = thinBorder;
+          });
+          ws1.getRow(6).height = 30;
+          ws1.getRow(7).height = 28;
+
+          // Row 9: Status Bar B9:G9
+          ws1.mergeCells('B9:G9');
+          const b9 = ws1.getCell('B9');
+          b9.value = '📊 BẢNG THEO DÕI DOANH SỐ CHI TIẾT - TEAM ' + p.team_lead.toUpperCase() + ' - THÁNG ' + p.month + '/' + p.year;
+          b9.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          b9.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          b9.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(9).height = 25;
+
+          // Row 11: Header Bảng Xếp Hạng
+          ws1.mergeCells('B11:G11');
+          const b11 = ws1.getCell('B11');
+          b11.value = 'XẾP HẠNG DOANH SỐ NHÂN VIÊN';
+          b11.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FF1F4E78' } };
+          b11.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws1.getRow(11).height = 26;
+
+          // Row 12: Headers B12:G12 (Bỏ Target và % Đạt)
+          const rHeaders = ['Hạng', 'Nhân Viên', 'Doanh Số BHX', 'Doanh Số CVS', 'Tổng Thực Hiện', 'Tỷ Trọng DS'];
+          const rCols = ['B', 'C', 'D', 'E', 'F', 'G'];
+          rHeaders.forEach((h, i) => {
+            const c = ws1.getCell(rCols[i] + '12');
+            c.value = h;
+            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border = thinBorder;
+          });
+          ws1.getRow(12).height = 26;
+
+          const sortedEmps = (p.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
+          const rankTotRow = 13 + sortedEmps.length;
+          sortedEmps.forEach((e, idx) => {
+            const rowNum = 13 + idx;
+            const setCell = (col, val, fmt, isBold, align) => {
+              const c = ws1.getCell(col + rowNum);
+              c.value = val;
+              if (fmt) c.numFmt = fmt;
+              c.font = { name: 'Calibri', bold: !!isBold };
+              c.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              c.border = thinBorder;
+              return c;
+            };
+            setCell('B', idx + 1, null, true, 'center');
+            setCell('C', e.name, null, true, 'left');
+            setCell('D', e.bhx_actual || 0, '#,##0', false, 'right');
+            setCell('E', e.cvs_total || 0, '#,##0', false, 'right');
+            setCell('F', { formula: `D${rowNum}+E${rowNum}`, result: e.total_actual || 0 }, '#,##0', true, 'right');
+            const pctShare = p.total_actual > 0 ? ((e.total_actual || 0) / p.total_actual) : 0;
+            setCell('G', { formula: `F${rowNum}/$F$${rankTotRow}`, result: pctShare }, '0.0%', false, 'center');
+            ws1.getRow(rowNum).height = 22;
+          });
+
+          // Row Total for Rank table
+          ws1.mergeCells(`B${rankTotRow}:C${rankTotRow}`);
+          const rTotLbl = ws1.getCell(`B${rankTotRow}`);
+          rTotLbl.value = 'TỔNG CỘNG TEAM';
+          rTotLbl.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+          rTotLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          rTotLbl.alignment = { horizontal: 'center', vertical: 'middle' };
+          rTotLbl.border = thinBorder;
+          ws1.getCell(`C${rankTotRow}`).border = thinBorder;
+
+          const setTotCell = (col, formula, result, fmt) => {
+            const c = ws1.getCell(`${col}${rankTotRow}`);
+            c.value = { formula, result };
+            c.numFmt = fmt;
+            c.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+            c.alignment = { horizontal: 'right', vertical: 'middle' };
+            c.border = thinBorder;
           };
-          setCell('B', idx + 1, null, true, 'center');
-          setCell('C', e.name, null, true, 'left');
-          setCell('D', e.bhx_actual || 0, '#,##0', false, 'right');
-          setCell('E', e.cvs_total || 0, '#,##0', false, 'right');
-          setCell('F', { formula: `D${rowNum}+E${rowNum}`, result: e.total_actual || 0 }, '#,##0', true, 'right');
-          const pctShare = p.total_actual > 0 ? ((e.total_actual || 0) / p.total_actual) : 0;
-          setCell('G', { formula: `F${rowNum}/$F$${rankTotRow}`, result: pctShare }, '0.0%', false, 'center');
-          ws1.getRow(rowNum).height = 22;
-        });
-
-        // Row Total for Rank table
-        ws1.mergeCells(`B${rankTotRow}:C${rankTotRow}`);
-        const rTotLbl = ws1.getCell(`B${rankTotRow}`);
-        rTotLbl.value = 'TỔNG CỘNG TEAM';
-        rTotLbl.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
-        rTotLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        rTotLbl.alignment = { horizontal: 'center', vertical: 'middle' };
-        rTotLbl.border = thinBorder;
-        ws1.getCell(`C${rankTotRow}`).border = thinBorder;
-
-        const setTotCell = (col, formula, result, fmt) => {
-          const c = ws1.getCell(`${col}${rankTotRow}`);
-          c.value = { formula, result };
-          c.numFmt = fmt;
-          c.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          c.alignment = { horizontal: 'right', vertical: 'middle' };
-          c.border = thinBorder;
-        };
-        setTotCell('D', `SUM(D13:D${rankTotRow-1})`, p.total_actual_bhx, '#,##0');
-        setTotCell('E', `SUM(E13:E${rankTotRow-1})`, p.total_cvs, '#,##0');
-        setTotCell('F', `SUM(F13:F${rankTotRow-1})`, p.total_actual, '#,##0');
-        const rTotG = ws1.getCell(`G${rankTotRow}`);
-        rTotG.value = { formula: `SUM(G13:G${rankTotRow-1})`, result: 1 };
-        rTotG.numFmt = '0.0%';
-        rTotG.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFF00' } };
-        rTotG.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        rTotG.alignment = { horizontal: 'center', vertical: 'middle' };
-        rTotG.border = thinBorder;
-        ws1.getRow(rankTotRow).height = 25;
+          setTotCell('D', `SUM(D13:D${rankTotRow-1})`, p.total_actual_bhx, '#,##0');
+          setTotCell('E', `SUM(E13:E${rankTotRow-1})`, p.total_cvs, '#,##0');
+          setTotCell('F', `SUM(F13:F${rankTotRow-1})`, p.total_actual, '#,##0');
+          const rTotG = ws1.getCell(`G${rankTotRow}`);
+          rTotG.value = { formula: `SUM(G13:G${rankTotRow-1})`, result: 1 };
+          rTotG.numFmt = '0.0%';
+          rTotG.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFF00' } };
+          rTotG.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          rTotG.alignment = { horizontal: 'center', vertical: 'middle' };
+          rTotG.border = thinBorder;
+          ws1.getRow(rankTotRow).height = 25;
+        }
 
         // -------------------------------------------------------------
         // SHEET 2: TIẾN ĐỘ TEAM
         // -------------------------------------------------------------
         const ws2 = wb.addWorksheet('Tiến độ Team', { properties: { tabColor: { argb: 'FF70AD47' } } });
-        ws2.columns = [
-          { width: 3 }, { width: 6 }, { width: 24 }, { width: 16 },
-          { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 },
-          { width: 14 }, { width: 14 }, { width: 20 }
-        ];
 
-        // Banner B2:K2
-        ws2.mergeCells('B2:K2');
-        const wb2 = ws2.getCell('B2');
-        wb2.value = 'THEO DÕI DOANH SỐ - TEAM ' + p.team_lead.toUpperCase() + ' - THÁNG ' + p.month + '/' + p.year;
-        wb2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-        wb2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        wb2.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws2.getRow(2).height = 30;
+        if (isTargetMode) {
+          ws2.columns = [
+            { width: 3 }, { width: 6 }, { width: 24 }, { width: 18 },
+            { width: 16 }, { width: 14 }, { width: 14 }, { width: 14 },
+            { width: 14 }, { width: 14 }, { width: 14 }, { width: 18 }, { width: 12 }
+          ];
 
-        // Info Row B3:K3
-        const setInfo = (col, val, isLbl, isRed) => {
-          const c = ws2.getCell(col + '3');
-          c.value = val;
-          c.font = { name: 'Calibri', bold: true, color: { argb: isRed ? 'FFC00000' : 'FF000000' } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isLbl ? 'FFFFF2CC' : 'FFFFF9E6' } };
-          c.alignment = { horizontal: 'center', vertical: 'middle' };
-          c.border = thinBorder;
-        };
-        setInfo('B', 'Tháng:', true, false);
-        setInfo('C', p.month + '/' + p.year, false, true);
-        setInfo('D', 'Tổng CH BHX:', true, false);
-        setInfo('E', p.total_stores_bhx_team || p.total_stores_bhx, false, true);
-        setInfo('F', 'TB BHX/CH:', true, false);
-        setInfo('G', p.bhx_per_store, false, true);
-        ws2.getCell('G3').numFmt = '#,##0';
-        setInfo('H', 'Cập nhật:', true, false);
-        setInfo('I', String(nowD.getDate()).padStart(2,'0') + '/' + String(nowD.getMonth()+1).padStart(2,'0') + '/' + nowD.getFullYear(), false, false);
-        setInfo('J', '% Timegone:', true, false);
-        setInfo('K', p.timegone / 100, false, true);
-        ws2.getCell('K3').numFmt = '0.0%';
-        ws2.getRow(3).height = 24;
+          // Banner B2:M2
+          ws2.mergeCells('B2:M2');
+          const wb2 = ws2.getCell('B2');
+          wb2.value = 'THEO DÕI DOANH SỐ - TEAM ' + p.team_lead.toUpperCase() + ' - THÁNG ' + p.month + '/' + p.year;
+          wb2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+          wb2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          wb2.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws2.getRow(2).height = 30;
 
-        // Group headers
-        ws2.mergeCells('D5:J5');
-        const g1 = ws2.getCell('D5');
-        g1.value = 'THỰC HIỆN (chi tiết theo từng kênh)';
-        g1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        g1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
-        g1.alignment = { horizontal: 'center', vertical: 'middle' };
-
-        const g2 = ws2.getCell('K5');
-        g2.value = 'TỔNG CỘNG';
-        g2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        g2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        g2.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws2.getRow(5).height = 22;
-
-        // Subheaders Row 6 (Bỏ Target và % Đạt)
-        const teamHeaders = [
-          'STT', 'Nhân Viên', 'BHX\n(cố định)', 'GS25', '7-Eleven',
-          'FamilyMart', 'Circle K', 'Hoàng Đức', 'WinMart+', 'Tổng TH\n(BHX+CVS)'
-        ];
-        const teamCols = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
-        teamHeaders.forEach((th, idx) => {
-          const c = ws2.getCell(teamCols[idx] + '6');
-          c.value = th;
-          c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
-          c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          c.border = thinBorder;
-        });
-        ws2.getRow(6).height = 40;
-
-        // 10 Employee rows
-        p.employees.forEach((emp, k) => {
-          const r = 7 + k;
-          const setC = (col, val, fmt, isBold, align) => {
-            const cell = ws2.getCell(col + r);
-            cell.value = val;
-            if (fmt) cell.numFmt = fmt;
-            cell.font = { name: 'Calibri', bold: !!isBold };
-            cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
-            cell.border = thinBorder;
-            return cell;
+          // Info Row B3:M3
+          const setInfo = (col, val, isLbl, isRed) => {
+            const c = ws2.getCell(col + '3');
+            c.value = val;
+            c.font = { name: 'Calibri', bold: true, color: { argb: isRed ? 'FFC00000' : 'FF000000' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isLbl ? 'FFFFF2CC' : 'FFFFF9E6' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border = thinBorder;
           };
+          setInfo('B', '% Timegone:', true, false);
+          setInfo('C', p.timegone / 100, false, true);
+          ws2.getCell('C3').numFmt = '0.0%';
+          setInfo('E', 'Tổng CH BHX:', true, false);
+          setInfo('F', p.total_stores_bhx, false, true);
+          setInfo('H', 'TB BHX/CH:', true, false);
+          setInfo('I', p.bhx_per_store, false, true);
+          ws2.getCell('I3').numFmt = '#,##0';
+          ws2.getRow(3).height = 24;
 
-          setC('B', k + 1, null, false, 'center');
-          setC('C', emp.name, null, true, 'left');
-          setC('D', emp.bhx_actual, '#,##0', false, 'right');
-          setC('E', emp.gs25_actual, '#,##0', false, 'right');
-          setC('F', emp.se_actual, '#,##0', false, 'right');
-          setC('G', emp.fm_actual, '#,##0', false, 'right');
-          setC('H', emp.ck_actual, '#,##0', false, 'right');
-          setC('I', emp.hd_actual, '#,##0', false, 'right');
-          setC('J', emp.wmp_actual, '#,##0', false, 'right');
+          // Group headers
+          ws2.mergeCells('E5:K5');
+          const g1 = ws2.getCell('E5');
+          g1.value = 'THỰC HIỆN (chi tiết theo kênh)';
+          g1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          g1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+          g1.alignment = { horizontal: 'center', vertical: 'middle' };
 
-          // Tổng TH formula =SUM(D..:J..)
-          setC('K', { formula: `SUM(D${r}:J${r})`, result: emp.total_actual }, '#,##0', true, 'right');
-          ws2.getRow(r).height = 22;
-        });
+          ws2.mergeCells('L5:M5');
+          const g2 = ws2.getCell('L5');
+          g2.value = 'ĐÁNH GIÁ';
+          g2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          g2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDD2323' } };
+          g2.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws2.getRow(5).height = 22;
 
-        // Row Total TỔNG TEAM
-        const totalR = 7 + p.employees.length;
-        ws2.mergeCells(`B${totalR}:C${totalR}`);
-        const totLbl = ws2.getCell(`B${totalR}`);
-        totLbl.value = 'TỔNG TEAM';
-        totLbl.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-        totLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        totLbl.alignment = { horizontal: 'center', vertical: 'middle' };
-        totLbl.border = thinBorder;
-        ws2.getCell(`C${totalR}`).border = thinBorder;
+          // Subheaders Row 6
+          const teamHeaders = [
+            'STT', 'Nhân Viên', 'Target', 'BHX\n(cố định)', 'GS25', '7-Eleven',
+            'FamilyMart', 'Circle K', 'Hoàng Đức', 'WinMart+', 'Tổng TH\n(BHX+CVS)', '% Đạt'
+          ];
+          const teamCols = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'];
+          teamHeaders.forEach((th, idx) => {
+            const c = ws2.getCell(teamCols[idx] + '6');
+            c.value = th;
+            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
+          });
+          ws2.getRow(6).height = 40;
 
-        const sumCols = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
-        const sumResults = [
-          p.total_actual_bhx,
-          p.employees.reduce((a,x)=>a+x.gs25_actual,0),
-          p.employees.reduce((a,x)=>a+x.se_actual,0),
-          p.employees.reduce((a,x)=>a+x.fm_actual,0),
-          p.employees.reduce((a,x)=>a+x.ck_actual,0),
-          p.employees.reduce((a,x)=>a+x.hd_actual,0),
-          p.employees.reduce((a,x)=>a+x.wmp_actual,0),
-          p.total_actual
-        ];
-        sumCols.forEach((col, idx) => {
-          const sc = ws2.getCell(`${col}${totalR}`);
-          sc.value = { formula: `SUM(${col}7:${col}${totalR-1})`, result: sumResults[idx] };
-          sc.numFmt = '#,##0';
-          sc.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
-          sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          sc.alignment = { horizontal: 'right', vertical: 'middle' };
-          sc.border = thinBorder;
-        });
-        ws2.getRow(totalR).height = 28;
+          // 10 Employee rows
+          p.employees.forEach((emp, k) => {
+            const r = 7 + k;
+            const setC = (col, val, fmt, isBold, align) => {
+              const cell = ws2.getCell(col + r);
+              cell.value = val;
+              if (fmt) cell.numFmt = fmt;
+              cell.font = { name: 'Calibri', bold: !!isBold };
+              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              cell.border = thinBorder;
+              return cell;
+            };
 
-        // Freeze Panes at D7
-        ws2.views = [{ state: 'frozen', xSplit: 3, ySplit: 6 }];
+            setC('B', k + 1, null, false, 'center');
+            setC('C', emp.name, null, true, 'left');
+            setC('D', emp.target, '#,##0', false, 'right');
+            setC('E', emp.bhx_actual, '#,##0', false, 'right');
+            setC('F', emp.gs25_actual, '#,##0', false, 'right');
+            setC('G', emp.se_actual, '#,##0', false, 'right');
+            setC('H', emp.fm_actual, '#,##0', false, 'right');
+            setC('I', emp.ck_actual, '#,##0', false, 'right');
+            setC('J', emp.hd_actual, '#,##0', false, 'right');
+            setC('K', emp.wmp_actual, '#,##0', false, 'right');
+
+            // Tổng TH formula =SUM(E..:K..)
+            setC('L', { formula: `SUM(E${r}:K${r})`, result: emp.total_actual }, '#,##0', true, 'right');
+
+            // % Đạt formula =L../D..
+            const pctCell = setC('M', { formula: `L${r}/D${r}`, result: (emp.percent || 0) / 100 }, '0.0%', true, 'center');
+            if ((emp.percent || 0) >= p.timegone) {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28E11F' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FF000000' } };
+            } else if ((emp.percent || 0) >= p.timegone * 0.75) {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5991F' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            } else {
+              pctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDD2323' } };
+              pctCell.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            }
+            ws2.getRow(r).height = 22;
+          });
+
+          // Row Total TỔNG TEAM
+          const totalR = 7 + p.employees.length;
+          ws2.mergeCells(`B${totalR}:C${totalR}`);
+          const totLbl = ws2.getCell(`B${totalR}`);
+          totLbl.value = 'TỔNG TEAM';
+          totLbl.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+          totLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totLbl.alignment = { horizontal: 'center', vertical: 'middle' };
+          totLbl.border = thinBorder;
+          ws2.getCell(`C${totalR}`).border = thinBorder;
+
+          const sumCols = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+          const sumResults = [
+            p.total_target, p.total_actual_bhx,
+            p.employees.reduce((a,x)=>a+x.gs25_actual,0),
+            p.employees.reduce((a,x)=>a+x.se_actual,0),
+            p.employees.reduce((a,x)=>a+x.fm_actual,0),
+            p.employees.reduce((a,x)=>a+x.ck_actual,0),
+            p.employees.reduce((a,x)=>a+x.hd_actual,0),
+            p.employees.reduce((a,x)=>a+x.wmp_actual,0),
+            p.total_actual
+          ];
+          sumCols.forEach((col, idx) => {
+            const sc = ws2.getCell(`${col}${totalR}`);
+            sc.value = { formula: `SUM(${col}7:${col}${totalR-1})`, result: sumResults[idx] };
+            sc.numFmt = '#,##0';
+            sc.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+            sc.alignment = { horizontal: 'right', vertical: 'middle' };
+            sc.border = thinBorder;
+          });
+
+          const pctTot = ws2.getCell(`M${totalR}`);
+          pctTot.value = { formula: `L${totalR}/D${totalR}`, result: (p.percent_achieved || 0) / 100 };
+          pctTot.numFmt = '0.0%';
+          pctTot.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFF00' } };
+          pctTot.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          pctTot.alignment = { horizontal: 'center', vertical: 'middle' };
+          pctTot.border = thinBorder;
+          ws2.getRow(totalR).height = 28;
+
+          // Freeze Panes at D7
+          ws2.views = [{ state: 'frozen', xSplit: 3, ySplit: 6 }];
+        } else {
+          ws2.columns = [
+            { width: 3 }, { width: 6 }, { width: 24 }, { width: 16 },
+            { width: 14 }, { width: 14 }, { width: 14 }, { width: 14 },
+            { width: 14 }, { width: 14 }, { width: 20 }
+          ];
+
+          // Banner B2:K2
+          ws2.mergeCells('B2:K2');
+          const wb2 = ws2.getCell('B2');
+          wb2.value = 'THEO DÕI DOANH SỐ - TEAM ' + p.team_lead.toUpperCase() + ' - THÁNG ' + p.month + '/' + p.year;
+          wb2.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+          wb2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          wb2.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws2.getRow(2).height = 30;
+
+          // Info Row B3:K3
+          const setInfo = (col, val, isLbl, isRed) => {
+            const c = ws2.getCell(col + '3');
+            c.value = val;
+            c.font = { name: 'Calibri', bold: true, color: { argb: isRed ? 'FFC00000' : 'FF000000' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: isLbl ? 'FFFFF2CC' : 'FFFFF9E6' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle' };
+            c.border = thinBorder;
+          };
+          setInfo('B', 'Tháng:', true, false);
+          setInfo('C', p.month + '/' + p.year, false, true);
+          setInfo('D', 'Tổng CH BHX:', true, false);
+          setInfo('E', p.total_stores_bhx_team || p.total_stores_bhx, false, true);
+          setInfo('F', 'TB BHX/CH:', true, false);
+          setInfo('G', p.bhx_per_store, false, true);
+          ws2.getCell('G3').numFmt = '#,##0';
+          setInfo('H', 'Cập nhật:', true, false);
+          setInfo('I', String(nowD.getDate()).padStart(2,'0') + '/' + String(nowD.getMonth()+1).padStart(2,'0') + '/' + nowD.getFullYear(), false, false);
+          setInfo('J', '% Timegone:', true, false);
+          setInfo('K', p.timegone / 100, false, true);
+          ws2.getCell('K3').numFmt = '0.0%';
+          ws2.getRow(3).height = 24;
+
+          // Group headers
+          ws2.mergeCells('D5:J5');
+          const g1 = ws2.getCell('D5');
+          g1.value = 'THỰC HIỆN (chi tiết theo từng kênh)';
+          g1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          g1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+          g1.alignment = { horizontal: 'center', vertical: 'middle' };
+
+          const g2 = ws2.getCell('K5');
+          g2.value = 'TỔNG CỘNG';
+          g2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          g2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          g2.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws2.getRow(5).height = 22;
+
+          // Subheaders Row 6 (Bỏ Target và % Đạt)
+          const teamHeaders = [
+            'STT', 'Nhân Viên', 'BHX\n(cố định)', 'GS25', '7-Eleven',
+            'FamilyMart', 'Circle K', 'Hoàng Đức', 'WinMart+', 'Tổng TH\n(BHX+CVS)'
+          ];
+          const teamCols = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+          teamHeaders.forEach((th, idx) => {
+            const c = ws2.getCell(teamCols[idx] + '6');
+            c.value = th;
+            c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4472C4' } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
+          });
+          ws2.getRow(6).height = 40;
+
+          // 10 Employee rows
+          p.employees.forEach((emp, k) => {
+            const r = 7 + k;
+            const setC = (col, val, fmt, isBold, align) => {
+              const cell = ws2.getCell(col + r);
+              cell.value = val;
+              if (fmt) cell.numFmt = fmt;
+              cell.font = { name: 'Calibri', bold: !!isBold };
+              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              cell.border = thinBorder;
+              return cell;
+            };
+
+            setC('B', k + 1, null, false, 'center');
+            setC('C', emp.name, null, true, 'left');
+            setC('D', emp.bhx_actual, '#,##0', false, 'right');
+            setC('E', emp.gs25_actual, '#,##0', false, 'right');
+            setC('F', emp.se_actual, '#,##0', false, 'right');
+            setC('G', emp.fm_actual, '#,##0', false, 'right');
+            setC('H', emp.ck_actual, '#,##0', false, 'right');
+            setC('I', emp.hd_actual, '#,##0', false, 'right');
+            setC('J', emp.wmp_actual, '#,##0', false, 'right');
+
+            // Tổng TH formula =SUM(D..:J..)
+            setC('K', { formula: `SUM(D${r}:J${r})`, result: emp.total_actual }, '#,##0', true, 'right');
+            ws2.getRow(r).height = 22;
+          });
+
+          // Row Total TỔNG TEAM
+          const totalR = 7 + p.employees.length;
+          ws2.mergeCells(`B${totalR}:C${totalR}`);
+          const totLbl = ws2.getCell(`B${totalR}`);
+          totLbl.value = 'TỔNG TEAM';
+          totLbl.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+          totLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totLbl.alignment = { horizontal: 'center', vertical: 'middle' };
+          totLbl.border = thinBorder;
+          ws2.getCell(`C${totalR}`).border = thinBorder;
+
+          const sumCols = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+          const sumResults = [
+            p.total_actual_bhx,
+            p.employees.reduce((a,x)=>a+x.gs25_actual,0),
+            p.employees.reduce((a,x)=>a+x.se_actual,0),
+            p.employees.reduce((a,x)=>a+x.fm_actual,0),
+            p.employees.reduce((a,x)=>a+x.ck_actual,0),
+            p.employees.reduce((a,x)=>a+x.hd_actual,0),
+            p.employees.reduce((a,x)=>a+x.wmp_actual,0),
+            p.total_actual
+          ];
+          sumCols.forEach((col, idx) => {
+            const sc = ws2.getCell(`${col}${totalR}`);
+            sc.value = { formula: `SUM(${col}7:${col}${totalR-1})`, result: sumResults[idx] };
+            sc.numFmt = '#,##0';
+            sc.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+            sc.alignment = { horizontal: 'right', vertical: 'middle' };
+            sc.border = thinBorder;
+          });
+          ws2.getRow(totalR).height = 28;
+
+          // Freeze Panes at D7
+          ws2.views = [{ state: 'frozen', xSplit: 3, ySplit: 6 }];
+        }
 
         // -------------------------------------------------------------
         // SHEET 3: CHI TIẾT CVS
@@ -5278,203 +6110,448 @@ const DEFAULT_FM_STORES = [
           });
         });
 
-        // Set column widths
-        const colWidths = [
-          { width: 42 }, // A: Dia chi
-          { width: 16 }, // B: Location
-          { width: 13 }, // C: Ma PG
-          { width: 22 }, // D: Ho ten PG
-          { width: 8 },  // E: VTCV
-          { width: 22 }, // F: Actual
-        ];
-        allFmSkus.forEach(() => colWidths.push({ width: 16 }));
-        ws6.columns = colWidths;
+        // Set column widths & layout based on mode
+        if (isTargetMode) {
+          // Set column widths (has Target & % Đạt)
+          const colWidths = [
+            { width: 42 }, // A: Dia chi
+            { width: 16 }, // B: Location
+            { width: 13 }, // C: Ma PG
+            { width: 22 }, // D: Ho ten PG
+            { width: 8 },  // E: VTCV
+            { width: 18 }, // F: Target
+            { width: 18 }, // G: Actual
+            { width: 12 }, // H: % Dat
+          ];
+          allFmSkus.forEach(() => colWidths.push({ width: 16 }));
+          ws6.columns = colWidths;
 
-        // Row 1: Title Banner A1:L1
-        ws6.mergeCells('A1:L1');
-        const t6 = ws6.getCell('A1');
-        t6.value = '🛒 BÁO CÁO CHI TIẾT NHẬP HÀNG THEO CỬA HÀNG & SKU - CHUỖI FAMILYMART';
-        t6.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-        t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        t6.alignment = { horizontal: 'center', vertical: 'middle' };
-        ws6.getRow(1).height = 32;
+          // Row 1: Title Banner A1:L1
+          ws6.mergeCells('A1:L1');
+          const t6 = ws6.getCell('A1');
+          t6.value = '🛒 BÁO CÁO CHI TIẾT NHẬP HÀNG THEO CỬA HÀNG & SKU - CHUỖI FAMILYMART';
+          t6.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+          t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          t6.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws6.getRow(1).height = 32;
 
-        // Rows 2 & 3: 5 KPI Cards
-        const totFmAct = fmData ? (fmData.total_actual || 0) : fmStores.reduce((a, b) => a + (b.actual || 0), 0);
-        const storesWithOrder = fmStores.filter(s => (s.actual || 0) > 0).length;
-        const pctStoresWithOrder = fmStores.length > 0 ? Math.round(storesWithOrder / fmStores.length * 100) : 0;
-        const avgPerFmStore = fmStores.length > 0 ? Math.round(totFmAct / fmStores.length) : 0;
+          // Rows 2 & 3: 7 KPI Cards
+          const totFmTgt = fmData ? (fmData.total_target || 0) : fmStores.reduce((a, b) => a + (b.target || 0), 0);
+          const totFmAct = fmData ? (fmData.total_actual || 0) : fmStores.reduce((a, b) => a + (b.actual || 0), 0);
+          const pctFm = totFmTgt > 0 ? (totFmAct / totFmTgt * 100) : 0;
+          const passedFm = fmStores.filter(s => {
+            const pPct = s.target > 0 ? (s.actual / s.target * 100) : 0;
+            return pPct >= p.timegone;
+          }).length;
+          const pctPassed = fmStores.length > 0 ? Math.round(passedFm / fmStores.length * 100) : 0;
+          const avgPerFmStore = fmStores.length > 0 ? Math.round(totFmAct / fmStores.length) : 0;
 
-        const fmKpiCols = [
-          { col: 'A', lbl: 'Số Cửa Hàng', val: fmStores.length + ' CH', bg: 'FF1F4E78', fg: 'FFFFFFFF' },
-          { col: 'B', lbl: 'Tổng Thực Hiện Nhập', val: totFmAct, fmt: '#,##0 "đ"', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-          { col: 'C', lbl: 'TB Doanh Số/CH', val: avgPerFmStore, fmt: '#,##0 "đ"', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
-          { col: 'D', lbl: 'CH Có Phát Sinh Đơn', val: storesWithOrder + '/' + fmStores.length + ' CH', bg: 'FFED7D31', fg: 'FFFFFFFF' },
-          { col: 'E', lbl: 'Tỷ Lệ CH Có Đơn', val: pctStoresWithOrder / 100, fmt: '0.0%', bg: 'FF4472C4', fg: 'FFFFFFFF' }
-        ];
+          const fmKpiCols = [
+            { col: 'A', lbl: 'Số Cửa Hàng', val: fmStores.length + ' CH', bg: 'FF1F4E78', fg: 'FFFFFFFF' },
+            { col: 'B', lbl: 'Target Tổng FM', val: totFmTgt, fmt: '#,##0 "đ"', bg: 'FF4472C4', fg: 'FFFFFFFF' },
+            { col: 'C', lbl: 'Thực Hiện Nhập', val: totFmAct, fmt: '#,##0 "đ"', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'D', lbl: '% Đạt FM', val: pctFm / 100, fmt: '0.0%', bg: (pctFm >= p.timegone ? 'FF28E11F' : 'FFDD2323'), fg: (pctFm >= p.timegone ? 'FF000000' : 'FFFFFFFF') },
+            { col: 'E', lbl: 'Số CH Đạt Timegone', val: passedFm + '/' + fmStores.length + ' CH', bg: 'FFED7D31', fg: 'FFFFFFFF' },
+            { col: 'F', lbl: 'Tỷ Lệ Đạt Timegone', val: pctPassed / 100, fmt: '0.0%', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'G', lbl: 'TB Doanh Số/CH', val: avgPerFmStore, fmt: '#,##0 "đ"', bg: 'FF2E75B6', fg: 'FFFFFFFF' }
+          ];
 
-        fmKpiCols.forEach(k => {
-          const lCell = ws6.getCell(k.col + '2');
-          lCell.value = k.lbl;
-          lCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FF555555' } };
-          lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-          lCell.alignment = { horizontal: 'center', vertical: 'middle' };
-          lCell.border = thinBorder;
+          fmKpiCols.forEach(k => {
+            const lCell = ws6.getCell(k.col + '2');
+            lCell.value = k.lbl;
+            lCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FF555555' } };
+            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+            lCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            lCell.border = thinBorder;
 
-          const vCell = ws6.getCell(k.col + '3');
-          vCell.value = k.val;
-          if (k.fmt) vCell.numFmt = k.fmt;
-          vCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: k.fg } };
-          vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
-          vCell.alignment = { horizontal: 'center', vertical: 'middle' };
-          vCell.border = thinBorder;
-        });
-        ws6.getRow(2).height = 18;
-        ws6.getRow(3).height = 24;
+            const vCell = ws6.getCell(k.col + '3');
+            vCell.value = k.val;
+            if (k.fmt) vCell.numFmt = k.fmt;
+            vCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: k.fg } };
+            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
+            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            vCell.border = thinBorder;
+          });
+          ws6.getRow(2).height = 18;
+          ws6.getRow(3).height = 24;
 
-        // Row 4: Group Headers
-        ws6.mergeCells('A4:E4');
-        const g4_1 = ws6.getCell('A4');
-        g4_1.value = 'THÔNG TIN ĐIỂM BÁN (STORE MASTER)';
-        g4_1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1F4E78' } };
-        g4_1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
-        g4_1.alignment = { horizontal: 'center', vertical: 'middle' };
+          // Row 4: Group Headers
+          ws6.mergeCells('A4:E4');
+          const g4_1 = ws6.getCell('A4');
+          g4_1.value = 'THÔNG TIN ĐIỂM BÁN (STORE MASTER)';
+          g4_1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1F4E78' } };
+          g4_1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+          g4_1.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        const g4_2 = ws6.getCell('F4');
-        g4_2.value = 'TỔNG THỰC HIỆN';
-        g4_2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        g4_2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
-        g4_2.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws6.mergeCells('F4:H4');
+          const g4_2 = ws6.getCell('F4');
+          g4_2.value = 'CHỈ TIÊU & TỔNG THỰC HIỆN';
+          g4_2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFC00000' } };
+          g4_2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } };
+          g4_2.alignment = { horizontal: 'center', vertical: 'middle' };
 
-        let curColIdx = 7;
-        fmCats.forEach(cat => {
-          const startCol = curColIdx;
-          const endCol = curColIdx + cat.skus.length - 1;
-          const sLet = openpyxlColLetter(startCol);
-          const eLet = openpyxlColLetter(endCol);
+          let curColIdx = 9;
+          fmCats.forEach(cat => {
+            const startCol = curColIdx;
+            const endCol = curColIdx + cat.skus.length - 1;
+            const sLet = openpyxlColLetter(startCol);
+            const eLet = openpyxlColLetter(endCol);
 
-          if (cat.skus.length > 1) {
-            ws6.mergeCells(sLet + '4:' + eLet + '4');
-          }
-          const catCell = ws6.getCell(sLet + '4');
-          catCell.value = cat.name;
-          catCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-          catCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cat.headerBg } };
-          catCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            if (cat.skus.length > 1) {
+              ws6.mergeCells(sLet + '4:' + eLet + '4');
+            }
+            const catCell = ws6.getCell(sLet + '4');
+            catCell.value = cat.name;
+            catCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+            catCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cat.headerBg } };
+            catCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-          curColIdx = endCol + 1;
-        });
-        ws6.getRow(4).height = 24;
+            curColIdx = endCol + 1;
+          });
+          ws6.getRow(4).height = 24;
 
-        // Row 5: Subheaders
-        const baseSubheaders = [
-          { name: 'Địa chỉ Store (ship to)', bg: 'FFFFE699', fg: 'FF000000' },
-          { name: 'Tên Store (Location)', bg: 'FFFFE699', fg: 'FF000000' },
-          { name: 'Mã PG', bg: 'FFFFE699', fg: 'FF000000' },
-          { name: 'Họ Tên PG', bg: 'FFFFE699', fg: 'FF000000' },
-          { name: 'VTCV', bg: 'FFFFE699', fg: 'FF000000' },
-          { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', bg: 'FFF4B084', fg: 'FF000000' }
-        ];
+          // Row 5: Subheaders
+          const baseSubheaders = [
+            { name: 'Địa chỉ Store (ship to)', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Tên Store (Location)', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Mã PG', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Họ Tên PG', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'VTCV', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Chỉ tiêu Doanh Số Nhập (VND)', bg: 'FFF8CBAD', fg: 'FF000000' },
+            { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', bg: 'FFF4B084', fg: 'FF000000' },
+            { name: '% Đạt', bg: 'FFC00000', fg: 'FFFFFFFF' }
+          ];
 
-        baseSubheaders.forEach((sh, idx) => {
-          const colLet = openpyxlColLetter(idx + 1);
-          const c = ws6.getCell(colLet + '5');
-          c.value = sh.name;
-          c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: sh.fg } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sh.bg } };
-          c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          c.border = thinBorder;
-        });
-
-        allFmSkus.forEach((sku, idx) => {
-          const colLet = openpyxlColLetter(7 + idx);
-          const c = ws6.getCell(colLet + '5');
-          c.value = sku.name + '\n(' + sku.code + ')';
-          c.font = { name: 'Calibri', size: 8, bold: true, color: { argb: 'FF1F4E78' } };
-          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sku.headerBg } };
-          c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-          c.border = thinBorder;
-        });
-        ws6.getRow(5).height = 45;
-
-        // Data Rows (Row 6 to 6 + fmStores.length - 1)
-        const startR6 = 6;
-        const endR6 = startR6 + fmStores.length - 1;
-        const lastColLetter = openpyxlColLetter(6 + allFmSkus.length);
-
-        fmStores.forEach((st, idx) => {
-          const r = startR6 + idx;
-          const rowBg = (idx % 2 === 0) ? 'FFFFFFFF' : 'FFFAFAFA';
-
-          const setFm = (col, val, fmt, isBold, align, fillBg, fontColor) => {
-            const cell = ws6.getCell(col + r);
-            cell.value = val;
-            if (fmt) cell.numFmt = fmt;
-            cell.font = { name: 'Calibri', size: 9, bold: !!isBold, color: { argb: fontColor || 'FF000000' } };
-            cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillBg || rowBg } };
-            cell.border = thinBorder;
-            return cell;
-          };
-
-          setFm('A', st.addr, null, false, 'left');
-          setFm('B', st.location || 'ST00_CVS_FM', null, false, 'center');
-          setFm('C', st.ma_pg || '', null, false, 'center');
-          setFm('D', st.ten_pg || '', null, false, 'left');
-          setFm('E', st.vtcv || 'SR', null, false, 'center');
-
-          // Actual Col F = SUM(G{r}:lastCol{r})
-          setFm('F', { formula: 'SUM(G' + r + ':' + lastColLetter + r + ')', result: st.actual || 0 }, '#,##0', true, 'right', 'FFF2F9F2');
-
-          // 46 SKU columns
-          allFmSkus.forEach((sku, sIdx) => {
-            const cLet = openpyxlColLetter(7 + sIdx);
-            const amt = (st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0;
-            const cBg = amt > 0 ? sku.cellBg : rowBg;
-            const cFg = amt > 0 ? 'FF000000' : 'FFA0A0A0';
-            setFm(cLet, amt, '#,##0', false, 'right', cBg, cFg);
+          baseSubheaders.forEach((sh, idx) => {
+            const colLet = openpyxlColLetter(idx + 1);
+            const c = ws6.getCell(colLet + '5');
+            c.value = sh.name;
+            c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: sh.fg } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sh.bg } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
           });
 
-          ws6.getRow(r).height = 20;
-        });
+          allFmSkus.forEach((sku, idx) => {
+            const colLet = openpyxlColLetter(9 + idx);
+            const c = ws6.getCell(colLet + '5');
+            c.value = sku.name + '\n(' + sku.code + ')';
+            c.font = { name: 'Calibri', size: 8, bold: true, color: { argb: 'FF1F4E78' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sku.headerBg } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
+          });
+          ws6.getRow(5).height = 45;
 
-        // Row Total (TỔNG CỘNG)
-        const totalR6 = endR6 + 1;
-        ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
-        const totFmLbl = ws6.getCell('A' + totalR6);
-        totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
-        totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
-        for (let colIdx = 1; colIdx <= 5; colIdx++) {
-          ws6.getCell(openpyxlColLetter(colIdx) + totalR6).border = thinBorder;
+          // Data Rows (Row 6 to 6 + fmStores.length - 1)
+          const startR6 = 6;
+          const endR6 = startR6 + fmStores.length - 1;
+          const lastColLetter = openpyxlColLetter(8 + allFmSkus.length);
+
+          fmStores.forEach((st, idx) => {
+            const r = startR6 + idx;
+            const rowBg = (idx % 2 === 0) ? 'FFFFFFFF' : 'FFFAFAFA';
+
+            const setFm = (col, val, fmt, isBold, align, fillBg, fontColor) => {
+              const cell = ws6.getCell(col + r);
+              cell.value = val;
+              if (fmt) cell.numFmt = fmt;
+              cell.font = { name: 'Calibri', size: 9, bold: !!isBold, color: { argb: fontColor || 'FF000000' } };
+              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillBg || rowBg } };
+              cell.border = thinBorder;
+              return cell;
+            };
+
+            setFm('A', st.addr, null, false, 'left');
+            setFm('B', st.location || 'ST00_CVS_FM', null, false, 'center');
+            setFm('C', st.ma_pg || '', null, false, 'center');
+            setFm('D', st.ten_pg || '', null, false, 'left');
+            setFm('E', st.vtcv || 'SR', null, false, 'center');
+
+            // Target Col F
+            setFm('F', st.target || 0, '#,##0', true, 'right', 'FFFFF9E6');
+
+            // Actual Col G = SUM(I{r}:lastCol{r})
+            setFm('G', { formula: 'SUM(I' + r + ':' + lastColLetter + r + ')', result: st.actual || 0 }, '#,##0', true, 'right', 'FFF2F9F2');
+
+            // % Dat Col H = IF(F{r}>0, G{r}/F{r}, 0)
+            const pctVal = st.target > 0 ? (st.actual / st.target) : 0;
+            let cellPctBg = 'FFDD2323';
+            let cellPctFg = 'FFFFFFFF';
+            if (pctVal * 100 >= p.timegone) {
+              cellPctBg = 'FF28E11F'; cellPctFg = 'FF000000';
+            } else if (pctVal * 100 >= p.timegone * 0.75) {
+              cellPctBg = 'FFF5991F'; cellPctFg = 'FFFFFFFF';
+            }
+            setFm('H', { formula: 'IF(F' + r + '>0, G' + r + '/F' + r + ', 0)', result: pctVal }, '0.0%', true, 'center', cellPctBg, cellPctFg);
+
+            // 46 SKU columns
+            allFmSkus.forEach((sku, sIdx) => {
+              const cLet = openpyxlColLetter(9 + sIdx);
+              const amt = (st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0;
+              const cBg = amt > 0 ? sku.cellBg : rowBg;
+              const cFg = amt > 0 ? 'FF000000' : 'FFA0A0A0';
+              setFm(cLet, amt, '#,##0', false, 'right', cBg, cFg);
+            });
+
+            ws6.getRow(r).height = 20;
+          });
+
+          // Row Total (TỔNG CỘNG)
+          const totalR6 = endR6 + 1;
+          ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
+          const totFmLbl = ws6.getCell('A' + totalR6);
+          totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
+          totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
+          for (let colIdx = 1; colIdx <= 5; colIdx++) {
+            ws6.getCell(openpyxlColLetter(colIdx) + totalR6).border = thinBorder;
+          }
+
+          // Col F Target SUBTOTAL
+          const totFmTgtCell = ws6.getCell('F' + totalR6);
+          totFmTgtCell.value = { formula: 'SUBTOTAL(9, F' + startR6 + ':F' + endR6 + ')', result: totFmTgt };
+          totFmTgtCell.numFmt = '#,##0';
+          totFmTgtCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          totFmTgtCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totFmTgtCell.alignment = { horizontal: 'right', vertical: 'middle' };
+          totFmTgtCell.border = thinBorder;
+
+          // Col G Actual SUBTOTAL
+          const totFmActCell = ws6.getCell('G' + totalR6);
+          totFmActCell.value = { formula: 'SUBTOTAL(9, G' + startR6 + ':G' + endR6 + ')', result: totFmAct };
+          totFmActCell.numFmt = '#,##0';
+          totFmActCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
+          totFmActCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totFmActCell.alignment = { horizontal: 'right', vertical: 'middle' };
+          totFmActCell.border = thinBorder;
+
+          // Col H % Dat Formula
+          const totFmPctCell = ws6.getCell('H' + totalR6);
+          totFmPctCell.value = { formula: 'IF(F' + totalR6 + '>0, G' + totalR6 + '/F' + totalR6 + ', 0)', result: pctFm / 100 };
+          totFmPctCell.numFmt = '0.0%';
+          totFmPctCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: (pctFm >= p.timegone ? 'FF000000' : 'FFFFFFFF') } };
+          totFmPctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (pctFm >= p.timegone ? 'FF28E11F' : 'FFDD2323') } };
+          totFmPctCell.alignment = { horizontal: 'center', vertical: 'middle' };
+          totFmPctCell.border = thinBorder;
+
+          // SKU SUBTOTALs
+          allFmSkus.forEach((sku, sIdx) => {
+            const cLet = openpyxlColLetter(9 + sIdx);
+            const sc = ws6.getCell(cLet + totalR6);
+            const skuSum = fmStores.reduce((acc, st) => acc + ((st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0), 0);
+            sc.value = { formula: 'SUBTOTAL(9, ' + cLet + startR6 + ':' + cLet + endR6 + ')', result: skuSum };
+            sc.numFmt = '#,##0';
+            sc.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+            sc.alignment = { horizontal: 'right', vertical: 'middle' };
+            sc.border = thinBorder;
+          });
+          ws6.getRow(totalR6).height = 26;
+
+          // Freeze Panes at column I (freeze 8 columns, 5 rows)
+          ws6.views = [{ state: 'frozen', xSplit: 8, ySplit: 5 }];
+        } else {
+          // Set column widths (Actuals only)
+          const colWidths = [
+            { width: 42 }, // A: Dia chi
+            { width: 16 }, // B: Location
+            { width: 13 }, // C: Ma PG
+            { width: 22 }, // D: Ho ten PG
+            { width: 8 },  // E: VTCV
+            { width: 22 }, // F: Actual
+          ];
+          allFmSkus.forEach(() => colWidths.push({ width: 16 }));
+          ws6.columns = colWidths;
+
+          // Row 1: Title Banner A1:L1
+          ws6.mergeCells('A1:L1');
+          const t6 = ws6.getCell('A1');
+          t6.value = '🛒 BÁO CÁO CHI TIẾT NHẬP HÀNG THEO CỬA HÀNG & SKU - CHUỖI FAMILYMART';
+          t6.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+          t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          t6.alignment = { horizontal: 'center', vertical: 'middle' };
+          ws6.getRow(1).height = 32;
+
+          // Rows 2 & 3: 5 KPI Cards
+          const totFmAct = fmData ? (fmData.total_actual || 0) : fmStores.reduce((a, b) => a + (b.actual || 0), 0);
+          const storesWithOrder = fmStores.filter(s => (s.actual || 0) > 0).length;
+          const pctStoresWithOrder = fmStores.length > 0 ? Math.round(storesWithOrder / fmStores.length * 100) : 0;
+          const avgPerFmStore = fmStores.length > 0 ? Math.round(totFmAct / fmStores.length) : 0;
+
+          const fmKpiCols = [
+            { col: 'A', lbl: 'Số Cửa Hàng', val: fmStores.length + ' CH', bg: 'FF1F4E78', fg: 'FFFFFFFF' },
+            { col: 'B', lbl: 'Tổng Thực Hiện Nhập', val: totFmAct, fmt: '#,##0 "đ"', bg: 'FF70AD47', fg: 'FFFFFFFF' },
+            { col: 'C', lbl: 'TB Doanh Số/CH', val: avgPerFmStore, fmt: '#,##0 "đ"', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
+            { col: 'D', lbl: 'CH Có Phát Sinh Đơn', val: storesWithOrder + '/' + fmStores.length + ' CH', bg: 'FFED7D31', fg: 'FFFFFFFF' },
+            { col: 'E', lbl: 'Tỷ Lệ CH Có Đơn', val: pctStoresWithOrder / 100, fmt: '0.0%', bg: 'FF4472C4', fg: 'FFFFFFFF' }
+          ];
+
+          fmKpiCols.forEach(k => {
+            const lCell = ws6.getCell(k.col + '2');
+            lCell.value = k.lbl;
+            lCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FF555555' } };
+            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+            lCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            lCell.border = thinBorder;
+
+            const vCell = ws6.getCell(k.col + '3');
+            vCell.value = k.val;
+            if (k.fmt) vCell.numFmt = k.fmt;
+            vCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: k.fg } };
+            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
+            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            vCell.border = thinBorder;
+          });
+          ws6.getRow(2).height = 18;
+          ws6.getRow(3).height = 24;
+
+          // Row 4: Group Headers
+          ws6.mergeCells('A4:E4');
+          const g4_1 = ws6.getCell('A4');
+          g4_1.value = 'THÔNG TIN ĐIỂM BÁN (STORE MASTER)';
+          g4_1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1F4E78' } };
+          g4_1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+          g4_1.alignment = { horizontal: 'center', vertical: 'middle' };
+
+          const g4_2 = ws6.getCell('F4');
+          g4_2.value = 'TỔNG THỰC HIỆN';
+          g4_2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          g4_2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+          g4_2.alignment = { horizontal: 'center', vertical: 'middle' };
+
+          let curColIdx = 7;
+          fmCats.forEach(cat => {
+            const startCol = curColIdx;
+            const endCol = curColIdx + cat.skus.length - 1;
+            const sLet = openpyxlColLetter(startCol);
+            const eLet = openpyxlColLetter(endCol);
+
+            if (cat.skus.length > 1) {
+              ws6.mergeCells(sLet + '4:' + eLet + '4');
+            }
+            const catCell = ws6.getCell(sLet + '4');
+            catCell.value = cat.name;
+            catCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+            catCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cat.headerBg } };
+            catCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            curColIdx = endCol + 1;
+          });
+          ws6.getRow(4).height = 24;
+
+          // Row 5: Subheaders
+          const baseSubheaders = [
+            { name: 'Địa chỉ Store (ship to)', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Tên Store (Location)', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Mã PG', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Họ Tên PG', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'VTCV', bg: 'FFFFE699', fg: 'FF000000' },
+            { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', bg: 'FFF4B084', fg: 'FF000000' }
+          ];
+
+          baseSubheaders.forEach((sh, idx) => {
+            const colLet = openpyxlColLetter(idx + 1);
+            const c = ws6.getCell(colLet + '5');
+            c.value = sh.name;
+            c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: sh.fg } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sh.bg } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
+          });
+
+          allFmSkus.forEach((sku, idx) => {
+            const colLet = openpyxlColLetter(7 + idx);
+            const c = ws6.getCell(colLet + '5');
+            c.value = sku.name + '\n(' + sku.code + ')';
+            c.font = { name: 'Calibri', size: 8, bold: true, color: { argb: 'FF1F4E78' } };
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sku.headerBg } };
+            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            c.border = thinBorder;
+          });
+          ws6.getRow(5).height = 45;
+
+          // Data Rows (Row 6 to 6 + fmStores.length - 1)
+          const startR6 = 6;
+          const endR6 = startR6 + fmStores.length - 1;
+          const lastColLetter = openpyxlColLetter(6 + allFmSkus.length);
+
+          fmStores.forEach((st, idx) => {
+            const r = startR6 + idx;
+            const rowBg = (idx % 2 === 0) ? 'FFFFFFFF' : 'FFFAFAFA';
+
+            const setFm = (col, val, fmt, isBold, align, fillBg, fontColor) => {
+              const cell = ws6.getCell(col + r);
+              cell.value = val;
+              if (fmt) cell.numFmt = fmt;
+              cell.font = { name: 'Calibri', size: 9, bold: !!isBold, color: { argb: fontColor || 'FF000000' } };
+              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillBg || rowBg } };
+              cell.border = thinBorder;
+              return cell;
+            };
+
+            setFm('A', st.addr, null, false, 'left');
+            setFm('B', st.location || 'ST00_CVS_FM', null, false, 'center');
+            setFm('C', st.ma_pg || '', null, false, 'center');
+            setFm('D', st.ten_pg || '', null, false, 'left');
+            setFm('E', st.vtcv || 'SR', null, false, 'center');
+
+            // Actual Col F = SUM(G{r}:lastCol{r})
+            setFm('F', { formula: 'SUM(G' + r + ':' + lastColLetter + r + ')', result: st.actual || 0 }, '#,##0', true, 'right', 'FFF2F9F2');
+
+            // 46 SKU columns
+            allFmSkus.forEach((sku, sIdx) => {
+              const cLet = openpyxlColLetter(7 + sIdx);
+              const amt = (st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0;
+              const cBg = amt > 0 ? sku.cellBg : rowBg;
+              const cFg = amt > 0 ? 'FF000000' : 'FFA0A0A0';
+              setFm(cLet, amt, '#,##0', false, 'right', cBg, cFg);
+            });
+
+            ws6.getRow(r).height = 20;
+          });
+
+          // Row Total (TỔNG CỘNG)
+          const totalR6 = endR6 + 1;
+          ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
+          const totFmLbl = ws6.getCell('A' + totalR6);
+          totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
+          totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+          totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
+          for (let colIdx = 1; colIdx <= 5; colIdx++) {
+            ws6.getCell(openpyxlColLetter(colIdx) + totalR6).border = thinBorder;
+          }
+
+          // Col F Actual SUBTOTAL
+          const totFmActCell = ws6.getCell('F' + totalR6);
+          totFmActCell.value = { formula: 'SUBTOTAL(9, F' + startR6 + ':F' + endR6 + ')', result: totFmAct };
+          totFmActCell.numFmt = '#,##0';
+          totFmActCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
+          totFmActCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+          totFmActCell.alignment = { horizontal: 'right', vertical: 'middle' };
+          totFmActCell.border = thinBorder;
+
+          // SKU SUBTOTALs
+          allFmSkus.forEach((sku, sIdx) => {
+            const cLet = openpyxlColLetter(7 + sIdx);
+            const sc = ws6.getCell(cLet + totalR6);
+            const skuSum = fmStores.reduce((acc, st) => acc + ((st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0), 0);
+            sc.value = { formula: 'SUBTOTAL(9, ' + cLet + startR6 + ':' + cLet + endR6 + ')', result: skuSum };
+            sc.numFmt = '#,##0';
+            sc.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
+            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+            sc.alignment = { horizontal: 'right', vertical: 'middle' };
+            sc.border = thinBorder;
+          });
+          ws6.getRow(totalR6).height = 26;
+
+          // Freeze Panes at column G (freeze 6 columns, 5 rows)
+          ws6.views = [{ state: 'frozen', xSplit: 6, ySplit: 5 }];
         }
-
-        // Col F Actual SUBTOTAL
-        const totFmActCell = ws6.getCell('F' + totalR6);
-        totFmActCell.value = { formula: 'SUBTOTAL(9, F' + startR6 + ':F' + endR6 + ')', result: totFmAct };
-        totFmActCell.numFmt = '#,##0';
-        totFmActCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
-        totFmActCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-        totFmActCell.alignment = { horizontal: 'right', vertical: 'middle' };
-        totFmActCell.border = thinBorder;
-
-        // SKU SUBTOTALs
-        allFmSkus.forEach((sku, sIdx) => {
-          const cLet = openpyxlColLetter(7 + sIdx);
-          const sc = ws6.getCell(cLet + totalR6);
-          const skuSum = fmStores.reduce((acc, st) => acc + ((st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0), 0);
-          sc.value = { formula: 'SUBTOTAL(9, ' + cLet + startR6 + ':' + cLet + endR6 + ')', result: skuSum };
-          sc.numFmt = '#,##0';
-          sc.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
-          sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          sc.alignment = { horizontal: 'right', vertical: 'middle' };
-          sc.border = thinBorder;
-        });
-        ws6.getRow(totalR6).height = 26;
-
-        // Freeze Panes at column G (freeze 6 columns, 5 rows)
-        ws6.views = [{ state: 'frozen', xSplit: 6, ySplit: 5 }];
 
         return wb;
     }
@@ -5953,6 +7030,16 @@ const DEFAULT_FM_STORES = [
       setupDragAndDrop();
       updateTargetBannerUI();
       setupTablePinchZoom();
+
+      // Khởi tạo chế độ báo cáo
+      const savedMode = localStorage.getItem('PREFERRED_REPORT_MODE');
+      if (savedMode === 'target' || savedMode === 'actual') {
+        setReportMode(savedMode);
+      } else {
+        // Mặc định mở popup cho người dùng chọn: Có Target hoặc Không Target
+        setReportMode('target');
+        openModeChoiceModal();
+      }
 
       // Nếu đang chạy trong Apps Script thì tải master data đã lưu
       if (typeof google !== 'undefined' && google.script && google.script.run) {
