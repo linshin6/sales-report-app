@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
-  <title>Báo Cáo Doanh Số Team (CVS & BHX) - Modern Teal Edition</title>
+  <title>Báo Cáo Thực Đạt (CVS & BHX) - Modern Teal Edition</title>
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -860,7 +860,7 @@
     <div class="brand">
       <div class="brand-icon">📊</div>
       <div class="brand-title">
-        <h1>BÁO CÁO DOANH SỐ TEAM (CVS & BHX)</h1>
+        <h1>BÁO CÁO THỰC ĐẠT (CVS & BHX)</h1>
         <p>Hệ Thống Phân Bổ Tự Động - Chuẩn Format Team_CamGiang_Report</p>
       </div>
     </div>
@@ -5643,9 +5643,55 @@ const DEFAULT_FM_STORES = [
       const b64 = uint8ArrayToBase64Url(compressed);
       
       let baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-      if (!baseUrl.startsWith('http') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+      if (!baseUrl.startsWith('http') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1') || baseUrl.includes('androidplatform.net')) {
         baseUrl = 'https://bcgiang.vercel.app/';
       }
+      if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+      // 1. Thử lưu lên Cloud Storage (Giải pháp 2C) để lấy URL siêu ngắn, chuyên nghiệp
+      try {
+        let cloudId = null;
+
+        // 1.1 Thử qua Vercel API /api/report
+        try {
+          const apiRes = await fetch(`${baseUrl}api/report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payload: p, compact: compactObj }),
+            signal: AbortSignal.timeout(5000)
+          });
+          if (apiRes.ok) {
+            const resJson = await apiRes.json();
+            if (resJson && resJson.id) {
+              cloudId = resJson.id;
+            }
+          }
+        } catch (eApi) {}
+
+        // 1.2 Nếu gọi API Vercel chưa được (hoặc trên App Android), lưu trực tiếp qua Bytebin Cloud CDN
+        if (!cloudId) {
+          const bbRes = await fetch('https://bytebin.lucko.me/post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(compactObj),
+            signal: AbortSignal.timeout(5000)
+          });
+          if (bbRes.ok) {
+            const bbJson = await bbRes.json();
+            if (bbJson && bbJson.key) {
+              cloudId = bbJson.key;
+            }
+          }
+        }
+
+        if (cloudId) {
+          return `${baseUrl}r/${cloudId}`;
+        }
+      } catch (eCloud) {
+        console.warn('Lỗi lưu Cloud 2C:', eCloud);
+      }
+
+      // Fallback an toàn: Dùng mã hóa nén base64url nếu không kết nối được Cloud
       return baseUrl + 'r#d=' + b64;
     }
 
@@ -5654,17 +5700,36 @@ const DEFAULT_FM_STORES = [
         alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước khi lấy link báo cáo!');
         return;
       }
+      let btn = null;
+      try {
+        if (window.event && window.event.target) {
+          btn = window.event.target.closest('button');
+        }
+      } catch (eBtn) {}
+      const oldText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Đang tạo link ngắn 2C...';
+      }
       try {
         const fullUrl = await getOnlineReportUrl();
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
         if (!fullUrl) return;
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(fullUrl);
-          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO TRỰC TUYẾN!\n\n' + fullUrl + '\n\n(Link mở trực tiếp 100% số liệu trên web trong 0.1 giây, không quảng cáo, không đếm ngược).\n\n💡 Gợi ý: Bạn có thể bấm nút [📊 Đẩy Sang Google Sheet] để nhận link Google Sheet gửi cấp trên!');
+          alert('✅ ĐÃ TẠO VÀ SAO CHÉP LINK BÁO CÁO NGẮN GỌN (2C)!\n\n👉 ' + fullUrl + '\n\n(Đường link siêu ngắn, chuyên nghiệp để gửi cấp trên/Zalo, mở xem trực tiếp 100% số liệu trong 0.2 giây).');
         } else {
-          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', fullUrl);
+          prompt('Đường link xem báo cáo ngắn gọn (Nhấn Ctrl+C để sao chép):', fullUrl);
         }
       } catch (e) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = oldText;
+        }
         console.error(e);
         alert('Lỗi tạo link báo cáo: ' + e.message);
       }

@@ -5,7 +5,7 @@ const zlib = require('zlib');
 const masterData = require('../master_data.js');
 const { detectFileType, processTwoWorkbooks } = require('../ReportEngine.gs');
 const { buildExcelWorkbook } = require('../lib/excel-builder.js');
-const { generateReportUrl, shortenReportUrl } = require('../lib/report-share.js');
+const { generateReportUrl, generateCleanReportUrl } = require('../lib/report-share.js');
 
 // Bộ nhớ đệm phiên làm việc trên Vercel Serverless
 global.__TG_SESSIONS = global.__TG_SESSIONS || new Map();
@@ -391,9 +391,8 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
         // Bóc tách số liệu qua Report Engine
         const payload = processTwoWorkbooks(sess.fileST.wb, sess.fileCVS.wb, masterData);
 
-        // Tạo link xem báo cáo trực tuyến trên Vercel và tự động rút gọn link siêu ngắn (TinyURL)
-        const reportLongUrl = generateReportUrl(req, payload);
-        const reportWebUrl = await shortenReportUrl(reportLongUrl);
+        // Tạo link xem báo cáo trực tuyến trên Vercel qua Cloud Storage (Giải pháp 2C siêu ngắn, chuyên nghiệp)
+        const reportWebUrl = await generateCleanReportUrl(req, payload);
         global.__LAST_REPORT_URL = reportWebUrl;
 
         // Tùy chọn gọi Google Apps Script tạo Google Sheet nếu có cấu hình GOOGLE_WEBAPP_URL

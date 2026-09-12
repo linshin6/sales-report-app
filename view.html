@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <title>Báo Cáo Doanh Số Team Cẩm Giang - Trực Tuyến</title>
+  <title>Báo Cáo Thực Đạt Team Cẩm Giang - Trực Tuyến</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -402,7 +402,7 @@
   <header class="header-bar">
     <div class="header-inner">
       <div class="header-title-group">
-        <h1 id="headerMainTitle"><span>📊</span> BÁO CÁO DOANH SỐ TEAM CẨM GIANG</h1>
+        <h1 id="headerMainTitle"><span>📊</span> BÁO CÁO THỰC ĐẠT TEAM CẨM GIANG</h1>
         <div class="header-subtitle">
           <span>👤 Team Lead: <strong style="color:white;" id="headerTeamLead">Trần Thị Cẩm Giang</strong></span>
           <span>•</span>
@@ -900,25 +900,95 @@
       };
     }
 
+    function copyShareLink() {
+      const url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('✅ Đã sao chép đường link báo cáo!');
+        }).catch(() => {
+          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để copy):', url);
+        });
+      } else {
+        prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để copy):', url);
+      }
+    }
+
     async function init() {
       try {
-        let dParam = '';
-        const hash = window.location.hash;
-        if (hash && hash.includes('d=')) {
-          dParam = hash.split('d=')[1].split('&')[0];
-        } else {
-          const urlParams = new URLSearchParams(window.location.search);
-          dParam = urlParams.get('d') || '';
-        }
+        // 1. Kiểm tra tham số ID báo cáo từ URL (Giải pháp 2C: /r/:id hoặc ?id=...)
+        let idParam = '';
+        const urlParams = new URLSearchParams(window.location.search);
+        idParam = (urlParams.get('id') || '').trim();
 
-        if (dParam) {
-          const compact = await decompressData(dParam);
-          if (compact) {
-            reportData = reconstitutePayload(compact);
+        if (!idParam) {
+          // Lấy từ path nếu định dạng /r/ID hoặc /view/ID
+          const pathMatch = window.location.pathname.match(/\/(?:r|view)\/([a-zA-Z0-9_-]+)/);
+          if (pathMatch && pathMatch[1] && pathMatch[1] !== 'view' && pathMatch[1] !== 'r' && !pathMatch[1].endsWith('.html')) {
+            idParam = pathMatch[1].trim();
           }
         }
 
-        // Fallback sample data if no parameter
+        if (idParam) {
+          try {
+            let fetched = false;
+            // 1.1 Thử lấy từ Vercel Serverless API
+            try {
+              const res = await fetch(`/api/report?id=${encodeURIComponent(idParam)}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (res.ok) {
+                const json = await res.json();
+                if (json && json.ok && json.data) {
+                  const d = json.data;
+                  if (d.employees || d.bhx_hubs) {
+                    reportData = d;
+                  } else if (d.h || d.emps) {
+                    reportData = reconstitutePayload(d);
+                  }
+                  fetched = true;
+                }
+              }
+            } catch (eApi) {}
+
+            // 1.2 Nếu API local/chưa có, thử trực tiếp từ Bytebin Cloud CDN
+            if (!fetched) {
+              const bbRes = await fetch(`https://bytebin.lucko.me/${encodeURIComponent(idParam)}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (bbRes.ok) {
+                const d = await bbRes.json();
+                if (d.employees || d.bhx_hubs) {
+                  reportData = d;
+                } else if (d.h || d.emps) {
+                  reportData = reconstitutePayload(d);
+                }
+                fetched = true;
+              }
+            }
+          } catch (eId) {
+            console.warn('Lỗi tải báo cáo theo ID:', eId);
+          }
+        }
+
+        // 2. Fallback kiểm tra mã hash d= hoặc ?d= nếu không có ID
+        if (!reportData) {
+          let dParam = '';
+          const hash = window.location.hash;
+          if (hash && hash.includes('d=')) {
+            dParam = hash.split('d=')[1].split('&')[0];
+          } else {
+            dParam = urlParams.get('d') || '';
+          }
+
+          if (dParam) {
+            const compact = await decompressData(dParam);
+            if (compact) {
+              reportData = reconstitutePayload(compact);
+            }
+          }
+        }
+
+        // 3. Fallback nạp dữ liệu mẫu nếu không có tham số
         if (!reportData) {
           reportData = createSampleReport();
         }

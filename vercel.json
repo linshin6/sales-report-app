@@ -5,9 +5,13 @@
     },
     "api/shorten.js": {
       "maxDuration": 15
+    },
+    "api/report.js": {
+      "maxDuration": 15
     }
   },
   "rewrites": [
+    { "source": "/r/:id", "destination": "/view.html?id=:id" },
     { "source": "/r", "destination": "/view.html" },
     { "source": "/view", "destination": "/view.html" }
   ]
