@@ -2499,6 +2499,7 @@ const DEFAULT_FM_STORES = [
 
       // Tự động vẽ lại toàn bộ bảng biểu và thẻ KPI nếu đã có dữ liệu
       if (typeof processedReportData !== 'undefined' && processedReportData) {
+        processedReportData.mode = mode;
         renderDashboard(processedReportData);
       }
     }
@@ -3300,6 +3301,7 @@ const DEFAULT_FM_STORES = [
       };
 
       processedReportData = {
+        mode: window.currentReportMode || 'actual',
         team_lead: currentMaster.team_lead,
         month: month,
         year: year,
@@ -6645,12 +6647,24 @@ const DEFAULT_FM_STORES = [
         }
       });
 
+      // 4. Targets nhân viên (chỉ lấy khi ở chế độ Có Target)
+      const isTarget = (window.currentReportMode === 'target');
+      const t = isTarget ? (p.employees || []).map(e => e.target || 0) : [];
+
       const compactObj = {
         v: 2,
+        mode: isTarget ? 'target' : 'actual',
         m: p.month || (new Date().getMonth() + 1),
         y: p.year || new Date().getFullYear(),
         tg: p.timegone || 0,
-        h, s, f
+        tot_tgt: isTarget ? (p.total_target || 0) : 0,
+        pct_ach: isTarget ? (p.percent_achieved || 0) : 0,
+        h, s, f, t
+      };
+
+      const payloadObj = {
+        ...p,
+        mode: isTarget ? 'target' : 'actual'
       };
 
       const jsonStr = JSON.stringify(compactObj);
@@ -6672,7 +6686,7 @@ const DEFAULT_FM_STORES = [
           const apiRes = await fetch(`${baseUrl}api/report`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload: p, compact: compactObj }),
+            body: JSON.stringify({ payload: payloadObj, compact: compactObj }),
             signal: AbortSignal.timeout(5000)
           });
           if (apiRes.ok) {
@@ -6688,7 +6702,7 @@ const DEFAULT_FM_STORES = [
           const bbRes = await fetch('https://bytebin.lucko.me/post', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(compactObj),
+            body: JSON.stringify({ ...compactObj, payload: payloadObj }),
             signal: AbortSignal.timeout(5000)
           });
           if (bbRes.ok) {
@@ -6700,14 +6714,14 @@ const DEFAULT_FM_STORES = [
         }
 
         if (cloudId) {
-          return `${baseUrl}r/${cloudId}`;
+          return `${baseUrl}r/${cloudId}?mode=${isTarget ? 'target' : 'actual'}`;
         }
       } catch (eCloud) {
         console.warn('Lỗi lưu Cloud 2C:', eCloud);
       }
 
       // Fallback an toàn: Dùng mã hóa nén base64url nếu không kết nối được Cloud
-      return baseUrl + 'r#d=' + b64;
+      return baseUrl + `r?mode=${isTarget ? 'target' : 'actual'}#d=` + b64;
     }
 
     async function copySupervisorLink() {
@@ -6734,22 +6748,25 @@ const DEFAULT_FM_STORES = [
         }
         if (!fullUrl) return;
 
+        const isTarget = (window.currentReportMode === 'target');
+        const modeLabel = isTarget ? 'BÁO CÁO CÓ TARGET' : 'BÁO CÁO THỰC ĐẠT';
+
         // Nếu đang chạy trong ứng dụng Android APK, dùng bridge sao chép & chia sẻ trực tiếp
         if (window.AndroidBridge) {
           if (typeof window.AndroidBridge.copyToClipboard === 'function') {
             window.AndroidBridge.copyToClipboard(fullUrl);
           }
           if (typeof window.AndroidBridge.shareText === 'function') {
-            window.AndroidBridge.shareText(fullUrl, 'Chia sẻ link Báo Cáo Thực Đạt: ' + fullUrl);
+            window.AndroidBridge.shareText(fullUrl, `Chia sẻ link ${modeLabel}: ` + fullUrl);
             return;
           }
         }
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(fullUrl);
-          alert('✅ ĐÃ TẠO VÀ SAO CHÉP LINK BÁO CÁO NGẮN GỌN (2C)!\n\n👉 ' + fullUrl + '\n\n(Đường link siêu ngắn, chuyên nghiệp để gửi cấp trên/Zalo, mở xem trực tiếp 100% số liệu trong 0.2 giây).');
+          alert(`✅ ĐÃ TẠO VÀ SAO CHÉP LINK ${modeLabel.toUpperCase()} (2C)!\n\n👉 ` + fullUrl + `\n\n(Đường link trực tuyến mở ra sẽ hiển thị đúng chế độ ${isTarget ? 'Có Target (đầy đủ chỉ tiêu, % đạt, xếp hạng)' : 'Thực Đạt (xếp hạng doanh số, tỷ trọng)'}).`);
         } else {
-          prompt('Đường link xem báo cáo ngắn gọn (Nhấn Ctrl+C để sao chép):', fullUrl);
+          prompt(`Đường link ${modeLabel} (Nhấn Ctrl+C để sao chép):`, fullUrl);
         }
       } catch (e) {
         if (btn) {
@@ -6877,6 +6894,7 @@ const DEFAULT_FM_STORES = [
         const teamPct = parseFloat(((totalActual / totalTarget) * 100).toFixed(2));
 
         processedReportData = {
+          mode: window.currentReportMode || 'actual',
           team_lead: currentMaster.team_lead,
           month: month,
           year: year,
