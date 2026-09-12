@@ -4150,68 +4150,6 @@ const DEFAULT_FM_STORES = [
           `;
         }
       });
-    }er(e.bhx_actual)}</td>
-            <td class="text-right">${formatNumber(e.gs25_actual)}</td>
-            <td class="text-right">${formatNumber(e.se_actual)}</td>
-            <td class="text-right">${formatNumber(e.fm_actual)}</td>
-            <td class="text-right">${formatNumber(e.ck_actual)}</td>
-            <td class="text-right">${formatNumber(e.hd_actual)}</td>
-            <td class="text-right">${formatNumber(e.wmp_actual)}</td>
-            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
-          </tr>
-        `;
-      });
-
-      const totBhx = filtered.reduce((a, b) => a + (b.bhx_actual || 0), 0);
-      const totGs = filtered.reduce((a, b) => a + (b.gs25_actual || 0), 0);
-      const totSe = filtered.reduce((a, b) => a + (b.se_actual || 0), 0);
-      const totFm = filtered.reduce((a, b) => a + (b.fm_actual || 0), 0);
-      const totCk = filtered.reduce((a, b) => a + (b.ck_actual || 0), 0);
-      const totHd = filtered.reduce((a, b) => a + (b.hd_actual || 0), 0);
-      const totWmp = filtered.reduce((a, b) => a + (b.wmp_actual || 0), 0);
-      const totAct = filtered.reduce((a, b) => a + (b.total_actual || 0), 0);
-
-      const footLabel = selEmp ? ('TỔNG (' + selEmp.toUpperCase() + ')') : 'TỔNG TEAM';
-
-      tfoot.innerHTML = `
-        <tr style="background:#1F4E78;">
-          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">${footLabel}</td>
-          <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(totBhx)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totGs)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totSe)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totFm)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totCk)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totHd)}</td>
-          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totWmp)}</td>
-          <td class="text-right font-bold" style="color:#93C5FD !important; font-size:13.5px;">${formatNumber(totAct)}</td>
-        </tr>
-      `;
-    }
-
-    function filterRankTable() {
-      if (!processedReportData) return;
-      const selEmp = document.getElementById('filterRankEmp') ? document.getElementById('filterRankEmp').value : '';
-      const tbody = document.getElementById('rankTableBody');
-      tbody.innerHTML = '';
-
-      const totalTeam = processedReportData.total_actual_team || (processedReportData.employees || []).reduce((a, b) => a + (b.total_actual || 0), 0);
-      const sorted = (processedReportData.employees || []).slice().sort((a, b) => (b.total_actual || 0) - (a.total_actual || 0));
-      const filtered = selEmp ? sorted.filter(e => e.name === selEmp) : sorted;
-
-      filtered.forEach((e) => {
-        const rank = sorted.findIndex(s => s.name === e.name) + 1;
-        const pctShare = totalTeam > 0 ? ((e.total_actual / totalTeam) * 100).toFixed(1) : '0.0';
-        tbody.innerHTML += `
-          <tr>
-            <td class="text-center font-bold">${rank}</td>
-            <td class="font-bold">${e.name}</td>
-            <td class="text-right">${formatNumber(e.bhx_actual)}</td>
-            <td class="text-right">${formatNumber(e.cvs_total)}</td>
-            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
-            <td class="text-center font-bold" style="color:#1D4ED8;">${pctShare}%</td>
-          </tr>
-        `;
-      });
     }
 
     function filterBhxTable() {
