@@ -277,6 +277,38 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void copyToClipboard(final String text) {
+            runOnUiThread(() -> {
+                try {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                    android.content.ClipData clip = android.content.ClipData.newPlainText("Link Báo Cáo", text);
+                    if (clipboard != null) {
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(MainActivity.this, "✅ Đã sao chép link báo cáo!", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "copyToClipboard error", e);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void shareText(final String text, final String title) {
+            runOnUiThread(() -> {
+                try {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, text);
+                    sendIntent.setType("text/plain");
+                    Intent shareIntent = Intent.createChooser(sendIntent, title != null ? title : "Chia sẻ link báo cáo");
+                    startActivity(shareIntent);
+                } catch (Exception e) {
+                    Log.e(TAG, "shareText error", e);
+                }
+            });
+        }
     }
 
     @Override

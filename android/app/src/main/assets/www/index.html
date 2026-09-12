@@ -5719,6 +5719,17 @@ const DEFAULT_FM_STORES = [
         }
         if (!fullUrl) return;
 
+        // Nếu đang chạy trong ứng dụng Android APK, dùng bridge sao chép & chia sẻ trực tiếp
+        if (window.AndroidBridge) {
+          if (typeof window.AndroidBridge.copyToClipboard === 'function') {
+            window.AndroidBridge.copyToClipboard(fullUrl);
+          }
+          if (typeof window.AndroidBridge.shareText === 'function') {
+            window.AndroidBridge.shareText(fullUrl, 'Chia sẻ link Báo Cáo Thực Đạt: ' + fullUrl);
+            return;
+          }
+        }
+
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(fullUrl);
           alert('✅ ĐÃ TẠO VÀ SAO CHÉP LINK BÁO CÁO NGẮN GỌN (2C)!\n\n👉 ' + fullUrl + '\n\n(Đường link siêu ngắn, chuyên nghiệp để gửi cấp trên/Zalo, mở xem trực tiếp 100% số liệu trong 0.2 giây).');
