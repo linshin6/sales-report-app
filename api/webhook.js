@@ -5,6 +5,7 @@ const zlib = require('zlib');
 const masterData = require('../master_data.js');
 const { detectFileType, processTwoWorkbooks } = require('../ReportEngine.gs');
 const { buildExcelWorkbook } = require('../lib/excel-builder.js');
+const { generateReportUrl } = require('../lib/report-share.js');
 
 // Bộ nhớ đệm phiên làm việc trên Vercel Serverless
 global.__TG_SESSIONS = global.__TG_SESSIONS || new Map();
@@ -287,10 +288,20 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
 • 💬 <b>Bản tin tóm tắt số liệu</b> chi tiết toàn team!
 
 📌 <b>Lệnh nhanh:</b>
+/link - Lấy lại link xem báo cáo trực tuyến mới nhất
 /status - Kiểm tra trạng thái 2 file đã gửi
 /reset - Xóa phiên để gửi lại từ đầu`;
 
       await sendMessage(token, chatId, welcome);
+      return res.status(200).json({ ok: true });
+    }
+
+    if (text.startsWith('/link') || text.startsWith('/xem') || text.startsWith('/online')) {
+      if (global.__LAST_REPORT_URL) {
+        await sendMessage(token, chatId, `🌐 <b>LINK BÁO CÁO DOANH SỐ MỚI NHẤT:</b>\n👉 <a href="${global.__LAST_REPORT_URL}">${global.__LAST_REPORT_URL}</a>\n\n<i>Cấp trên có thể mở link xem trực tiếp đầy đủ 6 bảng biểu và tải file Excel trên điện thoại/máy tính.</i>`);
+      } else {
+        await sendMessage(token, chatId, '💡 <i>Chưa có báo cáo nào vừa được tạo trong phiên này. Hãy gửi 2 file doanh số để Bot tạo báo cáo và trả link trực tuyến ngay!</i>');
+      }
       return res.status(200).json({ ok: true });
     }
 
@@ -373,6 +384,29 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
         // Bóc tách số liệu qua Report Engine
         const payload = processTwoWorkbooks(sess.fileST.wb, sess.fileCVS.wb, masterData);
 
+        // Tạo link xem báo cáo trực tuyến trên Vercel
+        const reportWebUrl = generateReportUrl(req, payload);
+        global.__LAST_REPORT_URL = reportWebUrl;
+
+        // Tùy chọn gọi Google Apps Script tạo Google Sheet nếu có cấu hình GOOGLE_WEBAPP_URL
+        let googleSheetUrl = null;
+        const gasUrl = process.env.GOOGLE_WEBAPP_URL || process.env.GAS_URL;
+        if (gasUrl) {
+          try {
+            const gasRes = await fetch(gasUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'create_sheet', payload })
+            });
+            const gasData = await gasRes.json();
+            if (gasData && gasData.url) {
+              googleSheetUrl = gasData.url;
+            }
+          } catch (eGas) {
+            console.warn('Lỗi gọi Google Apps Script tạo sheet:', eGas.message);
+          }
+        }
+
         // 1. Chụp và gửi lần lượt 4 ảnh bảng biểu chuẩn theo đúng mẫu giao diện
         const fmCount = (payload.fm_sku_matrix && payload.fm_sku_matrix.stores) ? payload.fm_sku_matrix.stores.length : 35;
         const fmActual = payload.fm_sku_matrix ? (payload.fm_sku_matrix.total_actual || 0) : 0;
@@ -423,7 +457,8 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
 Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
 • Tổng Thực Hiện: ${formatMoney(payload.total_actual)} ₫
 • BHX: ${formatMoney(payload.total_actual_bhx)} ₫
-• CVS: ${formatMoney(payload.total_cvs)} ₫`;
+• CVS: ${formatMoney(payload.total_cvs)} ₫
+🌐 Link xem online: ${reportWebUrl}`;
 
           const excelFileName = `Team_${payload.team_lead.replace(/\s+/g, '_')}_Report_Thang_${payload.month}_${payload.year}.xlsx`;
           await sendDocument(token, chatId, excelBuffer, excelFileName, docCaption);
@@ -448,6 +483,19 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
           const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `${i + 1}.`));
           const pctShare = payload.total_actual > 0 ? (((emp.total_actual || 0) / payload.total_actual) * 100).toFixed(1) : '0.0';
           summaryMsg += `${medal} <b>${emp.name}</b>: <b>${formatMoney(emp.total_actual)} ₫</b> (${pctShare}% team)\n`;
+        }
+
+        summaryMsg += 
+`━━━━━━━━━━━━━━━━━━━━
+🌐 <b>LINK XEM BÁO CÁO TRỰC TUYẾN:</b>
+👉 <a href="${reportWebUrl}">Bấm vào đây để mở Báo Cáo Trên Web</a>
+<i>(Cấp trên có thể bấm link xem trực tiếp đầy đủ 6 bảng biểu trên điện thoại & máy tính, tải file Excel ngay trên web)</i>\n`;
+
+        if (googleSheetUrl) {
+          summaryMsg += 
+`━━━━━━━━━━━━━━━━━━━━
+📊 <b>LINK GOOGLE SHEET:</b>
+👉 <a href="${googleSheetUrl}">Bấm vào đây để mở Google Sheet</a>\n`;
         }
 
         summaryMsg += 

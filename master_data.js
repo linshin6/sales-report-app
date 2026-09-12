@@ -1842,3 +1842,7 @@ const MASTER_DATA = {
 };
 
 if (typeof module !== "undefined") module.exports = MASTER_DATA;
+if (typeof window !== "undefined") {
+  window.MASTER_DATA = MASTER_DATA;
+  window.DEFAULT_MASTER = MASTER_DATA;
+}

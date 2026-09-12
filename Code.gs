@@ -25,6 +25,29 @@ function doGet(e) {
 }
 
 /**
+ * Phục vụ API POST từ Vercel Webhook / Backend
+ */
+function doPost(e) {
+  try {
+    var data = {};
+    if (e && e.postData && e.postData.contents) {
+      data = JSON.parse(e.postData.contents);
+    }
+    if (data.action === 'create_sheet') {
+      var res = createGoogleSheetReport(data.payload);
+      return ContentService.createTextOutput(JSON.stringify(res))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Unknown action' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+
+/**
  * Lấy Master Data (Danh sách NV, Target, Cửa hàng CVS, Hubs BHX) đã lưu
  */
 function getMasterDataFromBackend() {

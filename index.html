@@ -1037,6 +1037,12 @@
           <button class="btn btn-success" onclick="exportToGoogleSheet()">
             📊 Tạo Báo Cáo Trên Google Sheets
           </button>
+          <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Tạo link xem đầy đủ 100% thông tin báo cáo trực tuyến gửi cấp trên">
+            🔗 Copy Link Báo Cáo Cho Cấp Trên
+          </button>
+          <button class="btn" style="background: #1e293b; color: #ffffff; border: none; font-weight: 700;" onclick="openSupervisorLink()" title="Mở trang web xem trực tiếp toàn bộ báo cáo">
+            🌐 Xem Trực Tuyến
+          </button>
         </div>
       </div>
 
@@ -5518,6 +5524,127 @@ const DEFAULT_FM_STORES = [
         exportToExcelPerfect();
       }
     }
+
+    // =========================================================================
+    // 7.1. TẠO LINK BÁO CÁO TRỰC TUYẾN GỬI CẤP TRÊN (VERCEL VIEW.HTML)
+    // =========================================================================
+    async function compressDeflateData(text) {
+      if (typeof CompressionStream !== 'undefined') {
+        const cs = new CompressionStream('deflate');
+        const writer = cs.writable.getWriter();
+        writer.write(new TextEncoder().encode(text));
+        writer.close();
+        const reader = cs.readable.getReader();
+        const chunks = [];
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+        }
+        let totalLen = chunks.reduce((acc, c) => acc + c.length, 0);
+        let res = new Uint8Array(totalLen);
+        let off = 0;
+        for (const c of chunks) {
+          res.set(c, off);
+          off += c.length;
+        }
+        return res;
+      }
+      return new TextEncoder().encode(text);
+    }
+
+    function uint8ArrayToBase64Url(bytes) {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) {
+        bin += String.fromCharCode(bytes[i]);
+      }
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    async function getOnlineReportUrl() {
+      if (!processedReportData) return null;
+      const p = processedReportData;
+      const activeStores = (p.stores || p.cvs_stores || [])
+        .filter(s => (s.actual_sales || s.actual || 0) > 0)
+        .map(s => [s.store_code || s.id, s.actual_sales || s.actual || 0]);
+
+      const fmStores = (p.fm_sku_matrix && p.fm_sku_matrix.stores) ? p.fm_sku_matrix.stores : [];
+      const activeFm = fmStores.map(s => [s.actual || 0, s.orders || {}]);
+
+      const compactObj = {
+        tl: p.team_lead || 'Trần Thị Cẩm Giang',
+        m: p.month || (new Date().getMonth() + 1),
+        y: p.year || new Date().getFullYear(),
+        tg: p.timegone || 0,
+        bhx: p.total_actual_bhx || 0,
+        cvs: p.total_cvs || 0,
+        tot: p.total_actual || 0,
+        sbhx: p.total_stores_bhx_team || 178,
+        pbhx: p.bhx_per_store || 0,
+        emps: (p.employees || []).map(e => [
+          e.name,
+          e.bhx_actual || 0,
+          e.gs25_actual || 0,
+          e.se_actual || 0,
+          e.fm_actual || 0,
+          e.ck_actual || 0,
+          e.hd_actual || 0,
+          e.wmp_actual || 0,
+          e.total_actual || 0,
+          e.bhx_stores || 0
+        ]),
+        hubs: (p.bhx_hubs || []).map((h, idx) => [
+          h.name || h.hub || ('Hub ' + (idx + 1)),
+          h.amount !== undefined ? h.amount : (h.actual_sales || 0)
+        ]),
+        stores: activeStores,
+        fm: activeFm
+      };
+
+      const jsonStr = JSON.stringify(compactObj);
+      const compressed = await compressDeflateData(jsonStr);
+      const b64 = uint8ArrayToBase64Url(compressed);
+      
+      const baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+      return baseUrl + 'view.html#d=' + b64;
+    }
+
+    async function copySupervisorLink() {
+      if (!processedReportData) {
+        alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước khi lấy link báo cáo!');
+        return;
+      }
+      try {
+        const url = await getOnlineReportUrl();
+        if (!url) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(url);
+          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO CHO CẤP TRÊN!\n\nLink chứa đầy đủ 100% dữ liệu (Tiến độ 10 NV, BHX Hubs, Chi tiết 142 CH CVS, SKU FamilyMart) và nút tải Excel.\n\nĐường link:\n' + url);
+        } else {
+          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', url);
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Lỗi tạo link báo cáo: ' + e.message);
+      }
+    }
+
+    async function openSupervisorLink() {
+      if (!processedReportData) {
+        alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước!');
+        return;
+      }
+      try {
+        const url = await getOnlineReportUrl();
+        if (url) {
+          window.open(url, '_blank');
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Lỗi mở link báo cáo: ' + e.message);
+      }
+    }
+
 
     // =========================================================================
     // 8. SAMPLE DEMO DATA
