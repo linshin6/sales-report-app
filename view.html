@@ -733,7 +733,10 @@
 
       // Format v2: Ultra-compact index-based format
       if (compact.v === 2) {
-        const isTarget = (compact.mode === 'target') || (compact.tot_tgt > 0) || (Array.isArray(compact.t) && compact.t.length > 0 && compact.t.some(x => x > 0));
+        let isTarget = false;
+        if (compact.mode === 'target') isTarget = true;
+        else if (compact.mode === 'actual') isTarget = false;
+        else isTarget = (compact.tot_tgt > 0) || (Array.isArray(compact.t) && compact.t.length > 0 && compact.t.some(x => x > 0));
         const mode = isTarget ? 'target' : 'actual';
         const month = compact.m || (new Date().getMonth() + 1);
         const year = compact.y || new Date().getFullYear();
@@ -886,7 +889,10 @@
       }
 
       // Format v1 fallback
-      const isTarget = (compact.mode === 'target') || (compact.tot_tgt > 0);
+      let isTarget = false;
+      if (compact.mode === 'target') isTarget = true;
+      else if (compact.mode === 'actual') isTarget = false;
+      else isTarget = (compact.tot_tgt > 0);
       const storeSalesMap = {};
       (compact.stores || []).forEach(pair => {
         storeSalesMap[pair[0]] = pair[1];
@@ -984,7 +990,16 @@
     }
 
     function copyShareLink() {
-      const url = window.location.href;
+      let url = window.location.href;
+      if (reportData && reportData.mode) {
+        try {
+          const u = new URL(url);
+          if (!u.searchParams.has('mode')) {
+            u.searchParams.set('mode', reportData.mode);
+            url = u.toString();
+          }
+        } catch (eUrl) {}
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(url).then(() => {
           showToast('✅ Đã sao chép đường link báo cáo!');
@@ -1094,6 +1109,21 @@
             reportData.mode = 'target';
           } else if (urlMode === 'actual') {
             reportData.mode = 'actual';
+            reportData.total_target = 0;
+            reportData.percent_achieved = 0;
+            (reportData.employees || []).forEach(e => {
+              e.target = 0;
+              e.percent = 0;
+              e.status = '';
+            });
+          } else if (reportData.mode === 'actual') {
+            reportData.total_target = 0;
+            reportData.percent_achieved = 0;
+            (reportData.employees || []).forEach(e => {
+              e.target = 0;
+              e.percent = 0;
+              e.status = '';
+            });
           } else if (!reportData.mode) {
             reportData.mode = (reportData.total_target > 0 || (reportData.employees || []).some(e => e.target > 0)) ? 'target' : 'actual';
           }
@@ -1193,8 +1223,33 @@
     }
 
     function renderDashboard(data) {
-      const isTarget = (data.mode === 'target') || (data.total_target > 0) || ((data.employees || []).some(e => e.target > 0));
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlMode = urlParams.get('mode');
+
+      let isTarget = false;
+      if (urlMode === 'target') {
+        isTarget = true;
+      } else if (urlMode === 'actual') {
+        isTarget = false;
+      } else if (data.mode === 'target') {
+        isTarget = true;
+      } else if (data.mode === 'actual') {
+        isTarget = false;
+      } else {
+        isTarget = (data.total_target > 0) || ((data.employees || []).some(e => e.target > 0));
+      }
+
       data.mode = isTarget ? 'target' : 'actual';
+
+      if (!isTarget) {
+        data.total_target = 0;
+        data.percent_achieved = 0;
+        (data.employees || []).forEach(e => {
+          e.target = 0;
+          e.percent = 0;
+          e.status = '';
+        });
+      }
 
       // Header Info
       const modeBadge = document.getElementById('headerReportMode');
@@ -1320,7 +1375,7 @@
     }
 
     function renderTableTeam(data) {
-      const isTarget = (data.mode === 'target') || (data.total_target > 0) || ((data.employees || []).some(e => e.target > 0));
+      const isTarget = (data.mode === 'target');
       const thead = document.getElementById('theadTeam');
       const tbody = document.getElementById('tbodyTeam');
       const tfoot = document.getElementById('tfootTeam');
@@ -1449,7 +1504,7 @@
     }
 
     function renderTableRank(data) {
-      const isTarget = (data.mode === 'target') || (data.total_target > 0) || ((data.employees || []).some(e => e.target > 0));
+      const isTarget = (data.mode === 'target');
       const thead = document.getElementById('theadRank');
       const tbody = document.getElementById('tbodyRank');
       const tfoot = document.getElementById('tfootRank');

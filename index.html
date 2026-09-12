@@ -6664,7 +6664,15 @@ const DEFAULT_FM_STORES = [
 
       const payloadObj = {
         ...p,
-        mode: isTarget ? 'target' : 'actual'
+        mode: isTarget ? 'target' : 'actual',
+        total_target: isTarget ? (p.total_target || 0) : 0,
+        percent_achieved: isTarget ? (p.percent_achieved || 0) : 0,
+        employees: (p.employees || []).map(e => ({
+          ...e,
+          target: isTarget ? (e.target || 0) : 0,
+          percent: isTarget ? (e.percent || 0) : 0,
+          status: isTarget ? (e.status || '') : ''
+        }))
       };
 
       const jsonStr = JSON.stringify(compactObj);
