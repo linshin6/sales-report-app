@@ -30,15 +30,17 @@ function formatMoney(num) {
 // CÁC HÀM GỌI TELEGRAM BOT API NATIVE
 // =========================================================================
 
-async function sendMessage(token, chatId, text) {
+async function sendMessage(token, chatId, text, replyMarkup) {
+  const body = {
+    chat_id: String(chatId),
+    text: text,
+    parse_mode: 'HTML'
+  };
+  if (replyMarkup) body.reply_markup = replyMarkup;
   const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: String(chatId),
-      text: text,
-      parse_mode: 'HTML'
-    })
+    body: JSON.stringify(body)
   });
   return res.json();
 }
@@ -298,7 +300,12 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
 
     if (text.startsWith('/link') || text.startsWith('/xem') || text.startsWith('/online')) {
       if (global.__LAST_REPORT_URL) {
-        await sendMessage(token, chatId, `🌐 <b>LINK BÁO CÁO DOANH SỐ MỚI NHẤT:</b>\n👉 <a href="${global.__LAST_REPORT_URL}">${global.__LAST_REPORT_URL}</a>\n\n<i>Cấp trên có thể mở link xem trực tiếp đầy đủ 6 bảng biểu và tải file Excel trên điện thoại/máy tính.</i>`);
+        const ik = {
+          inline_keyboard: [
+            [{ text: '🌐 MỞ XEM BÁO CÁO TRỰC TUYẾN', url: global.__LAST_REPORT_URL }]
+          ]
+        };
+        await sendMessage(token, chatId, `🌐 <b>BÁO CÁO DOANH SỐ TRỰC TUYẾN MỚI NHẤT:</b>\n👉 <a href="${global.__LAST_REPORT_URL}">Bấm vào đây để mở Báo Cáo Trên Web</a>\n\n<i>Cấp trên có thể bấm nút bên dưới để xem trực tiếp đầy đủ các bảng biểu và tải file Excel trên điện thoại/máy tính.</i>`, ik);
       } else {
         await sendMessage(token, chatId, '💡 <i>Chưa có báo cáo nào vừa được tạo trong phiên này. Hãy gửi 2 file doanh số để Bot tạo báo cáo và trả link trực tuyến ngay!</i>');
       }
@@ -502,7 +509,20 @@ Tháng ${payload.month}/${payload.year} (% Timegone: ${payload.timegone}%)
 `━━━━━━━━━━━━━━━━━━━━
 <i>Đã đính kèm 4 ảnh chụp bảng biểu và file Excel (.xlsx) ở phía trên!</i>`;
 
-        await sendMessage(token, chatId, summaryMsg);
+        const inlineKeyboard = {
+          inline_keyboard: [
+            [
+              { text: '🌐 MỞ XEM BÁO CÁO TRỰC TUYẾN', url: reportWebUrl }
+            ]
+          ]
+        };
+        if (googleSheetUrl) {
+          inlineKeyboard.inline_keyboard.push([
+            { text: '📊 MỞ GOOGLE SPREADSHEET', url: googleSheetUrl }
+          ]);
+        }
+
+        await sendMessage(token, chatId, summaryMsg, inlineKeyboard);
 
         // Xóa session hoàn tất
         sessions.delete(chatId);

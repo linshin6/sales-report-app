@@ -679,7 +679,142 @@
 
     function reconstitutePayload(compact) {
       const m = window.MASTER_DATA || {};
-      
+
+      let allSkus = [];
+      if (m.fm_categories) {
+        m.fm_categories.forEach(cat => allSkus.push(...cat.skus));
+      }
+
+      // Format v2: Ultra-compact index-based format
+      if (compact.v === 2) {
+        const month = compact.m || (new Date().getMonth() + 1);
+        const year = compact.y || new Date().getFullYear();
+        const timegone = compact.tg || 0;
+        const teamLead = m.team_lead || 'Trần Thị Cẩm Giang';
+
+        // 1. Hubs
+        const hubAmounts = compact.h || [0, 0, 0, 0, 0];
+        let totalBhxHubs = 0;
+        hubAmounts.forEach(val => totalBhxHubs += (val || 0));
+        const totalStoresBhx = m.total_stores_bhx || 232;
+        const bhxPerStore = Math.round(totalBhxHubs / totalStoresBhx);
+
+        const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => ({
+          hub: 'Hub ' + (idx + 1),
+          name: typeof hName === 'string' ? hName : (hName.name || hName.hub),
+          actual_sales: hubAmounts[idx] || 0
+        }));
+
+        // 2. Stores
+        const storeSalesMap = {};
+        (compact.s || []).forEach(pair => {
+          storeSalesMap[pair[0]] = pair[1];
+        });
+
+        const fullStores = (m.stores || []).map((s, idx) => ({
+          chain: s.chain,
+          employee_name: s.employee_name,
+          store_code: s.store_code,
+          store_name: s.store_name || s.store_code,
+          address: s.address || s.store_address || '',
+          actual_sales: storeSalesMap[idx] || 0
+        }));
+
+        // 3. Employees
+        let totalBhxTeam = 0;
+        let totalCvsTeam = 0;
+
+        const employees = (m.employees || []).map(e => {
+          const bhxStores = e.bhx_stores || 0;
+          const bhxActual = Math.round(bhxPerStore * bhxStores);
+          totalBhxTeam += bhxActual;
+
+          const empStores = fullStores.filter(st => st.employee_name === e.name);
+          let gs25 = 0, se = 0, fm = 0, ck = 0, hd = 0, wmp = 0;
+          empStores.forEach(st => {
+            const act = st.actual_sales || 0;
+            if (st.chain === 'GS25') gs25 += act;
+            else if (st.chain === '7-Eleven') se += act;
+            else if (st.chain === 'FamilyMart') fm += act;
+            else if (st.chain === 'Circle K') ck += act;
+            else if (st.chain === 'Hoàng Đức') hd += act;
+            else if (st.chain === 'WinMart+') wmp += act;
+          });
+
+          const cvsTotal = gs25 + se + fm + ck + hd + wmp;
+          totalCvsTeam += cvsTotal;
+
+          return {
+            name: e.name,
+            target: 0,
+            bhx_actual: bhxActual,
+            gs25_actual: gs25,
+            se_actual: se,
+            fm_actual: fm,
+            ck_actual: ck,
+            hd_actual: hd,
+            wmp_actual: wmp,
+            total_actual: bhxActual + cvsTotal,
+            bhx_stores: bhxStores,
+            cvs_total: cvsTotal
+          };
+        });
+
+        // 4. FM Matrix
+        const fmOrdersMap = {};
+        (compact.f || []).forEach(item => {
+          const stIdx = item[0];
+          const skuList = item[1] || [];
+          const ordersObj = {};
+          let stTotal = 0;
+          skuList.forEach(pair => {
+            const skuCode = allSkus[pair[0]] ? allSkus[pair[0]].code : '';
+            if (skuCode) {
+              ordersObj[skuCode] = pair[1];
+              stTotal += pair[1];
+            }
+          });
+          fmOrdersMap[stIdx] = { total: stTotal, orders: ordersObj };
+        });
+
+        const fmStores = (m.fm_stores || []).map((s, idx) => {
+          const dFm = fmOrdersMap[idx] || { total: 0, orders: {} };
+          return {
+            addr: s.addr,
+            location: s.location,
+            ma_pg: s.ma_pg,
+            ten_pg: s.ten_pg,
+            vtcv: s.vtcv,
+            target: 0,
+            actual: dFm.total,
+            orders: dFm.orders
+          };
+        });
+
+        return {
+          team_lead: teamLead,
+          month: month,
+          year: year,
+          timegone: timegone,
+          total_actual_bhx: totalBhxTeam,
+          total_actual_bhx_hubs: totalBhxHubs,
+          total_cvs: totalCvsTeam,
+          total_actual: totalBhxTeam + totalCvsTeam,
+          total_stores_bhx_team: m.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0),
+          bhx_per_store: bhxPerStore,
+          employees: employees,
+          stores: fullStores,
+          bhx_hubs: bhxHubs,
+          fm_sku_matrix: {
+            total_target: 0,
+            total_actual: fmStores.reduce((a, b) => a + (b.actual || 0), 0),
+            stores: fmStores,
+            categories: m.fm_categories || []
+          }
+        };
+      }
+
+      // Format v1 fallback
       const storeSalesMap = {};
       (compact.stores || []).forEach(pair => {
         storeSalesMap[pair[0]] = pair[1];

@@ -5556,41 +5556,53 @@ const DEFAULT_FM_STORES = [
     async function getOnlineReportUrl() {
       if (!processedReportData) return null;
       const p = processedReportData;
-      const activeStores = (p.stores || p.cvs_stores || [])
-        .filter(s => (s.actual_sales || s.actual || 0) > 0)
-        .map(s => [s.store_code || s.id, s.actual_sales || s.actual || 0]);
 
+      let allSkus = [];
+      if (typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.fm_categories) {
+        DEFAULT_MASTER.fm_categories.forEach(cat => allSkus.push(...cat.skus));
+      }
+
+      // 1. Hubs (5 số)
+      const h = (p.bhx_hubs || []).map(hub => hub.amount !== undefined ? hub.amount : (hub.actual_sales || 0));
+
+      // 2. Stores [ [storeIndex, sales], ... ]
+      const s = [];
+      (p.stores || p.cvs_stores || []).forEach((st, idx) => {
+        const val = st.actual_sales || st.actual || 0;
+        if (val > 0) {
+          let storeIdx = idx;
+          if (st.store_code && typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.stores) {
+            const found = DEFAULT_MASTER.stores.findIndex(ms => ms.store_code === st.store_code);
+            if (found !== -1) storeIdx = found;
+          }
+          s.push([storeIdx, val]);
+        }
+      });
+
+      // 3. FM matrix [ [fmStoreIndex, [ [skuIdx, amt], ... ]] ]
+      const f = [];
       const fmStores = (p.fm_sku_matrix && p.fm_sku_matrix.stores) ? p.fm_sku_matrix.stores : [];
-      const activeFm = fmStores.map(s => [s.actual || 0, s.orders || {}]);
+      fmStores.forEach((st, sIdx) => {
+        if (st.orders) {
+          const ordersList = [];
+          allSkus.forEach((sku, skuIdx) => {
+            const amt = st.orders[sku.code] || 0;
+            if (amt > 0) {
+              ordersList.push([skuIdx, amt]);
+            }
+          });
+          if (ordersList.length > 0) {
+            f.push([sIdx, ordersList]);
+          }
+        }
+      });
 
       const compactObj = {
-        tl: p.team_lead || 'Trần Thị Cẩm Giang',
+        v: 2,
         m: p.month || (new Date().getMonth() + 1),
         y: p.year || new Date().getFullYear(),
         tg: p.timegone || 0,
-        bhx: p.total_actual_bhx || 0,
-        cvs: p.total_cvs || 0,
-        tot: p.total_actual || 0,
-        sbhx: p.total_stores_bhx_team || 178,
-        pbhx: p.bhx_per_store || 0,
-        emps: (p.employees || []).map(e => [
-          e.name,
-          e.bhx_actual || 0,
-          e.gs25_actual || 0,
-          e.se_actual || 0,
-          e.fm_actual || 0,
-          e.ck_actual || 0,
-          e.hd_actual || 0,
-          e.wmp_actual || 0,
-          e.total_actual || 0,
-          e.bhx_stores || 0
-        ]),
-        hubs: (p.bhx_hubs || []).map((h, idx) => [
-          h.name || h.hub || ('Hub ' + (idx + 1)),
-          h.amount !== undefined ? h.amount : (h.actual_sales || 0)
-        ]),
-        stores: activeStores,
-        fm: activeFm
+        h, s, f
       };
 
       const jsonStr = JSON.stringify(compactObj);
@@ -5598,7 +5610,7 @@ const DEFAULT_FM_STORES = [
       const b64 = uint8ArrayToBase64Url(compressed);
       
       const baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-      return baseUrl + 'view.html#d=' + b64;
+      return baseUrl + 'r#d=' + b64;
     }
 
     async function copySupervisorLink() {
@@ -5611,29 +5623,13 @@ const DEFAULT_FM_STORES = [
         if (!url) return;
         if (navigator.clipboard && navigator.clipboard.writeText) {
           await navigator.clipboard.writeText(url);
-          alert('✅ ĐÃ SAO CHÉP LINK BÁO CÁO CHO CẤP TRÊN!\n\nLink chứa đầy đủ 100% dữ liệu (Tiến độ 10 NV, BHX Hubs, Chi tiết 142 CH CVS, SKU FamilyMart) và nút tải Excel.\n\nĐường link:\n' + url);
+          alert('✅ ĐÃ SAO CHÉP ĐƯỜNG LINK RÚT GỌN CHO CẤP TRÊN!\n\n' + url + '\n\n(Cấp trên có thể mở link xem trực tiếp đầy đủ 100% số liệu và tải file Excel)');
         } else {
-          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để sao chép):', url);
+          prompt('Đường link xem báo cáo trực tuyến rút gọn (Nhấn Ctrl+C để sao chép):', url);
         }
       } catch (e) {
         console.error(e);
         alert('Lỗi tạo link báo cáo: ' + e.message);
-      }
-    }
-
-    async function openSupervisorLink() {
-      if (!processedReportData) {
-        alert('⚠️ Vui lòng tải 2 file Excel và xử lý dữ liệu trước!');
-        return;
-      }
-      try {
-        const url = await getOnlineReportUrl();
-        if (url) {
-          window.open(url, '_blank');
-        }
-      } catch (e) {
-        console.error(e);
-        alert('Lỗi mở link báo cáo: ' + e.message);
       }
     }
 
