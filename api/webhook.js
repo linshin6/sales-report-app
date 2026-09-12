@@ -429,8 +429,8 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
           },
           {
             type: 4,
-            fileName: `Tong_Hop_FamilyMart_${payload.month}_${payload.year}.png`,
-            caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số Nhập FamilyMart</b>\n🏪 Kênh CVS FamilyMart (${fmCount} Cửa hàng)\n💰 Tổng thực hiện nhập: ${formatMoney(fmActual)} đ`
+            fileName: `Chi_Tiet_SKU_FamilyMart_${payload.month}_${payload.year}.png`,
+            caption: `🛒 <b>4/4. Bảng Chi Tiết SKU Cửa Hàng FamilyMart</b>\n🏪 Kênh CVS FamilyMart (${fmCount} Cửa hàng)\n💰 Tổng thực hiện nhập: ${formatMoney(fmActual)} đ`
           }
         ];
 

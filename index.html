@@ -1034,14 +1034,8 @@
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
           </button>
-          <button class="btn btn-success" onclick="exportToGoogleSheet()">
-            📊 Tạo Báo Cáo Trên Google Sheets
-          </button>
           <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Tạo link xem đầy đủ 100% thông tin báo cáo trực tuyến gửi cấp trên">
             🔗 Copy Link Báo Cáo Cho Cấp Trên
-          </button>
-          <button class="btn" style="background: #1e293b; color: #ffffff; border: none; font-weight: 700;" onclick="openSupervisorLink()" title="Mở trang web xem trực tiếp toàn bộ báo cáo">
-            🌐 Xem Trực Tuyến
           </button>
         </div>
       </div>
@@ -1052,7 +1046,7 @@
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabStores', this)">🏪 Chi Tiết 142 Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
-        <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU FamilyMart</button>
+        <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
 
       <!-- Tab 1: Tiến độ 10 Nhân Viên -->
@@ -2332,10 +2326,8 @@ const DEFAULT_FM_STORES = [
       const y = year || now.getFullYear();
       const daysInMonth = new Date(y, m, 0).getDate();
 
-      // Nghiệp vụ bán hàng: Báo cáo nạp vào sáng ngày D là số liệu đã chốt lũy kế đến hết ngày D-1 (hôm qua).
-      // Ví dụ: Hôm nay ngày 10/9 => Đã chốt trọn vẹn 9 ngày => 9 / 30 = 30.0%
-      let day = now.getDate() - 1;
-      if (day < 0) day = 0;
+      // Tính % Timegone chuẩn theo thời gian thực tế mỗi lần gửi file báo cáo
+      let day = now.getDate();
 
       if (y === now.getFullYear() && m === (now.getMonth() + 1)) {
         day = Math.min(day, daysInMonth);
@@ -2344,7 +2336,7 @@ const DEFAULT_FM_STORES = [
       } else {
         day = 0;
       }
-      return parseFloat(((day / daysInMonth) * 100).toFixed(2));
+      return parseFloat(((day / daysInMonth) * 100).toFixed(1));
     }
 
     function promptCustomTimegone() {

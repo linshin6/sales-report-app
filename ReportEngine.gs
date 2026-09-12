@@ -14,23 +14,34 @@ function normalizeText(text) {
 }
 
 /**
- * Tính tỷ lệ thời gian đã qua trong tháng (% Timegone)
+ * Lấy thời gian hiện tại chuẩn múi giờ Việt Nam (Asia/Ho_Chi_Minh - GMT+7)
  */
-function calculateRealtimeTimegone(month, year) {
+function getVietnamCurrentDate() {
   var now = new Date();
-  var m = month || (now.getMonth() + 1);
-  var y = year || now.getFullYear();
+  var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (7 * 3600000));
+}
+
+/**
+ * Tính tỷ lệ thời gian đã qua trong tháng (% Timegone) theo đúng thời gian mỗi lần gửi file báo cáo
+ */
+function calculateRealtimeTimegone(month, year, refDate) {
+  var vnTime = refDate ? new Date(refDate) : getVietnamCurrentDate();
+  var m = month || (vnTime.getMonth() + 1);
+  var y = year || vnTime.getFullYear();
   var daysInMonth = new Date(y, m, 0).getDate();
-  var day = now.getDate();
-  if (y === now.getFullYear() && m === (now.getMonth() + 1)) {
-    day = Math.min(now.getDate(), daysInMonth);
-  } else if (y < now.getFullYear() || (y === now.getFullYear() && m < (now.getMonth() + 1))) {
+  var day = vnTime.getDate();
+
+  if (y === vnTime.getFullYear() && m === (vnTime.getMonth() + 1)) {
+    day = Math.min(vnTime.getDate(), daysInMonth);
+  } else if (y < vnTime.getFullYear() || (y === vnTime.getFullYear() && m < (vnTime.getMonth() + 1))) {
     day = daysInMonth;
   } else {
     day = 0;
   }
-  return parseFloat(((day / daysInMonth) * 100).toFixed(2));
+  return parseFloat(((day / daysInMonth) * 100).toFixed(1));
 }
+
 
 /**
  * Đọc Workbook từ Blob hoặc Base64 bằng thư viện SheetJS (XLSX)
@@ -115,9 +126,10 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
   var master = customMaster || (typeof DEFAULT_MASTER !== 'undefined' ? DEFAULT_MASTER : MASTER_DATA);
   if (!master) throw new Error("Không tìm thấy Master Data.");
 
-  var month = master.month || (new Date().getMonth() + 1);
-  var year = master.year || new Date().getFullYear();
-  var timePct = calculateRealtimeTimegone(month, year);
+  var vnNow = getVietnamCurrentDate();
+  var month = master.month || (vnNow.getMonth() + 1);
+  var year = master.year || vnNow.getFullYear();
+  var timePct = calculateRealtimeTimegone(month, year, vnNow);
 
   // 1. TÍNH TOÁN BHX & WINMART+ (wbST)
   var bhxHubAmounts = {};

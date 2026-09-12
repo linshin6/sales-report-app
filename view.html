@@ -453,10 +453,9 @@
       <div class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tabTeam')">📊 1. Tiến Độ 10 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank')">🏆 2. Xếp Hạng & Tỷ Trọng</button>
-        <button class="tab-btn" onclick="switchTab('tabBhxDist')">🚚 3. Phân Bổ BHX (10 NV)</button>
-        <button class="tab-btn" onclick="switchTab('tabBhxHubs')">🏬 4. Doanh Số 5 Hubs BHX</button>
-        <button class="tab-btn" onclick="switchTab('tabCvsStores')">🏪 5. Chi Tiết 142 Cửa Hàng CVS</button>
-        <button class="tab-btn" onclick="switchTab('tabFmSku')">🛒 6. Ma Trận 46 SKU FamilyMart</button>
+        <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 5 Hubs BHX</button>
+        <button class="tab-btn" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết 142 Cửa Hàng CVS</button>
+        <button class="tab-btn" onclick="switchTab('tabFmSku')">🛒 5. Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
 
       <!-- TAB 1: TIẾN ĐỘ 10 NHÂN VIÊN -->
@@ -511,11 +510,37 @@
         </div>
       </div>
 
-      <!-- TAB 3: PHÂN BỔ 5 HUBS BHX -->
-      <div class="tab-panel" id="tabBhxDist">
-        <div class="panel-toolbar">
-          <div style="font-weight:700; color:#0F172A; font-size:14px;">Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 Nhân Viên)</div>
-          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxDist', 'Phan_Bo_BHX')">📸 Copy Ảnh Gửi Zalo</button>
+      <!-- TAB 3: PHÂN BỔ 5 HUBS BÁCH HÓA XANH (GỒM CẢ 2 BẢNG: 5 HUBS & 10 NHÂN VIÊN) -->
+      <div class="tab-panel" id="tabBhx">
+        <!-- BẢNG 1: DOANH SỐ THỰC TẾ 5 HUBS BHX (XH4001) -->
+        <div class="panel-toolbar" style="margin-bottom: 8px;">
+          <div style="font-weight:700; color:#0F172A; font-size:14px;">1. Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)</div>
+          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxHubs', 'Doanh_So_5_Hubs_BHX')">📸 Copy Bảng 5 Hubs</button>
+        </div>
+        <div class="table-responsive" style="margin-bottom: 24px;">
+          <table id="tableBhxHubs">
+            <thead>
+              <tr>
+                <th class="text-center" style="width:50px;">STT</th>
+                <th>HUB BÁCH HÓA XANH (XH4001)</th>
+                <th class="text-right" style="color:#86EFAC; width:220px;">DOANH SỐ THỰC TẾ (VNĐ)</th>
+                <th style="width:200px;">GHI CHÚ</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyBhxHubs"></tbody>
+            <tfoot id="tfootBhxHubs"></tfoot>
+          </table>
+        </div>
+
+        <!-- BẢNG 2: PHÂN BỔ BHX THEO NHÂN VIÊN (10 NV) -->
+        <div class="panel-toolbar" style="margin-bottom: 8px;">
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span style="font-weight:700; color:#0F172A; font-size:14px;">2. Phân Bổ BHX Theo Nhân Viên:</span>
+            <select id="filterBhxEmp" class="filter-select" onchange="filterBhxDistTable()">
+              <option value="">Tất cả 10 nhân viên</option>
+            </select>
+          </div>
+          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxDist', 'Phan_Bo_BHX_10_NV')">📸 Copy Bảng Phân Bổ</button>
         </div>
         <div class="table-responsive">
           <table id="tableBhxDist">
@@ -523,37 +548,14 @@
               <tr>
                 <th class="text-center" style="width:45px;">STT</th>
                 <th>NHÂN VIÊN</th>
-                <th class="text-center">SỐ CH QUẢN LÝ</th>
+                <th class="text-center">SỐ CỬA HÀNG QUẢN LÝ</th>
                 <th class="text-right">ĐƠN GIÁ/CH</th>
-                <th class="text-right" style="color:#86EFAC;">DOANH SỐ PHÂN BỔ</th>
-                <th class="text-center" style="color:#FDE047;">TỶ TRỌNG BHX/TEAM</th>
+                <th class="text-right" style="color:#86EFAC;">DOANH SỐ BHX PHÂN BỔ (VNĐ)</th>
+                <th class="text-center" style="color:#FDE047;">% TỶ TRỌNG BHX/TEAM</th>
               </tr>
             </thead>
             <tbody id="tbodyBhxDist"></tbody>
             <tfoot id="tfootBhxDist"></tfoot>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 4: DOANH SỐ THỰC TẾ 5 HUBS BHX -->
-      <div class="tab-panel" id="tabBhxHubs">
-        <div class="panel-toolbar">
-          <div style="font-weight:700; color:#0F172A; font-size:14px;">Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (Báo cáo XH4001)</div>
-          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxHubs', 'Doanh_So_5_Hubs_BHX')">📸 Copy Ảnh Gửi Zalo</button>
-        </div>
-        <div class="table-responsive">
-          <table id="tableBhxHubs">
-            <thead>
-              <tr>
-                <th class="text-center" style="width:50px;">STT</th>
-                <th style="width:140px;">MÃ HUB</th>
-                <th>TÊN HUB BÁCH HÓA XANH</th>
-                <th class="text-right" style="color:#86EFAC; width:220px;">DOANH SỐ THỰC TẾ (VNĐ)</th>
-                <th class="text-center" style="width:150px; color:#FDE047;">TỶ TRỌNG</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyBhxHubs"></tbody>
-            <tfoot id="tfootBhxHubs"></tfoot>
           </table>
         </div>
       </div>
@@ -598,17 +600,18 @@
         </div>
       </div>
 
-      <!-- TAB 6: MA TRẬN SKU FAMILYMART -->
+      <!-- TAB 5: CHI TIẾT SKU CỬA HÀNG FAMILYMART -->
       <div class="tab-panel" id="tabFmSku">
         <div class="panel-toolbar">
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <span style="font-weight:700; color:#0F172A; font-size:14px; margin-right:8px;">Chi Tiết SKU Cửa Hàng FamilyMart</span>
             <input type="text" id="searchFm" class="search-box" placeholder="🔍 Tìm địa chỉ, location, mã PG..." oninput="filterFmTable()">
             <select id="filterFmPg" class="filter-select" onchange="filterFmTable()">
               <option value="">Tất cả PG / Nhân viên</option>
             </select>
             <span id="fmCountBadge" style="font-size:12px; font-weight:700; color:#0F766E; background:#CCFBF1; padding:4px 10px; border-radius:12px;">35 Cửa hàng</span>
           </div>
-          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableFm', 'FamilyMart_46_SKU')">📸 Copy Ảnh Gửi Zalo</button>
+          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableFm', 'Chi_Tiet_SKU_FamilyMart')">📸 Copy Ảnh Gửi Zalo</button>
         </div>
         <div class="table-responsive" style="max-height:680px;">
           <table id="tableFm">
@@ -965,23 +968,39 @@
     }
 
     function renderTableBhxDist(data) {
+      // Cập nhật dropdown lọc nhân viên
+      const sel = document.getElementById('filterBhxEmp');
+      if (sel) {
+        sel.innerHTML = '<option value="">Tất cả 10 nhân viên</option>';
+        (data.employees || []).forEach(e => {
+          sel.innerHTML += `<option value="${e.name}">${e.name}</option>`;
+        });
+      }
+      filterBhxDistTable();
+    }
+
+    function filterBhxDistTable() {
+      if (!reportData) return;
+      const empName = document.getElementById('filterBhxEmp') ? document.getElementById('filterBhxEmp').value : '';
       const tbody = document.getElementById('tbodyBhxDist');
       const tfoot = document.getElementById('tfootBhxDist');
       tbody.innerHTML = '';
 
       let sumStores = 0, sumBhx = 0;
+      const totalBhxTeam = reportData.total_actual_bhx || 0;
+      const filtered = (reportData.employees || []).filter(e => !empName || e.name === empName);
 
-      (data.employees || []).forEach((e, idx) => {
+      filtered.forEach((e, idx) => {
         sumStores += (e.bhx_stores || 0);
         sumBhx += (e.bhx_actual || 0);
-        const pct = data.total_actual_bhx > 0 ? (((e.bhx_actual || 0) / data.total_actual_bhx) * 100).toFixed(1) : '0.0';
+        const pct = totalBhxTeam > 0 ? (((e.bhx_actual || 0) / totalBhxTeam) * 100).toFixed(1) : '0.0';
 
         tbody.innerHTML += `
           <tr>
             <td class="text-center font-bold">${idx + 1}</td>
             <td class="font-bold">${e.name}</td>
             <td class="text-center font-semibold">${e.bhx_stores || 0} Cửa hàng</td>
-            <td class="text-right">${formatMoney(data.bhx_per_store)}</td>
+            <td class="text-right">${formatMoney(reportData.bhx_per_store)}</td>
             <td class="text-right font-bold" style="color:#059669;">${formatMoney(e.bhx_actual)}</td>
             <td class="text-center font-bold" style="color:#1D4ED8;">${pct}%</td>
           </tr>
@@ -992,7 +1011,7 @@
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG CỘNG TEAM</td>
           <td class="text-center font-bold">${sumStores} Cửa hàng</td>
-          <td class="text-right font-bold">${formatMoney(data.bhx_per_store)}</td>
+          <td class="text-right font-bold">${formatMoney(reportData.bhx_per_store)}</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumBhx)}</td>
           <td class="text-center font-bold" style="color:#FDE047 !important;">100.0%</td>
         </tr>
@@ -1005,28 +1024,25 @@
       tbody.innerHTML = '';
 
       let sumHubs = 0;
-      const totalBhx = (data.bhx_hubs || []).reduce((a, b) => a + (b.actual_sales || 0), 0);
 
       (data.bhx_hubs || []).forEach((h, idx) => {
         sumHubs += (h.actual_sales || 0);
-        const pct = totalBhx > 0 ? (((h.actual_sales || 0) / totalBhx) * 100).toFixed(1) : '0.0';
 
         tbody.innerHTML += `
           <tr>
             <td class="text-center font-bold">${idx + 1}</td>
-            <td class="font-bold">${h.hub}</td>
-            <td>${h.name}</td>
+            <td class="font-bold">${h.name}</td>
             <td class="text-right font-bold" style="color:#059669;">${formatMoney(h.actual_sales)}</td>
-            <td class="text-center font-bold" style="color:#1D4ED8;">${pct}%</td>
+            <td>Khách hàng XH4001</td>
           </tr>
         `;
       });
 
       tfoot.innerHTML = `
         <tr>
-          <td colspan="3" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH</td>
+          <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(sumHubs)}</td>
-          <td class="text-center font-bold" style="color:#FDE047 !important;">100.0%</td>
+          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ 232 CH)</td>
         </tr>
       `;
     }
