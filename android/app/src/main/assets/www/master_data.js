@@ -768,57 +768,57 @@ const DEFAULT_FM_STORES = [
 const MASTER_DATA = {
   "team_lead": "Trần Thị Cẩm Giang",
   "total_stores_bhx": 233,
-  "total_stores_bhx_team": 178,
+  "total_stores_bhx_team": 179,
   "employees": [
     {
       "name": "Bùi Thị Sen",
       "bhx_stores": 21,
-      "target": 820982667
+      "target": 714135065
     },
     {
       "name": "Chắng Lý Quỳnh",
       "bhx_stores": 25,
-      "target": 938811549
+      "target": 866482375
     },
     {
       "name": "Kim Hoàng Khang",
       "bhx_stores": 25,
-      "target": 972817335
+      "target": 898391249
     },
     {
       "name": "Lê Thị Thùy Châu",
       "bhx_stores": 21,
-      "target": 900508409
+      "target": 747170347
     },
     {
       "name": "Lê Trần Bá Kiện",
-      "bhx_stores": 24,
-      "target": 895234721
+      "bhx_stores": 25,
+      "target": 870612245
     },
     {
       "name": "Não Thị Anh Đào",
       "bhx_stores": 11,
-      "target": 530222702
+      "target": 588409311
     },
     {
       "name": "Nguyễn Đức Hoà",
       "bhx_stores": 0,
-      "target": 311379421
+      "target": 363195910
     },
     {
       "name": "Nguyễn Thanh Nhàn",
       "bhx_stores": 25,
-      "target": 932536168
+      "target": 860612245
     },
     {
       "name": "Nguyễn Thị Thanh Thủy",
       "bhx_stores": 6,
-      "target": 471771655
+      "target": 508104811
     },
     {
       "name": "Phạm Thị Kim Nhung",
       "bhx_stores": 20,
-      "target": 831606968
+      "target": 702989796
     }
   ],
   "stores": [
