@@ -59,11 +59,13 @@ def main():
         print("Error: Signed APK not generated.")
         sys.exit(1)
 
-    print("3. Cap nhat cac file APK dau ra...")
+    print("3. Cap nhat file APK dau ra duy nhat...")
     apk1 = os.path.join(ROOT_DIR, 'BaoCaoDoanhSo_TeamCamGiang.apk')
-    apk2 = os.path.join(ROOT_DIR, 'BaoCaoThucDat.apk')
     shutil.copy2(signed_path, apk1)
-    shutil.copy2(signed_path, apk2)
+
+    apk2 = os.path.join(ROOT_DIR, 'BaoCaoThucDat.apk')
+    if os.path.exists(apk2):
+        os.remove(apk2)
 
     # Clean up
     if os.path.exists(TEMP_UNSIGNED):
@@ -72,9 +74,8 @@ def main():
         shutil.rmtree(OUT_DIR)
 
     print("========================================================")
-    print(" DA CAP NHAT THANH CONG 2 FILE APK MOI:")
+    print(" DA CAP NHAT THANH CONG FILE APK MOI NHAT:")
     print(" -> BaoCaoDoanhSo_TeamCamGiang.apk")
-    print(" -> BaoCaoThucDat.apk")
     print("========================================================")
 
 if __name__ == '__main__':
