@@ -2328,7 +2328,8 @@ const DEFAULT_FM_STORES = [
       team_lead: 'Trần Thị Cẩm Giang',
       month: 9,
       year: 2026,
-      total_stores_bhx: 178,
+      total_stores_bhx: 233,
+      total_stores_bhx_team: 178,
       employees: [
         { name: 'Bùi Thị Sen', bhx_stores: 21, target: 827023932 },
         { name: 'Chắng Lý Quỳnh', bhx_stores: 25, target: 946003531 },
@@ -2569,6 +2570,7 @@ const DEFAULT_FM_STORES = [
               const na = normalizeText(a);
               const nb = normalizeText(b);
               const score = s => {
+                if (s.includes('formchitieupg') || s.includes('chitieupg') || s.includes('formchitieu')) return -2;
                 if (s.includes('targett') || s.includes('chitieut')) return 0;
                 if (s.includes('target') || s.includes('chitieu')) return 1;
                 if (s.includes('dashboard') || s.includes('tonghop') || s.includes('chitieuteam') || s.includes('summary')) return 2;
@@ -2577,6 +2579,8 @@ const DEFAULT_FM_STORES = [
               };
               return score(na) - score(nb);
             });
+
+            let foundFmStoreTargets = {};
 
             for (let sname of sortedSheetNames) {
               const ws = wb.Sheets[sname];
@@ -2590,25 +2594,27 @@ const DEFAULT_FM_STORES = [
               let tgtCol = -1;
               let bhxCol = -1;
               let noteCol = -1;
-              let storeCol = -1;
+              let mastCol = -1;
+              let tenstCol = -1;
+              let addrCol = -1;
+              let locCol = -1;
               let leadCol = -1;
 
-              for (let r = 0; r < Math.min(50, rows.length); r++) {
+              for (let r = 0; r < Math.min(30, rows.length); r++) {
                 const row = Array.from(rows[r] || []);
-                // Bỏ qua dòng banner / merge cell chỉ có 1 ô có chữ
                 const nonEmptyCells = row.filter(c => c !== undefined && c !== null && String(c).trim() !== '');
                 if (nonEmptyCells.length <= 1) continue;
 
                 const rowStr = row.map(c => normalizeText(c));
 
-                // 1. Tìm cột họ tên nhân viên (hỗ trợ tiếng Việt và tiếng Anh như employee_name)
+                // 1. Tìm cột họ tên nhân viên
                 let pCol = rowStr.findIndex(h => h && (h.includes('hoten') || h.includes('hovaten') || h.includes('tenpg') || h.includes('tennhanvien') || h.includes('employeename') || h.includes('nhanvien') || h.includes('pg') || h.includes('employee')) && !h.includes('leader') && !h.includes('mapg') && !h.includes('catgiam') && !h.includes('manv') && !h.includes('stt') && !h.includes('quanly') && !h.includes('toanteam') && !h.includes('tenchuoi') && !h.includes('tenst') && !h.includes('tenhethong'));
                 if (pCol < 0) {
                   pCol = rowStr.findIndex(h => h && (h.includes('ten') || h.includes('name')) && !h.includes('leader') && !h.includes('mapg') && !h.includes('catgiam') && !h.includes('stt') && !h.includes('chuoi') && !h.includes('st') && !h.includes('store') && !h.includes('sp') && !h.includes('sanpham') && !h.includes('hethong'));
                 }
 
-                // 2. Tìm cột target (ưu tiên TỔNG TARGET T9 hoặc Target Tháng 9)
-                let tCol = rowStr.findIndex(h => h && (h.includes('tongtarget') || (h.includes('target') && (h.includes('t' + detectedMonth) || h.includes('thang' + detectedMonth) || h.includes('chinhthuc')))) && !h.includes('t8') && !h.includes('thang8') && !h.includes('t' + (detectedMonth - 1)) && !h.includes('thang' + (detectedMonth - 1)) && !h.includes('chenhlech') && !h.includes('thaydoi') && !h.includes('tongtargetteam') && !h.includes('tytrong') && !h.includes('tb') && !h.includes('dongia'));
+                // 2. Tìm cột target (ưu tiên Chỉ tiêu Doanh Số Tổng (-Vat) / Chỉ tiêu Tổng / Target Tháng)
+                let tCol = rowStr.findIndex(h => h && (h.includes('chitieudoanhsotong') || h.includes('chitieutong') || h.includes('tongtarget') || (h.includes('chitieu') && h.includes('vat')) || (h.includes('target') && (h.includes('t' + detectedMonth) || h.includes('thang' + detectedMonth)))) && !h.includes('t8') && !h.includes('thang8') && !h.includes('chenhlech') && !h.includes('thaydoi') && !h.includes('tytrong') && !h.includes('tb') && !h.includes('dongia'));
                 if (tCol < 0) {
                   tCol = rowStr.findIndex(h => h && (h.includes('target') || h.includes('chitieu') || h.includes('quota')) &&
                     !h.includes('t' + (detectedMonth - 1)) &&
@@ -2617,24 +2623,24 @@ const DEFAULT_FM_STORES = [
                     !h.includes('thang8') &&
                     !h.includes('chenhlech') &&
                     !h.includes('thaydoi') &&
-                    !h.includes('tongtargetteam') &&
                     !h.includes('tytrong') &&
                     !h.includes('tb') &&
                     !h.includes('dongia')
                   );
                 }
 
-                // BẮT BUỘC có cả 2 cột và 2 cột phải KHÁC NHAU (tránh trường hợp 1 dòng banner chứa cả 2 từ khóa)
                 if (pCol >= 0 && tCol >= 0 && pCol !== tCol) {
                   headerRowIdx = r;
                   headers = rowStr;
                   pgCol = pCol;
                   tgtCol = tCol;
 
-                  // Tìm cột số lượng CH BHX (chú ý loại trừ cột VNĐ / tiền)
-                  bhxCol = headers.findIndex((h, idx) => h && (h.includes('bhx') || h.includes('bachhoaxanh') || h.includes('stores') || h.includes('store')) && (h.includes('soch') || h.includes('ch') || h.includes('cuahang') || h.includes('store') || h.includes('managed') || h.includes('phutrach')) && idx !== tgtCol && !h.includes('vnd') && !h.includes('dong'));
+                  mastCol = headers.findIndex(h => h && (h.includes('mast') || h.includes('custno') || h.includes('makh')));
+                  tenstCol = headers.findIndex(h => h && (h.includes('tenst') || h.includes('outletname') || h.includes('tenchuoi') || h.includes('store') || h.includes('chuoi')));
+                  addrCol = headers.findIndex(h => h && (h.includes('diachi') || h.includes('address') || h.includes('outletaddress')));
+                  locCol = headers.findIndex(h => h && (h.includes('location') || h.includes('vitri')));
+                  bhxCol = headers.findIndex((h, idx) => h && (h.includes('bhx') || h.includes('bachhoaxanh') || h.includes('stores') || h.includes('store')) && (h.includes('soch') || h.includes('ch') || h.includes('cuahang') || h.includes('managed') || h.includes('phutrach')) && idx !== tgtCol && !h.includes('vnd') && !h.includes('dong'));
                   noteCol = headers.findIndex(h => h && (h.includes('ghichu') || h.includes('phanbo') || h.includes('note')));
-                  storeCol = headers.findIndex(h => h && (h.includes('tenst') || h.includes('store') || h.includes('cuahang')));
                   leadCol = headers.findIndex(h => h && (h.includes('leader') || h.includes('quanly')));
                   break;
                 }
@@ -2643,10 +2649,12 @@ const DEFAULT_FM_STORES = [
               if (headerRowIdx >= 0) {
                 const curTargets = {};
                 const curBhxStores = {};
+                const curFmTargets = {};
+                const empCountMap = {};
 
                 for (let r = headerRowIdx + 1; r < rows.length; r++) {
                   const row = rows[r];
-                  if (!row) continue;
+                  if (!row || row.length <= Math.max(pgCol, tgtCol)) continue;
                   const pgVal = String(row[pgCol] || '').trim();
                   const normPg = normalizeText(pgVal);
                   if (!pgVal || normPg.startsWith('tong') || normPg.startsWith('total') || normPg.includes('congteam') || normPg.includes('toanteam') || normPg.includes('phan3')) continue;
@@ -2656,45 +2664,55 @@ const DEFAULT_FM_STORES = [
                   const tgtVal = parseFloat(rawTgt) || 0;
                   if (tgtVal <= 0) continue;
 
-                  const storeVal = storeCol >= 0 ? normalizeText(row[storeCol]) : '';
-                  const leadVal = leadCol >= 0 ? normalizeText(row[leadCol]) : '';
-                  const noteVal = noteCol >= 0 ? String(row[noteCol] || '') : '';
-
-                  if (leadCol >= 0 && leadVal && !leadVal.includes('camgiang') && !currentMaster.employees.some(e => normalizeText(e.name) === normPg)) {
-                    continue;
-                  }
-
                   let matchedEmp = currentMaster.employees.find(e => normalizeText(e.name) === normPg);
                   if (!matchedEmp) {
                     matchedEmp = currentMaster.employees.find(e => normalizeText(e.name).includes(normPg) || normPg.includes(normalizeText(e.name)));
                   }
 
                   if (matchedEmp) {
-                    curTargets[matchedEmp.name] = Math.round(tgtVal);
+                    empCountMap[matchedEmp.name] = (empCountMap[matchedEmp.name] || 0) + 1;
+                    // Hỗ trợ cộng dồn nếu sheet là dạng chi tiết từng cửa hàng (như FORM CHI TIEU PG dòng T4)
+                    curTargets[matchedEmp.name] = (curTargets[matchedEmp.name] || 0) + tgtVal;
 
-                    // Lấy số lượng CH BHX (chỉ chấp nhận nếu <= 350 CH, nếu > 350 đó là số tiền VNĐ chứ không phải số CH)
-                    if (bhxCol >= 0 && row[bhxCol] !== undefined && row[bhxCol] !== null && row[bhxCol] !== '') {
-                      const bVal = parseInt(row[bhxCol]) || 0;
-                      if (bVal >= 0 && bVal <= 350) {
-                        curBhxStores[matchedEmp.name] = bVal;
-                      }
-                    }
-                    if (curBhxStores[matchedEmp.name] === undefined && noteVal) {
-                      const bhxMatch = noteVal.match(/(\d+)\s*(?:ch\s*)?bhx/i);
-                      if (bhxMatch) {
-                        curBhxStores[matchedEmp.name] = parseInt(bhxMatch[1]) || 0;
-                      }
-                    }
-                    if (curBhxStores[matchedEmp.name] === undefined && (storeVal.includes('bhx') || storeVal.includes('bachhoaxanh'))) {
+                    const stCode = mastCol >= 0 ? String(row[mastCol] || '').toUpperCase() : '';
+                    const stName = tenstCol >= 0 ? normalizeText(row[tenstCol]) : '';
+                    const locStr = locCol >= 0 ? normalizeText(row[locCol]) : '';
+                    const isBhx = (stCode.includes('XH4001') || stName.includes('bachhoaxanh') || stName.includes('bhx'));
+
+                    if (isBhx) {
                       curBhxStores[matchedEmp.name] = (curBhxStores[matchedEmp.name] || 0) + 1;
+                    }
+
+                    // Tự động bóc tách chỉ tiêu cửa hàng FamilyMart
+                    if (addrCol >= 0 && (stName.includes('family') || locStr.includes('st00_cvs_fm') || locStr.includes('fm') || stCode.includes('KT3006'))) {
+                      const addrVal = String(row[addrCol] || '').trim();
+                      if (addrVal && tgtVal > 0) {
+                        curFmTargets[normalizeText(addrVal)] = tgtVal;
+                      }
                     }
                   }
                 }
 
-                if (Object.keys(curTargets).length > Object.keys(foundTargets).length) {
+                // Nếu là file tóm tắt 1 dòng/NV có cột số lượng CH BHX riêng
+                const maxRows = Math.max(...Object.values(empCountMap), 0);
+                if (maxRows === 1 && bhxCol >= 0) {
+                  for (let r = headerRowIdx + 1; r < rows.length; r++) {
+                    const row = rows[r];
+                    if (!row) continue;
+                    const pgVal = String(row[pgCol] || '').trim();
+                    const normPg = normalizeText(pgVal);
+                    const matchedEmp = currentMaster.employees.find(e => normalizeText(e.name) === normPg || normalizeText(e.name).includes(normPg) || normPg.includes(normalizeText(e.name)));
+                    if (matchedEmp && row[bhxCol] !== undefined) {
+                      const bVal = parseInt(row[bhxCol]) || 0;
+                      if (bVal >= 0 && bVal <= 350) curBhxStores[matchedEmp.name] = bVal;
+                    }
+                  }
+                }
+
+                if (Object.keys(curTargets).length >= Object.keys(foundTargets).length) {
                   foundTargets = curTargets;
                   foundBhxStores = curBhxStores;
-                  // Nếu đã nhận diện đủ từ 8 đến 10 nhân viên thì hoàn thành
+                  foundFmStoreTargets = curFmTargets;
                   if (Object.keys(foundTargets).length >= 8) {
                     break;
                   }
@@ -2704,11 +2722,11 @@ const DEFAULT_FM_STORES = [
 
             if (Object.keys(foundTargets).length === 0) {
               closeModal('loadingModal');
-              alert('❌ Không tìm thấy dữ liệu chỉ tiêu nhân viên trong file. Vui lòng kiểm tra file có chứa cột "Họ tên PG" và "Target Tháng 9".\nBạn cũng có thể dùng nút "✏️ Sửa Nhanh Bảng Chỉ Tiêu" để nhập trực tiếp.');
+              alert('❌ Không tìm thấy dữ liệu chỉ tiêu nhân viên trong file. Vui lòng kiểm tra file có chứa cột "Họ tên PG" và "Chỉ tiêu Tổng / Target".\nBạn cũng có thể dùng nút "✏️ Sửa Nhanh Bảng Chỉ Tiêu" để nhập trực tiếp.');
               return;
             }
 
-            // Cập nhật Master
+            // Cập nhật Master Data
             if (detectedMonth) currentMaster.month = detectedMonth;
             currentMaster.year = 2026;
             currentMaster.employees.forEach(emp => {
@@ -2720,10 +2738,28 @@ const DEFAULT_FM_STORES = [
               }
             });
 
+            // Cập nhật chỉ tiêu từng cửa hàng FamilyMart (nếu có từ FORM CHI TIÊU)
+            if (Object.keys(foundFmStoreTargets).length > 0 && currentMaster.fm_stores) {
+              currentMaster.fm_stores.forEach(st => {
+                const normAddr = normalizeText(st.addr);
+                if (foundFmStoreTargets[normAddr]) {
+                  st.target = foundFmStoreTargets[normAddr];
+                } else {
+                  for (let k in foundFmStoreTargets) {
+                    if (normAddr.length > 10 && (normAddr.includes(k) || k.includes(normAddr))) {
+                      st.target = foundFmStoreTargets[k];
+                      break;
+                    }
+                  }
+                }
+              });
+            }
+
             const totalBhxCount = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
             if (totalBhxCount > 0) {
-              currentMaster.total_stores_bhx = totalBhxCount;
+              currentMaster.total_stores_bhx_team = totalBhxCount;
             }
+            currentMaster.total_stores_bhx = 233;
 
             // Lưu vào localStorage (Vercel & Offline)
             localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster));
@@ -2742,18 +2778,24 @@ const DEFAULT_FM_STORES = [
               feedback.style.display = 'block';
               feedback.style.background = '#DCFCE7';
               feedback.style.color = '#15803D';
-              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + currentMaster.total_stores_bhx + ' CH BHX)';
+              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 178) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 233) + ' CH Hệ Thống)';
             }
 
-            alert('🎉 ĐÃ ÁP DỤNG THÀNH CÔNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN BỘ 10 NHÂN VIÊN!\n\n' +
+            // Tạo thông báo chi tiết từng nhân viên (đúng số tiền ô T4)
+            let empListStr = currentMaster.employees.map((e, idx) => {
+              return `${idx + 1}. ${e.name}: ${formatNumber(e.target)} đ (${e.bhx_stores} CH BHX)`;
+            }).join('\n');
+
+            alert('🎉 ĐÃ ÁP DỤNG THÀNH CÔNG TARGET TỪ FORM CHI TIÊU!\n\n' +
                   '• Tổng Chỉ Tiêu Toàn Team: ' + formatNumber(totalTgt) + ' đ\n' +
-                  '• Tổng Cửa Hàng BHX Phụ Trách: ' + currentMaster.total_stores_bhx + ' CH\n' +
-                  '• Đã cập nhật thành công: ' + Object.keys(foundTargets).length + '/10 Nhân Viên\n\n' +
+                  '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n' +
+                  '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +
                   'Dữ liệu đã được lưu và áp dụng ngay lập tức!');
 
             // Nếu đã có dữ liệu tính toán trước đó thì tính lại ngay
             if (processedReportData) {
-              processUploadedFiles();
+              calculateReportData();
+              renderAllReports();
             }
           } catch (innerErr) {
             console.error('Lỗi phân tích file Target:', innerErr);
@@ -2838,14 +2880,16 @@ const DEFAULT_FM_STORES = [
     }
 
     function resetToDefaultMonth9Target() {
-      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 178 CH BHX)?')) {
+      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 178 CH BHX Team / 233 CH Hệ Thống)?')) {
         localStorage.removeItem('CUSTOM_MASTER_DATA');
         currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
+        currentMaster.total_stores_bhx = 233;
+        currentMaster.total_stores_bhx_team = 178;
         updateTargetBannerUI();
         if (document.getElementById('editTargetModal') && document.getElementById('editTargetModal').classList.contains('active')) {
           closeModal('editTargetModal');
         }
-        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX: ' + currentMaster.total_stores_bhx + ' CH\n\nToàn bộ 10 nhân sự đã được áp dụng target chuẩn!');
+        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 233) + ' CH\n\nToàn bộ 10 nhân sự đã được áp dụng target chuẩn!');
         if (processedReportData) {
           calculateReportData();
           renderAllReports();
@@ -3131,7 +3175,7 @@ const DEFAULT_FM_STORES = [
         }
       }
 
-      const totalStoresBhx = currentMaster.total_stores_bhx || 232;
+      const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx > 180) ? currentMaster.total_stores_bhx : 233;
       const bhxPerStore = totalStoresBhx > 0 ? (totalActualBhx / totalStoresBhx) : 0;
 
       // 2. CVS
@@ -3884,7 +3928,7 @@ const DEFAULT_FM_STORES = [
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#059669;">${formatNumber(data.total_actual_bhx_hubs || data.total_actual_bhx)}</td>
-          <td>Đơn giá: ${formatNumber(data.bhx_per_store)} VNĐ / CH (÷ ${data.total_stores_bhx} CH toàn hệ thống)</td>
+          <td>Đơn giá: ${formatNumber(data.bhx_per_store)} VNĐ / CH (÷ ${data.total_stores_bhx || 233} CH toàn hệ thống)</td>
         </tr>
       `;
 
@@ -6467,7 +6511,10 @@ const DEFAULT_FM_STORES = [
           const totalR6 = endR6 + 1;
           ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
           const totFmLbl = ws6.getCell('A' + totalR6);
-          totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
+          totFmLbl.value = {
+            formula: '"TỔNG CỘNG (" & SUBTOTAL(103, D' + startR6 + ':D' + endR6 + ') & " CỬA HÀNG FAMILYMART)"',
+            result: 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)'
+          };
           totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
           totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
           totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -7248,6 +7295,10 @@ const DEFAULT_FM_STORES = [
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
               currentMaster = parsed;
+              currentMaster.total_stores_bhx = 233;
+              if (!currentMaster.total_stores_bhx_team) {
+                currentMaster.total_stores_bhx_team = currentMaster.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0);
+              }
             }
           }
         }

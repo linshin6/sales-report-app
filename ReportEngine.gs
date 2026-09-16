@@ -182,7 +182,7 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
     }
   }
 
-  var totalStoresBhx = master.total_stores_bhx || 232;
+  var totalStoresBhx = (master.total_stores_bhx && master.total_stores_bhx > 180) ? master.total_stores_bhx : 233;
   var bhxPerStore = totalStoresBhx > 0 ? (totalActualBhx / totalStoresBhx) : 0;
 
   // 2. TÍNH TOÁN CVS & NPP (wbCVS)

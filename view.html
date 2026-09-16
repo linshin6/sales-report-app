@@ -471,6 +471,10 @@
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn-action" style="background:#0F766E; color:#FFFFFF;" onclick="document.getElementById('inputViewTargetFile').click()" title="Nạp file Target FORM CHI TIÊU (.xlsb, .xlsx) để cập nhật chỉ tiêu trực tiếp trên link">
+          📁 Nạp Target Mới
+        </button>
+        <input type="file" id="inputViewTargetFile" accept=".xlsx,.xlsb,.xls,.csv" style="display:none;" onchange="handleTargetUploadInView(this.files[0])">
         <button class="btn-action btn-copy-link" onclick="copyShareLink()" title="Sao chép link này để gửi cấp trên hoặc đối tác">
           🔗 Sao Chép Link
         </button>
@@ -754,7 +758,7 @@
         const hubAmounts = compact.h || [0, 0, 0, 0, 0];
         let totalBhxHubs = 0;
         hubAmounts.forEach(val => totalBhxHubs += (val || 0));
-        const totalStoresBhx = m.total_stores_bhx || 232;
+        const totalStoresBhx = (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 233;
         const bhxPerStore = Math.round(totalBhxHubs / totalStoresBhx);
 
         const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => {
@@ -887,6 +891,7 @@
           total_actual_bhx_hubs: totalBhxHubs,
           total_cvs: totalCvsTeam,
           total_actual: totalActualTeam,
+          total_stores_bhx: totalStoresBhx,
           total_stores_bhx_team: m.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0),
           bhx_per_store: bhxPerStore,
           employees: employees,
@@ -992,6 +997,7 @@
         total_cvs: compact.cvs || 0,
         total_actual: totAct,
         total_stores_bhx_team: compact.sbhx || 178,
+        total_stores_bhx: (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 233,
         bhx_per_store: compact.pbhx || 0,
         employees: employees,
         stores: fullStores,
@@ -1851,7 +1857,7 @@
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(data.total_actual_bhx_hubs || sumHubs)}</td>
-          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 232} CH)</td>
+          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 233} CH)</td>
         </tr>
       `;
     }
@@ -2919,7 +2925,10 @@
         const totalR6 = endR6 + 1;
         ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
         const totFmLbl = ws6.getCell('A' + totalR6);
-        totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
+        totFmLbl.value = {
+          formula: '"TỔNG CỘNG (" & SUBTOTAL(103, D' + startR6 + ':D' + endR6 + ') & " CỬA HÀNG FAMILYMART)"',
+          result: 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)'
+        };
         totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
         totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
         totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -2956,7 +2965,176 @@
         return wb;
     }
 
-    
+    async function handleTargetUploadInView(file) {
+      if (!file) return;
+      showToast('⏳ Đang phân tích file Target...');
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array' });
+            
+            function norm(t) {
+              if (!t) return '';
+              return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/[,.\s\-_/()]/g, '');
+            }
+
+            const sortedSheetNames = [...wb.SheetNames].sort((a, b) => {
+              const na = norm(a);
+              const nb = norm(b);
+              const score = s => {
+                if (s.includes('formchitieupg') || s.includes('chitieupg') || s.includes('formchitieu')) return -2;
+                if (s.includes('targett') || s.includes('chitieut')) return 0;
+                if (s.includes('target') || s.includes('chitieu')) return 1;
+                return 4;
+              };
+              return score(na) - score(nb);
+            });
+
+            let detectedMonth = 9;
+            for (let sname of wb.SheetNames) {
+              const m = sname.toLowerCase().match(/(?:t|thang|tháng)[ _-]?(\d{1,2})/);
+              if (m) { detectedMonth = parseInt(m[1]); break; }
+            }
+
+            let foundTargets = {};
+            let foundBhxStores = {};
+            let foundFmStoreTargets = {};
+
+            const teamEmps = (reportData && reportData.employees) ? reportData.employees : (window.MASTER_DATA ? window.MASTER_DATA.employees : []);
+
+            for (let sname of sortedSheetNames) {
+              const ws = wb.Sheets[sname];
+              if (!ws) continue;
+              const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+              if (!rows || rows.length < 2) continue;
+
+              let headerRowIdx = -1;
+              let pgCol = -1, tgtCol = -1, mastCol = -1, tenstCol = -1, addrCol = -1, locCol = -1, bhxCol = -1;
+
+              for (let r = 0; r < Math.min(30, rows.length); r++) {
+                const row = Array.from(rows[r] || []);
+                if (row.filter(c => c !== undefined && c !== null && String(c).trim() !== '').length <= 1) continue;
+                const rowStr = row.map(c => norm(c));
+
+                let pCol = rowStr.findIndex(h => h && (h.includes('hoten') || h.includes('hovaten') || h.includes('tenpg') || h.includes('tennhanvien') || h.includes('employeename') || h.includes('nhanvien') || h.includes('pg') || h.includes('employee')) && !h.includes('leader') && !h.includes('mapg') && !h.includes('stt') && !h.includes('quanly'));
+                if (pCol < 0) pCol = rowStr.findIndex(h => h && (h.includes('ten') || h.includes('name')) && !h.includes('leader') && !h.includes('mapg') && !h.includes('stt'));
+
+                let tCol = rowStr.findIndex(h => h && (h.includes('chitieudoanhsotong') || h.includes('chitieutong') || h.includes('tongtarget') || (h.includes('chitieu') && h.includes('vat')) || (h.includes('target') && h.includes('thang'))) && !h.includes('t8') && !h.includes('chenhlech'));
+                if (tCol < 0) tCol = rowStr.findIndex(h => h && (h.includes('target') || h.includes('chitieu') || h.includes('quota')) && !h.includes('chenhlech'));
+
+                if (pCol >= 0 && tCol >= 0 && pCol !== tCol) {
+                  headerRowIdx = r;
+                  pgCol = pCol; tgtCol = tCol;
+                  mastCol = rowStr.findIndex(h => h && (h.includes('mast') || h.includes('custno') || h.includes('makh')));
+                  tenstCol = rowStr.findIndex(h => h && (h.includes('tenst') || h.includes('outletname') || h.includes('tenchuoi') || h.includes('store') || h.includes('chuoi')));
+                  addrCol = rowStr.findIndex(h => h && (h.includes('diachi') || h.includes('address')));
+                  locCol = rowStr.findIndex(h => h && (h.includes('location') || h.includes('vitri')));
+                  bhxCol = rowStr.findIndex((h, idx) => h && (h.includes('bhx') || h.includes('bachhoaxanh')) && (h.includes('soch') || h.includes('cuahang')) && idx !== tgtCol);
+                  break;
+                }
+              }
+
+              if (headerRowIdx >= 0) {
+                const curTargets = {}, curBhx = {}, curFm = {}, countMap = {};
+
+                for (let r = headerRowIdx + 1; r < rows.length; r++) {
+                  const row = rows[r];
+                  if (!row || row.length <= Math.max(pgCol, tgtCol)) continue;
+                  const pgVal = String(row[pgCol] || '').trim();
+                  const normPg = norm(pgVal);
+                  if (!pgVal || normPg.startsWith('tong') || normPg.startsWith('total')) continue;
+
+                  let rawTgt = row[tgtCol];
+                  if (typeof rawTgt === 'string') rawTgt = rawTgt.replace(/[,.\sđ₫]/g, '');
+                  const tgtVal = parseFloat(rawTgt) || 0;
+                  if (tgtVal <= 0) continue;
+
+                  let matchedEmp = teamEmps.find(e => norm(e.name) === normPg || norm(e.name).includes(normPg) || normPg.includes(norm(e.name)));
+                  if (matchedEmp) {
+                    countMap[matchedEmp.name] = (countMap[matchedEmp.name] || 0) + 1;
+                    curTargets[matchedEmp.name] = (curTargets[matchedEmp.name] || 0) + tgtVal;
+
+                    const stCode = mastCol >= 0 ? String(row[mastCol] || '').toUpperCase() : '';
+                    const stName = tenstCol >= 0 ? norm(row[tenstCol]) : '';
+                    const locStr = locCol >= 0 ? norm(row[locCol]) : '';
+                    if (stCode.includes('XH4001') || stName.includes('bachhoaxanh') || stName.includes('bhx')) {
+                      curBhx[matchedEmp.name] = (curBhx[matchedEmp.name] || 0) + 1;
+                    }
+
+                    if (addrCol >= 0 && (stName.includes('family') || locStr.includes('st00_cvs_fm') || locStr.includes('fm') || stCode.includes('KT3006'))) {
+                      const addrVal = String(row[addrCol] || '').trim();
+                      if (addrVal && tgtVal > 0) curFm[norm(addrVal)] = tgtVal;
+                    }
+                  }
+                }
+
+                if (Object.keys(curTargets).length >= Object.keys(foundTargets).length) {
+                  foundTargets = curTargets;
+                  foundBhxStores = curBhx;
+                  foundFmStoreTargets = curFm;
+                  if (Object.keys(foundTargets).length >= 8) break;
+                }
+              }
+            }
+
+            if (Object.keys(foundTargets).length === 0) {
+              showToast('❌ Không tìm thấy dữ liệu chỉ tiêu nhân viên trong file!');
+              return;
+            }
+
+            if (!reportData) return;
+            reportData.mode = 'target';
+            if (detectedMonth) reportData.month = detectedMonth;
+
+            reportData.employees.forEach(emp => {
+              if (foundTargets[emp.name] !== undefined) {
+                emp.target = Math.round(foundTargets[emp.name]);
+              }
+              if (foundBhxStores[emp.name] !== undefined) {
+                emp.bhx_stores = foundBhxStores[emp.name];
+              }
+              const act = emp.total_actual || ((emp.bhx_actual || 0) + (emp.cvs_total || 0));
+              emp.percent = emp.target > 0 ? parseFloat(((act / emp.target) * 100).toFixed(2)) : 0;
+              emp.status = emp.percent >= reportData.timegone ? 'VƯỢT' : (emp.percent >= reportData.timegone * 0.75 ? 'CẬN' : 'CHẬM');
+            });
+
+            reportData.total_target = reportData.employees.reduce((a, b) => a + (b.target || 0), 0);
+            reportData.percent_achieved = reportData.total_target > 0 ? parseFloat(((reportData.total_actual / reportData.total_target) * 100).toFixed(2)) : 0;
+
+            if (Object.keys(foundFmStoreTargets).length > 0 && reportData.fm_sku_matrix && reportData.fm_sku_matrix.stores) {
+              reportData.fm_sku_matrix.stores.forEach(st => {
+                const nA = norm(st.addr);
+                if (foundFmStoreTargets[nA]) st.target = foundFmStoreTargets[nA];
+              });
+              reportData.fm_sku_matrix.total_target = reportData.fm_sku_matrix.stores.reduce((a, b) => a + (b.target || 0), 0);
+            }
+
+            renderAll(reportData);
+            showToast('🎉 Đã cập nhật Target thành công!');
+            
+            let empListStr = reportData.employees.map((e, idx) => {
+              return `${idx + 1}. ${e.name}: ${formatMoney(e.target)} (${e.bhx_stores} CH BHX)`;
+            }).join('\n');
+
+            alert('🎉 ĐÃ CẬP NHẬT TARGET THÀNH CÔNG CHO 10 NHÂN VIÊN TỪ FORM CHI TIÊU!\n\n' +
+                  '• Tổng Target Mới: ' + formatMoney(reportData.total_target) + '\n' +
+                  '• % Đạt Toàn Team: ' + reportData.percent_achieved + '%\n' +
+                  '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +
+                  'Bảng xếp hạng và báo cáo trực tuyến đã được tính toán lại ngay lập tức!');
+          } catch (errInner) {
+            console.error(errInner);
+            showToast('❌ Lỗi xử lý file: ' + errInner.message);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (err) {
+        showToast('❌ Lỗi đọc file: ' + err.message);
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>

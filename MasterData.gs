@@ -767,7 +767,8 @@ const DEFAULT_FM_STORES = [
 // Master Data for Team Sales Reporting (CVS and BHX)
 const MASTER_DATA = {
   "team_lead": "Trần Thị Cẩm Giang",
-  "total_stores_bhx": 178,
+  "total_stores_bhx": 233,
+  "total_stores_bhx_team": 178,
   "employees": [
     {
       "name": "Bùi Thị Sen",
