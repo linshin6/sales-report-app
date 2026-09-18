@@ -17,15 +17,33 @@ JAVA_EXE = os.path.join(TOOLS_DIR, 'jre', 'bin', 'java.exe')
 
 def sync_and_stamp_assets():
     now_str = datetime.datetime.now().strftime("%H:%M - %d/%m/%Y")
-    print(f"[*] Tu dong dong dau ngay gio cap nhat: {now_str}")
     
-    # 1. Cap nhat thoi gian vao index.html goc
+    # Doc thong tin version tu version.json
+    version_json_path = os.path.join(ROOT_DIR, 'version.json')
+    v_code = 1
+    v_name = "1.0.0"
+    if os.path.exists(version_json_path):
+        try:
+            import json
+            with open(version_json_path, 'r', encoding='utf-8') as f:
+                v_data = json.load(f)
+                v_code = v_data.get('latestVersionCode', 1)
+                v_name = v_data.get('latestVersionName', '1.0.0')
+        except Exception as e:
+            print(f"Warn: {e}")
+
+    print(f"[*] Tu dong dong dau: Phien ban v{v_name} (Code {v_code}) - Ngay gio: {now_str}")
+    
+    # 1. Cap nhat thoi gian va phien ban vao index.html goc
     index_path = os.path.join(ROOT_DIR, 'index.html')
     if os.path.exists(index_path):
         with open(index_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        # Thay the buildDate trong APP_METADATA va footer
-        new_content = re.sub(r'buildDate:\s*"[^"]*"', f'buildDate: "{now_str}"', content)
+        new_content = re.sub(r'versionName:\s*"[^"]*"', f'versionName: "v{v_name}"', content)
+        new_content = re.sub(r'versionCode:\s*\d+', f'versionCode: {v_code}', new_content)
+        new_content = re.sub(r'buildDate:\s*"[^"]*"', f'buildDate: "{now_str}"', new_content)
+        new_content = re.sub(r'<strong id="headerAppVersion"[^>]*>[^<]*</strong>', f'<strong id="headerAppVersion" style="color:#0f766e;">v{v_name}</strong>', new_content)
+        new_content = re.sub(r'<strong id="footerAppVersion"[^>]*>[^<]*</strong>', f'<strong id="footerAppVersion" style="color:#0f766e;">v{v_name}</strong>', new_content)
         new_content = re.sub(r'<strong id="footerAppBuildDate"[^>]*>[^<]*</strong>', f'<strong id="footerAppBuildDate" style="color:#0f766e;">{now_str}</strong>', new_content)
         with open(index_path, 'w', encoding='utf-8') as f:
             f.write(new_content)
