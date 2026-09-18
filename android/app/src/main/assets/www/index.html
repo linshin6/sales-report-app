@@ -7748,7 +7748,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.0.2",
       versionCode: 3,
-      buildDate: "13:36 - 18/09/2026"
+      buildDate: "13:39 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -7849,13 +7849,20 @@ const DEFAULT_FM_STORES = [
 
     function triggerOtaDownload() {
       closeModal('otaUpdateModal');
-      // Nếu có AndroidBridge bản mới hỗ trợ DownloadManager
+      // 1. Nếu app đã có Native Updater trong AndroidBridge
       if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
         window.AndroidBridge.checkForUpdate();
-      } else {
-        // Tải trực tiếp APK từ Vercel tốc độ cao
-        window.location.href = otaDownloadLink;
+        return;
       }
+
+      // 2. Nếu app đang dùng bản webview cũ chưa có Native Updater:
+      // Tự động sao chép link tải trực tiếp vào bộ nhớ tạm
+      if (window.AndroidBridge && typeof window.AndroidBridge.copyToClipboard === 'function') {
+        window.AndroidBridge.copyToClipboard('https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk');
+      }
+
+      // Mở trang download.html (trang web chuẩn để tải file APK)
+      window.location.href = 'https://bcgiang.vercel.app/download.html';
     }
   </script>
 
@@ -7869,7 +7876,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.2</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:36 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:39 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
