@@ -11,6 +11,8 @@
     }
   },
   "rewrites": [
+    { "source": "/download", "destination": "/download.html" },
+    { "source": "/app", "destination": "/download.html" },
     { "source": "/r/:file(.*\\..*)", "destination": "/:file" },
     { "source": "/r/:id", "destination": "/view.html?id=:id" },
     { "source": "/r", "destination": "/view.html" },
