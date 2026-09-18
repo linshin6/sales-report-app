@@ -269,49 +269,55 @@ public class AppUpdateManager {
 
         // 1. Ưu tiên PackageInstaller.Session (Chuẩn Android hiện đại, không dùng FileProvider, không bị Scoped Storage chặn)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            PackageInstaller.Session session = null;
-            try {
-                PackageInstaller packageInstaller = mActivity.getPackageManager().getPackageInstaller();
-                PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
-                params.setAppPackageName(mActivity.getPackageName());
-                int sessionId = packageInstaller.createSession(params);
-                session = packageInstaller.openSession(sessionId);
+            mExecutor.execute(() -> {
+                PackageInstaller.Session session = null;
+                try {
+                    PackageInstaller packageInstaller = mActivity.getPackageManager().getPackageInstaller();
+                    PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+                    params.setAppPackageName(mActivity.getPackageName());
+                    int sessionId = packageInstaller.createSession(params);
+                    session = packageInstaller.openSession(sessionId);
 
-                try (InputStream in = new FileInputStream(apkFile);
-                     OutputStream out = session.openWrite("package_update", 0, apkFile.length())) {
-                    byte[] buffer = new byte[65536];
-                    int len;
-                    while ((len = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, len);
+                    try (InputStream in = new FileInputStream(apkFile);
+                         OutputStream out = session.openWrite("package_update", 0, apkFile.length())) {
+                        byte[] buffer = new byte[65536];
+                        int len;
+                        while ((len = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, len);
+                        }
+                        session.fsync(out);
                     }
-                    session.fsync(out);
-                }
 
-                // QUAN TRỌNG: Phải dùng PendingIntent.getBroadcast() gửi đến InstallStatusReceiver
-                // để xử lý STATUS_PENDING_USER_ACTION và hiển thị màn hình xác nhận cài đặt.
-                // Nếu dùng PendingIntent.getActivity(), callback bị nuốt mất và không hiện gì.
-                Intent callbackIntent = new Intent(mActivity, InstallStatusReceiver.class);
-                int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    pendingFlags |= PendingIntent.FLAG_MUTABLE;
+                    // QUAN TRỌNG: Phải dùng PendingIntent.getBroadcast() gửi đến InstallStatusReceiver
+                    // để xử lý STATUS_PENDING_USER_ACTION và hiển thị màn hình xác nhận cài đặt.
+                    Intent callbackIntent = new Intent(mActivity, InstallStatusReceiver.class);
+                    int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        pendingFlags |= PendingIntent.FLAG_MUTABLE;
+                    }
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, sessionId, callbackIntent, pendingFlags);
+                    session.commit(pendingIntent.getIntentSender());
+                    session.close();
+                    session = null;
+                    mPendingInstall = false;
+                    Log.d(TAG, "PackageInstaller session committed successfully via BroadcastReceiver (background thread)");
+                } catch (Exception e) {
+                    Log.w(TAG, "PackageInstaller session failed, falling back to FileProvider Intent", e);
+                    if (session != null) {
+                        try {
+                            session.abandon();
+                        } catch (Exception ignored) {}
+                    }
+                    mMainHandler.post(() -> installViaFileProvider(apkFile));
                 }
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, sessionId, callbackIntent, pendingFlags);
-                session.commit(pendingIntent.getIntentSender());
-                session.close();
-                session = null;
-                mPendingInstall = false;
-                Log.d(TAG, "PackageInstaller session committed successfully via BroadcastReceiver");
-                return;
-            } catch (Exception e) {
-                Log.w(TAG, "PackageInstaller session failed, falling back to FileProvider Intent", e);
-                if (session != null) {
-                    try {
-                        session.abandon();
-                    } catch (Exception ignored) {}
-                }
-            }
+            });
+            return;
         }
 
+        installViaFileProvider(apkFile);
+    }
+
+    private void installViaFileProvider(File apkFile) {
         // 2. Phương thức 2: FileProvider Intent (với cấp quyền trực tiếp cho PackageInstaller)
         try {
             Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".provider", apkFile);
@@ -371,6 +377,7 @@ public class AppUpdateManager {
     public void onDestroy() {
         unregisterDownloadReceiver();
         mExecutor.shutdown();
+        sInstance = null; // Fix memory leak & ensure clean restart if activity recreated
     }
 
     private String fetchVersionJson(String urlString) {

@@ -71,8 +71,8 @@
     .navbar {
       background: linear-gradient(135deg, #f1f5f9 0%, #ccfbf1 45%, #f0fdfa 100%);
       color: #0f172a;
-      padding: 18px 28px;
-      box-shadow: 0 4px 20px rgba(20, 184, 166, 0.12);
+      padding: 10px 20px;
+      box-shadow: 0 4px 16px rgba(20, 184, 166, 0.10);
       position: sticky;
       top: 0;
       z-index: 100;
@@ -80,47 +80,50 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
+      gap: 10px;
       border-bottom: 1.5px solid var(--border-strong);
+      transition: all 0.2s ease;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
     }
 
     .brand-icon {
-      width: 46px;
-      height: 46px;
+      width: 38px;
+      height: 38px;
       background: #ffffff;
       border: 1.5px solid var(--border-strong);
-      border-radius: 12px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 3px 10px rgba(20, 184, 166, 0.15);
+      font-size: 18px;
+      box-shadow: 0 2px 8px rgba(20, 184, 166, 0.12);
+      flex-shrink: 0;
     }
 
     .brand-title h1 {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: -0.01em;
       color: #0f172a;
+      line-height: 1.2;
     }
 
     .brand-title p {
-      font-size: 12.5px;
+      font-size: 11.5px;
       color: #475569;
-      margin-top: 2px;
+      margin-top: 1px;
       font-weight: 500;
     }
 
     .nav-meta {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -128,14 +131,15 @@
       background: #ffffff;
       border: 1.5px solid var(--border-strong);
       color: #0f172a;
-      padding: 7px 15px;
+      padding: 5px 12px;
       border-radius: 9999px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.04);
+      gap: 5px;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+      white-space: nowrap;
     }
 
     .pill-badge strong {
@@ -673,38 +677,44 @@
       border-radius: 3px 3px 0 0;
     }
 
-    /* Table — Hồng pastel dịu mắt & êm ái */
+    /* Table — Thiết kế chuẩn doanh nghiệp, số to rõ, sắc nét, tương phản cao */
     .table-container {
       background: var(--surface);
       border-radius: var(--radius);
-      box-shadow: var(--shadow-sm);
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
       border: 1.5px solid var(--border);
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       touch-action: pan-x pan-y;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      position: relative;
     }
 
     table {
       width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: var(--table-font-size, 14.5px);
       text-align: left;
     }
 
     th {
       background: #ccfbf1 !important;
       color: #0f172a !important;
-      font-weight: 700;
-      font-size: 12px;
+      font-weight: 800;
+      font-size: 13px;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      padding: 12px 14px;
+      padding: 11px 14px;
       border: 1px solid var(--border-strong) !important;
       white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
     }
 
-    /* Chuẩn hóa header nổi bật thành Hồng Pastel đồng bộ */
+    /* Chuẩn hóa header nổi bật thành Hồng Pastel / Teal đồng bộ */
     th[style*="#2E75B6"], th[style*="#4472C4"] {
       background: #99f6e4 !important;
       border-color: #14b8a6 !important;
@@ -718,11 +728,13 @@
     }
 
     td {
-      padding: 11px 14px;
+      padding: 10px 14px;
       border: 1px solid var(--border);
       color: #0f172a;
       white-space: nowrap;
       font-variant-numeric: tabular-nums;
+      font-size: var(--table-font-size, 14.5px);
+      font-weight: 600;
     }
 
     tbody tr:nth-child(even) td {
@@ -733,7 +745,7 @@
       background: #f0fdfa;
     }
 
-    /* Footer tổng kết: Tone hồng mận đậm quý phái (tương phản hoàn hảo với chữ trắng/vàng) */
+    /* Footer tổng kết: Tone xanh đen mận đậm quý phái (tương phản hoàn hảo với chữ trắng/vàng) */
     tfoot, tfoot tr, tfoot tr:hover {
       background: #0f172a !important;
     }
@@ -744,8 +756,9 @@
       font-weight: 800 !important;
       border: 1px solid #475569 !important;
       border-top: 2.5px solid #14b8a6 !important;
-      font-size: 13px;
+      font-size: calc(var(--table-font-size, 14.5px) + 0.5px);
       font-variant-numeric: tabular-nums;
+      padding: 12px 14px;
     }
 
     tfoot td[style*="#FFFF00"], tfoot td[style*="#FDE047"] {
@@ -755,41 +768,166 @@
 
     .text-right { text-align: right; }
     .text-center { text-align: center; }
-    .font-bold { font-weight: 700; }
+    .font-bold {
+      font-weight: 800 !important;
+      font-size: calc(var(--table-font-size, 14.5px) + 0.5px) !important;
+      color: #0f172a !important;
+    }
 
-    /* Bộ 3 Chip % Đạt: Dễ thương, pastel, dịu mắt */
+    /* Bộ 3 Chip % Đạt: To rõ, nổi bật, dễ quan sát */
     .chip-pass {
       background: #d1fae5;
       color: #065f46;
-      border: 1px solid #a7f3d0;
-      padding: 3px 9px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 11.5px;
+      border: 1.5px solid #a7f3d0;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 13.5px;
       display: inline-block;
       font-variant-numeric: tabular-nums;
     }
     .chip-warn {
       background: #fef3c7;
       color: #92400e;
-      border: 1px solid #fde68a;
-      padding: 3px 9px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 11.5px;
+      border: 1.5px solid #fde68a;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 13.5px;
       display: inline-block;
       font-variant-numeric: tabular-nums;
     }
     .chip-fail {
       background: #fee2e2;
       color: #be123c;
-      border: 1px solid #fecaca;
-      padding: 3px 9px;
-      border-radius: 6px;
-      font-weight: 700;
-      font-size: 11.5px;
+      border: 1.5px solid #fecaca;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 13.5px;
       display: inline-block;
       font-variant-numeric: tabular-nums;
+    }
+
+    /* Nút chọn nhanh cỡ chữ bảng báo cáo */
+    .zoom-bar-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #ffffff;
+      padding: 4px 8px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-strong);
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+    }
+    .btn-zoom-scale {
+      padding: 3px 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #f8fafc;
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-zoom-scale:hover {
+      background: #ccfbf1;
+      border-color: #14b8a6;
+      color: #0f766e;
+    }
+    .btn-zoom-scale.active {
+      background: #0d9488;
+      color: #ffffff;
+      border-color: #0d9488;
+      box-shadow: 0 2px 5px rgba(13, 148, 136, 0.3);
+    }
+
+    /* ============================================================
+       RESPONSIVE CHO MOBILE & MÀN HÌNH XOAY NGANG (LANDSCAPE)
+       Tối ưu chiều cao header cực gọn, tăng tối đa diện tích bảng đọc
+       ============================================================ */
+    @media (max-width: 992px), (max-height: 580px) {
+      .navbar {
+        padding: 6px 12px !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        box-shadow: 0 2px 10px rgba(20, 184, 166, 0.10) !important;
+      }
+      .brand {
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+      }
+      .brand-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 16px !important;
+        border-radius: 8px !important;
+      }
+      .brand-title h1 {
+        font-size: 13.5px !important;
+        white-space: nowrap !important;
+      }
+      .brand-title p {
+        display: none !important; /* Ẩn phụ đề trên mobile để header siêu gọn */
+      }
+      .nav-meta {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        gap: 5px !important;
+        align-items: center !important;
+        max-width: 100% !important;
+        scrollbar-width: none !important;
+      }
+      .nav-meta::-webkit-scrollbar {
+        display: none !important;
+      }
+      .pill-badge {
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+      }
+      .mode-switcher-nav {
+        padding: 2px !important;
+        flex-shrink: 0 !important;
+      }
+      .mode-pill {
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+      }
+      .container {
+        margin: 8px auto !important;
+        padding: 0 8px !important;
+      }
+      .card {
+        padding: 12px 14px !important;
+        margin-bottom: 12px !important;
+        border-radius: 10px !important;
+      }
+      .sheet-toolbar {
+        padding: 6px 10px !important;
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+      }
+      .table-container {
+        margin-bottom: 12px !important;
+        border-radius: 10px !important;
+      }
+      table {
+        font-size: var(--table-font-size, 14px) !important;
+      }
+      th {
+        padding: 9px 10px !important;
+        font-size: 12px !important;
+      }
+      td {
+        padding: 9px 10px !important;
+        font-size: var(--table-font-size, 14px) !important;
+      }
     }
 
     /* Modals */
@@ -1011,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.2</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.3</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -1179,12 +1317,18 @@
       <!-- Tab 1: Tiến độ 10 Nhân Viên -->
       <div id="tabTeam" class="tab-content">
         <div class="sheet-toolbar">
-          <div class="sheet-toolbar-left">
+          <div class="sheet-toolbar-left" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <label style="font-size:13px; font-weight:700; color:#0f172a;">👥 Lọc Nhân Viên:</label>
-            <select class="search-input" id="filterTeamEmp" onchange="filterTeamTable()" style="min-width:190px; padding:6px 12px; font-size:13px;">
+            <select class="search-input" id="filterTeamEmp" onchange="filterTeamTable()" style="min-width:170px; padding:6px 12px; font-size:13px;">
               <option value="">Tất cả nhân viên (10 NV)</option>
             </select>
             <span id="teamEmpCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">10 Nhân viên</span>
+            <div class="zoom-bar-group" title="Chỉnh cỡ chữ hiển thị của bảng báo cáo">
+              <span style="font-size:11.5px; font-weight:700; color:#475569;">🔍 Chữ:</span>
+              <button type="button" class="btn-zoom-scale" data-size="13" onclick="setReportFontSize(13)" title="Cỡ vừa">Vừa</button>
+              <button type="button" class="btn-zoom-scale active" data-size="14.5" onclick="setReportFontSize(14.5)" title="Cỡ to dễ đọc">To</button>
+              <button type="button" class="btn-zoom-scale" data-size="16.5" onclick="setReportFontSize(16.5)" title="Cỡ cực to cho điện thoại">Cực To</button>
+            </div>
           </div>
           <div class="sheet-toolbar-right">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabTeam')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
@@ -1202,7 +1346,7 @@
           <table>
             <thead id="teamTableHead"></thead>
             <tbody id="teamTableBody"></tbody>
-            <tfoot id="teamTableFoot" style="background:#1F4E78; color:white; font-weight:700;"></tfoot>
+            <tfoot id="teamTableFoot" style="background:#0f172a; color:white; font-weight:700;"></tfoot>
           </table>
         </div>
       </div>
@@ -1210,11 +1354,17 @@
       <!-- Tab 2: Xếp Hạng Nhân Viên -->
       <div id="tabRank" class="tab-content" style="display:none;">
         <div class="sheet-toolbar">
-          <div class="sheet-toolbar-left">
+          <div class="sheet-toolbar-left" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <label style="font-size:13px; font-weight:700; color:#0f172a;">🏆 Lọc Nhân Viên:</label>
-            <select class="search-input" id="filterRankEmp" onchange="filterRankTable()" style="min-width:190px; padding:6px 12px; font-size:13px;">
+            <select class="search-input" id="filterRankEmp" onchange="filterRankTable()" style="min-width:170px; padding:6px 12px; font-size:13px;">
               <option value="">Tất cả nhân viên (10 NV)</option>
             </select>
+            <div class="zoom-bar-group" title="Chỉnh cỡ chữ hiển thị của bảng báo cáo">
+              <span style="font-size:11.5px; font-weight:700; color:#475569;">🔍 Chữ:</span>
+              <button type="button" class="btn-zoom-scale" data-size="13" onclick="setReportFontSize(13)" title="Cỡ vừa">Vừa</button>
+              <button type="button" class="btn-zoom-scale active" data-size="14.5" onclick="setReportFontSize(14.5)" title="Cỡ to dễ đọc">To</button>
+              <button type="button" class="btn-zoom-scale" data-size="16.5" onclick="setReportFontSize(16.5)" title="Cỡ cực to cho điện thoại">Cực To</button>
+            </div>
           </div>
           <div class="sheet-toolbar-right">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabRank')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
@@ -2948,6 +3098,32 @@ const DEFAULT_FM_STORES = [
       }
     }
 
+    function setReportFontSize(size) {
+      document.documentElement.style.setProperty('--table-font-size', size + 'px');
+      localStorage.setItem('camgiang_table_font_size', size);
+      document.querySelectorAll('.btn-zoom-scale').forEach(b => {
+        if (parseFloat(b.getAttribute('data-size')) === size) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+    }
+
+    (function initReportFontSize() {
+      const saved = parseFloat(localStorage.getItem('camgiang_table_font_size')) || 14.5;
+      document.documentElement.style.setProperty('--table-font-size', saved + 'px');
+      window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.btn-zoom-scale').forEach(b => {
+          if (parseFloat(b.getAttribute('data-size')) === saved) {
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        });
+      });
+    })();
+
     function updateTargetBannerUI() {
       const totalTgt = currentMaster.employees.reduce((acc, e) => acc + (e.target || 0), 0);
       const totalBhx = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
@@ -4316,24 +4492,24 @@ const DEFAULT_FM_STORES = [
         const chipClass = (e.percent >= data.timegone) ? 'chip-pass' : ((e.percent >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
         tbody.innerHTML += `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td class="font-bold">${e.name}</td>
+            <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
+            <td class="font-bold" style="color:#0f172a;">${e.name}</td>
             ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
-            <td class="text-right" style="color:#059669; font-weight:600;">${formatNumber(e.bhx_actual)}</td>
-            <td class="text-right">${formatNumber(e.gs25_actual)}</td>
-            <td class="text-right">${formatNumber(e.se_actual)}</td>
-            <td class="text-right">${formatNumber(e.fm_actual)}</td>
-            <td class="text-right">${formatNumber(e.ck_actual)}</td>
-            <td class="text-right">${formatNumber(e.hd_actual)}</td>
-            <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
+            <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.fm_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.ck_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
+            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
             ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
           </tr>
         `;
       });
 
       tfoot.innerHTML = `
-        <tr style="background:#1F4E78;">
-          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">TỔNG TEAM</td>
+        <tr style="background:#0f172a;">
+          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">TỔNG TEAM</td>
           ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.total_target)}</td>` : ''}
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.gs25_actual || 0), 0))}</td>
@@ -4341,8 +4517,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.fm_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.ck_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.hd_actual || 0), 0))}</td>
-          <td class="text-right font-bold" style="color:#93C5FD !important; font-size:14px;">${formatNumber(data.total_actual)}</td>
-          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important; font-size:14px;">${data.percent_achieved}%</td>` : ''}
+          <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(data.total_actual)}</td>
+          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved}%</td>` : ''}
         </tr>
       `;
     }
@@ -5441,15 +5617,15 @@ const DEFAULT_FM_STORES = [
         const chipClass = (e.percent >= processedReportData.timegone) ? 'chip-pass' : ((e.percent >= processedReportData.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
         tbody.innerHTML += `
           <tr>
-            <td class="text-center">${idx + 1}</td>
-            <td class="font-bold">${e.name}</td>
+            <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
+            <td class="font-bold" style="color:#0f172a;">${e.name}</td>
             ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
-            <td class="text-right" style="color:#059669; font-weight:600;">${formatNumber(e.bhx_actual)}</td>
-            <td class="text-right">${formatNumber(e.gs25_actual)}</td>
-            <td class="text-right">${formatNumber(e.se_actual)}</td>
-            <td class="text-right">${formatNumber(e.fm_actual)}</td>
-            <td class="text-right">${formatNumber(e.ck_actual)}</td>
-            <td class="text-right">${formatNumber(e.hd_actual)}</td>
+            <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.fm_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.ck_actual)}</td>
+            <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
             <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
             ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
           </tr>
@@ -5469,8 +5645,8 @@ const DEFAULT_FM_STORES = [
       const footLabel = selEmp ? ('TỔNG (' + selEmp.toUpperCase() + ')') : 'TỔNG TEAM';
 
       tfoot.innerHTML = `
-        <tr style="background:#1F4E78;">
-          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">${footLabel}</td>
+        <tr style="background:#0f172a;">
+          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">${footLabel}</td>
           ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totTgt)}</td>` : ''}
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(totBhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totGs)}</td>
@@ -5478,8 +5654,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totFm)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totCk)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totHd)}</td>
-          <td class="text-right font-bold" style="color:#93C5FD !important; font-size:13.5px;">${formatNumber(totAct)}</td>
-          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important; font-size:14px;">${totPct}%</td>` : ''}
+          <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(totAct)}</td>
+          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important;">${totPct}%</td>` : ''}
         </tr>
       `;
     }
@@ -8449,9 +8625,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.1.2",
-      versionCode: 13,
-      buildDate: "20:29 - 18/09/2026"
+      versionName: "v1.1.3",
+      versionCode: 14,
+      buildDate: "22:18 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8684,9 +8860,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.2</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.3</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:29 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">22:18 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

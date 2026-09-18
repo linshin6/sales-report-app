@@ -27,7 +27,12 @@ public class InstallStatusReceiver extends BroadcastReceiver {
         switch (status) {
             case PackageInstaller.STATUS_PENDING_USER_ACTION:
                 Log.d(TAG, "STATUS_PENDING_USER_ACTION: Đang mở màn hình xác nhận cài đặt...");
-                Intent confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                Intent confirmationIntent;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class);
+                } else {
+                    confirmationIntent = intent.getParcelableExtra(Intent.EXTRA_INTENT);
+                }
                 if (confirmationIntent != null) {
                     confirmationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     try {

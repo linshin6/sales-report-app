@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/alibaba/open-code-review/main/schema/rule.json",
+  "rules": [
+    {
+      "path": "**/*.{js,html}",
+      "rule": "Kiểm tra an toàn XSS khi chèn HTML động (dùng textContent hoặc escape). Bắt buộc: Nếu thay đổi index.html, view.html hoặc master_data.js, phải luôn đồng bộ vào android/app/src/main/assets/www/. Đảm bảo tương thích tốt trên giao diện điện thoại (mobile responsive).",
+      "merge_system_rule": true
+    },
+    {
+      "path": "**/android/**/*.java",
+      "rule": "Kiểm tra NullPointerException (NPE) và an toàn luồng (thread safety). Đối với Android 12+ (API 31+), tất cả PendingIntent phải khai báo FLAG_IMMUTABLE hoặc FLAG_UPDATE_CURRENT. Đối với PackageInstaller Session và BroadcastReceiver cập nhật OTA, đảm bảo xử lý STATUS_PENDING_USER_ACTION và bắt đúng ActivityNotFoundException / SecurityException.",
+      "merge_system_rule": true
+    },
+    {
+      "path": "**/*.py",
+      "rule": "Tất cả file I/O trên Windows phải chỉ định encoding='utf-8'. Kiểm tra sự tồn tại của file trước khi giải nén, ghi zip hoặc gọi lệnh subprocess. Đảm bảo logic tính toán đúng 138 CH CVS, nhân sự Hòa không có WinMart+, và công thức Circle K tính kho khô chia 230 CH có đơn.",
+      "merge_system_rule": true
+    },
+    {
+      "path": "**/version.json",
+      "rule": "Đảm bảo latestVersionCode là số nguyên tăng dần (integer > 0), latestVersionName theo chuẩn Semantic Versioning (x.y.z) và releaseNotes có tiếng Việt rõ ràng.",
+      "merge_system_rule": true
+    }
+  ]
+}
