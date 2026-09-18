@@ -1,0 +1,7 @@
+{
+  "latestVersionCode": 2,
+  "latestVersionName": "1.0.1",
+  "releaseNotes": "• Tích hợp tính năng cập nhật OTA tự động\n• Linh hoạt mẫu số chia CH BHX toàn hệ thống\n• Hiển thị chi tiết phiên bản và ngày giờ cập nhật",
+  "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
+  "forceUpdate": false
+}

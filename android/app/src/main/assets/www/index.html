@@ -1008,6 +1008,13 @@
         <strong id="headerTimegone">30.0%</strong>
         <span style="font-size:11px; opacity:0.8; margin-left:3px;">✏️</span>
       </div>
+      <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
+        <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
+        <span>🚀 Bản:</span>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.0.0</strong>
+        <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
+        <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
+      </div>
     </div>
   </nav>
 
@@ -1490,7 +1497,7 @@
         Chỉnh sửa trực tiếp Target hoặc số cửa hàng BHX phụ trách của từng nhân viên cho tháng mới:
       </p>
       
-      <div style="display:flex; gap:16px; margin-bottom:16px;">
+      <div style="display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; align-items:flex-end;">
         <div>
           <label style="font-size:12.5px; font-weight:600;">Tháng Báo Cáo:</label>
           <input type="number" id="editModalMonth" class="search-input" style="width:80px;" value="9" min="1" max="12">
@@ -1498,6 +1505,10 @@
         <div>
           <label style="font-size:12.5px; font-weight:600;">Năm Báo Cáo:</label>
           <input type="number" id="editModalYear" class="search-input" style="width:100px;" value="2026">
+        </div>
+        <div style="background:#f0fdfa; padding:6px 12px; border-radius:8px; border:1.5px solid #99f6e4;">
+          <label style="font-size:12.5px; font-weight:700; color:#0f766e;">🏢 Tổng CH BHX Toàn Hệ Thống (Hub ÷ ...):</label>
+          <input type="number" id="editModalTotalBhxSys" class="search-input" style="width:90px; font-weight:800; color:#0f766e; text-align:center;" value="233" title="Mẫu số chia doanh số 5 Hub BHX (mặc định 233)">
         </div>
       </div>
 
@@ -2851,11 +2862,12 @@ const DEFAULT_FM_STORES = [
     function updateTargetBannerUI() {
       const totalTgt = currentMaster.employees.reduce((acc, e) => acc + (e.target || 0), 0);
       const totalBhx = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
+      const sysBhx = currentMaster.total_stores_bhx || 233;
       if (document.getElementById('targetStatusTitle')) {
         document.getElementById('targetStatusTitle').innerText = 'Target Đang Áp Dụng: Tháng ' + currentMaster.month + '/' + currentMaster.year;
       }
       if (document.getElementById('targetStatusDesc')) {
-        document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX phụ trách';
+        document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX Team / ' + sysBhx + ' CH Toàn Hệ Thống';
       }
       if (document.getElementById('headerMonthYear')) {
         document.getElementById('headerMonthYear').innerText = currentMaster.month + '/' + currentMaster.year;
@@ -3109,7 +3121,10 @@ const DEFAULT_FM_STORES = [
             if (totalBhxCount > 0) {
               currentMaster.total_stores_bhx_team = totalBhxCount;
             }
-            currentMaster.total_stores_bhx = 233;
+            // Không ghi đè cố định 233 nếu đã có cấu hình số cửa hàng hệ thống
+            if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx <= 0) {
+              currentMaster.total_stores_bhx = 233;
+            }
 
             // Lưu vào localStorage (Vercel & Offline)
             localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster));
@@ -3168,6 +3183,9 @@ const DEFAULT_FM_STORES = [
     function openTargetEditModal() {
       document.getElementById('editModalMonth').value = currentMaster.month;
       document.getElementById('editModalYear').value = currentMaster.year;
+      if (document.getElementById('editModalTotalBhxSys')) {
+        document.getElementById('editModalTotalBhxSys').value = currentMaster.total_stores_bhx || 233;
+      }
 
       const tbody = document.getElementById('editTargetTableBody');
       tbody.innerHTML = '';
@@ -3192,6 +3210,12 @@ const DEFAULT_FM_STORES = [
     function saveTargetFromModal() {
       currentMaster.month = parseInt(document.getElementById('editModalMonth').value) || currentMaster.month;
       currentMaster.year = parseInt(document.getElementById('editModalYear').value) || currentMaster.year;
+      if (document.getElementById('editModalTotalBhxSys')) {
+        const sysVal = parseInt(document.getElementById('editModalTotalBhxSys').value);
+        if (sysVal && sysVal > 0) {
+          currentMaster.total_stores_bhx = sysVal;
+        }
+      }
 
       const tgtInputs = document.querySelectorAll('.modal-emp-tgt');
       const bhxInputs = document.querySelectorAll('.modal-emp-bhx');
@@ -7681,7 +7705,9 @@ const DEFAULT_FM_STORES = [
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
               currentMaster = parsed;
-              currentMaster.total_stores_bhx = 233;
+              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx <= 0) {
+                currentMaster.total_stores_bhx = 233;
+              }
               if (!currentMaster.total_stores_bhx_team) {
                 currentMaster.total_stores_bhx_team = currentMaster.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0);
               }
@@ -7695,6 +7721,7 @@ const DEFAULT_FM_STORES = [
       setupDragAndDrop();
       updateTargetBannerUI();
       setupTablePinchZoom();
+      initAppVersionDisplay();
 
       // Khởi tạo chế độ báo cáo
       const savedMode = localStorage.getItem('PREFERRED_REPORT_MODE');
@@ -7716,7 +7743,82 @@ const DEFAULT_FM_STORES = [
         }).getMasterDataFromBackend();
       }
     };
+
+    // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
+    const APP_METADATA = {
+      versionName: "v1.0.0",
+      versionCode: 1,
+      buildDate: "13:07 - 18/09/2026"
+    };
+
+    function initAppVersionDisplay() {
+      let vName = APP_METADATA.versionName;
+      let bDate = APP_METADATA.buildDate;
+
+      if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionInfo === 'function') {
+        try {
+          const info = JSON.parse(window.AndroidBridge.getAppVersionInfo());
+          if (info && info.versionName) {
+            vName = 'v' + info.versionName;
+            if (info.buildDate) bDate = info.buildDate;
+          }
+        } catch (e) {
+          console.warn('Cannot parse android version info', e);
+        }
+      }
+
+      const elHeaderV = document.getElementById('headerAppVersion');
+      const elHeaderD = document.getElementById('headerBuildDate');
+      const elFooterV = document.getElementById('footerAppVersion');
+      const elFooterD = document.getElementById('footerAppBuildDate');
+
+      if (elHeaderV) elHeaderV.textContent = vName;
+      if (elHeaderD) {
+        const shortDate = bDate.includes(' - ') ? bDate.split(' - ')[1] : bDate;
+        elHeaderD.textContent = '(' + shortDate + ')';
+      }
+      if (elFooterV) elFooterV.textContent = vName;
+      if (elFooterD) elFooterD.textContent = bDate;
+    }
+
+    function checkAppUpdateManual() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
+        window.AndroidBridge.checkForUpdate();
+      } else {
+        fetch('version.json?t=' + Date.now())
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.latestVersionCode > APP_METADATA.versionCode) {
+              alert(`🚀 CÓ BẢN CẬP NHẬT MỚI: v${data.latestVersionName}!\n\nNội dung mới:\n${data.releaseNotes}\n\nĐường dẫn tải APK:\n${data.apkDownloadUrl}`);
+            } else {
+              alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
+            }
+          })
+          .catch(err => {
+            alert(`Phiên bản hiện tại: ${APP_METADATA.versionName}\nNgày cập nhật: ${APP_METADATA.buildDate}`);
+          });
+      }
+    }
   </script>
+
+  <!-- APP FOOTER VERSION & STATUS -->
+  <footer style="margin-top:40px; padding:24px 15px 40px; text-align:center; border-top:1px solid #e2e8f0; background:#ffffff; color:#64748b; font-size:13px;">
+    <div style="max-width:1200px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
+      <div style="font-weight:700; color:#0f172a; font-size:14px; letter-spacing:0.3px;">
+        📊 HỆ THỐNG BÁO CÁO DOANH SỐ CVS & BHX — TEAM CẨM GIANG
+      </div>
+      <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
+        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.0</strong></span>
+        <span style="opacity:0.4;">•</span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:07 - 18/09/2026</strong></span>
+        <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
+      </div>
+      <div style="font-size:12px; opacity:0.8;">
+        Hệ thống hỗ trợ cập nhật dữ liệu tự động & nâng cấp OTA không cần cài lại
+      </div>
+    </div>
+  </footer>
 
   <!-- Image Preview & Copy Modal -->
   <div class="modal-overlay" id="imagePreviewModal">

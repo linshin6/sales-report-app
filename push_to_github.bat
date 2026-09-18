@@ -10,8 +10,12 @@ echo.
 
 where git >nul 2>nul
 if %errorlevel% equ 0 (
+    git add .
+    git commit -m "Cap nhat he thong, phien ban OTA va file version.json"
     git push -u origin main
 ) else (
+    "%LOCALAPPDATA%\MinGit\cmd\git.exe" add .
+    "%LOCALAPPDATA%\MinGit\cmd\git.exe" commit -m "Cap nhat he thong, phien ban OTA va file version.json"
     "%LOCALAPPDATA%\MinGit\cmd\git.exe" push -u origin main
 )
 

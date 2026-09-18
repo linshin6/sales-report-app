@@ -7,6 +7,7 @@ android/.gradle/
 android/**/build/
 android/app/build/
 *.apk
+!BaoCaoDoanhSo_TeamCamGiang.apk
 .gradle/
 build/
 local.properties

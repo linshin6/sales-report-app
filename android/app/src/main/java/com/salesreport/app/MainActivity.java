@@ -83,6 +83,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // Tự động kiểm tra bản cập nhật OTA trong nền (không làm phiền người dùng nếu không có bản mới)
+        AppUpdateManager.getInstance(this).checkForUpdate(false);
     }
 
     private void setupWebView() {
@@ -309,11 +312,39 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        @JavascriptInterface
+        public void checkForUpdate() {
+            runOnUiThread(() -> {
+                AppUpdateManager.getInstance(MainActivity.this).checkForUpdate(true);
+            });
+        }
+
+        @JavascriptInterface
+        public String getAppVersionInfo() {
+            try {
+                android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                long lastUpdateTime = pInfo.lastUpdateTime;
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm - dd/MM/yyyy", java.util.Locale.getDefault());
+                String dateStr = sdf.format(new java.util.Date(lastUpdateTime));
+                long vCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? pInfo.getLongVersionCode() : pInfo.versionCode;
+                return "{\"versionName\":\"" + pInfo.versionName + "\",\"versionCode\":" + vCode + ",\"buildDate\":\"" + dateStr + "\"}";
+            } catch (Exception e) {
+                return "{}";
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AppUpdateManager.getInstance(this).onResume();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        AppUpdateManager.getInstance(this).onDestroy();
         mExecutor.shutdown();
         if (mWebView != null) {
             mWebView.destroy();
