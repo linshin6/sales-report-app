@@ -1011,7 +1011,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.0.7</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.0.8</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -1028,9 +1028,6 @@
           <span>Mục Cập Nhật KPI / Target Tháng Mới</span>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-telegram-nav" onclick="openTelegramConfigModal()" title="Cài đặt Bot Token & Chat ID nhận báo cáo">
-            🤖 Cấu Hình Bot Telegram
-          </button>
           <button class="btn btn-outline" onclick="openTargetEditModal()">
             ✏️ Sửa Nhanh Bảng Chỉ Tiêu (10 NV)
           </button>
@@ -1144,14 +1141,8 @@
           </div>
         </div>
         <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <button class="btn btn-telegram" onclick="sendFullReportToTelegram()" title="Tự động chụp cả 4 bảng biểu và gửi kèm file Excel sang Telegram">
-            🚀 Gửi Báo Cáo & 4 Ảnh Sang Telegram
-          </button>
           <button class="btn btn-excel" onclick="exportToExcelPerfect()">
             📥 Tải File Excel Đẹp (.xlsx)
-          </button>
-          <button class="btn" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; font-weight: 700;" onclick="exportToGoogleSheet()" title="Đẩy toàn bộ dữ liệu tạo Google Spreadsheet trực tuyến gửi cấp trên">
-            📊 Đẩy Sang Google Sheet
           </button>
           <button class="btn" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: #ffffff; border: none; font-weight: 700;" onclick="copySupervisorLink()" title="Sao chép link xem đầy đủ 100% thông tin báo cáo trực tuyến">
             🔗 Copy Link Báo Cáo
@@ -1159,13 +1150,30 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Banner Tóm Tắt Tăng Trưởng So Với Lần Nạp Trước (Feature 5) -->
+      <div id="growthSummaryBanner" style="display:none; margin: 14px 0; padding: 12px 18px; border-radius: 12px; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border: 1.5px solid #86efac; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 26px;">📈</span>
+            <div>
+              <div style="font-weight: 800; font-size: 14px; color: #065f46;" id="growthBannerTitle">SO SÁNH TĂNG TRƯỞNG VỚI LẦN TRƯỚC</div>
+              <div style="font-size: 13px; color: #047857; margin-top: 2px;" id="growthBannerDesc">Đang phân tích tăng trưởng...</div>
+            </div>
+          </div>
+          <button class="btn" onclick="switchToCompareTab()" style="background: #059669; color: #ffffff; font-weight: 700; padding: 7px 16px; border-radius: 10px; font-size: 13px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(5,150,105,0.25);">
+            🔍 Xem Bảng So Sánh Chi Tiết ↗
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Mục So Sánh & Tăng Trưởng được đưa về cuối cùng) -->
       <div class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('tabTeam', this)">👥 Tiến Độ 10 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
         <button class="tab-btn" id="btnTabStores" onclick="switchTab('tabStores', this)">🏪 Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
         <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
+        <button class="tab-btn" id="btnTabCompare" onclick="switchTab('tabCompare', this)" style="background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 800;">📈 So Sánh & Tăng Trưởng</button>
       </div>
 
       <!-- Tab 1: Tiến độ 10 Nhân Viên -->
@@ -1181,9 +1189,6 @@
           <div class="sheet-toolbar-right">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabTeam')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
               💬 Gửi Zalo
-            </button>
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabTeam')" title="Gửi ảnh bảng này vào Telegram">
-              ✈️ Gửi Telegram
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabTeam')" title="Chụp và sao chép ảnh toàn bộ bảng hoặc nhân viên đã lọc">
               📸 Copy Ảnh Bảng
@@ -1215,9 +1220,6 @@
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabRank')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
               💬 Gửi Zalo
             </button>
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabRank')" title="Gửi bảng xếp hạng vào Telegram">
-              ✈️ Gửi Telegram
-            </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabRank')" title="Chụp và sao chép ảnh bảng xếp hạng">
               📸 Copy Bảng Xếp Hạng
             </button>
@@ -1237,11 +1239,11 @@
 
       <!-- Tab 3: Chi Tiết Cửa Hàng CVS -->
       <div id="tabStores" class="tab-content" style="display:none;">
-        <div class="sheet-toolbar">
-          <div class="sheet-toolbar-left">
-            <input type="text" class="search-input" id="searchStore" placeholder="🔍 Tìm kiếm nhân viên, chuỗi, địa chỉ..." oninput="filterStoresTable()" style="min-width:240px; padding:6px 12px; font-size:13px;">
+        <div class="sheet-toolbar" style="flex-wrap:wrap; gap:10px;">
+          <div class="sheet-toolbar-left" style="flex-wrap:wrap; gap:8px;">
+            <input type="text" class="search-input" id="searchStore" placeholder="🔍 Tìm kiếm nhân viên, chuỗi, địa chỉ..." oninput="filterStoresTable()" style="min-width:210px; padding:6px 12px; font-size:13px;">
             <select class="search-input" id="filterChain" onchange="filterStoresTable()" style="padding:6px 12px; font-size:13px;">
-              <option value="">Tất cả chuỗi cửa hàng</option>
+              <option value="">Tất cả chuỗi</option>
               <option value="GS25">GS25</option>
               <option value="7-Eleven">7-Eleven</option>
               <option value="FamilyMart">FamilyMart</option>
@@ -1251,14 +1253,17 @@
             <select class="search-input" id="filterEmp" onchange="filterStoresTable()" style="padding:6px 12px; font-size:13px;">
               <option value="">Tất cả nhân viên</option>
             </select>
+            <button type="button" id="btnToggleZeroSales" onclick="toggleZeroSalesFilter()" style="padding:6px 12px; font-size:12.5px; font-weight:700; border-radius:10px; border:1.5px solid #f87171; background:#fef2f2; color:#b91c1c; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s;" title="Chạm để lọc chỉ các cửa hàng chưa có doanh số (0 đ)">
+              ⚠️ Chỉ CH 0đ (<span id="zeroSalesCountBadge">0</span>)
+            </button>
             <span id="storesCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">Chi Tiết Cửa Hàng CVS</span>
           </div>
-          <div class="sheet-toolbar-right">
+          <div class="sheet-toolbar-right" style="gap:8px;">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabStores')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
               💬 Gửi Zalo
             </button>
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabStores')" title="Gửi danh sách cửa hàng vào Telegram">
-              ✈️ Gửi Telegram
+            <button type="button" class="btn" onclick="openZeroSalesReminderModal()" style="background:#ea580c; color:#fff; font-weight:700; padding:8px 14px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(234,88,12,0.3);" title="Tạo tin nhắn Zalo cảnh báo các điểm bán 0đ gửi nhân viên">
+              📋 Tin Zalo Nhắc CH 0đ
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabStores')" title="Chụp ảnh danh sách cửa hàng">
               📸 Copy Danh Sách CH
@@ -1294,8 +1299,8 @@
             <span style="font-size:14px; font-weight:800; color:#0f172a;">🏢 1. Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)</span>
           </div>
           <div class="sheet-toolbar-right">
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabBhxHubs')" title="Gửi bảng 5 Hubs vào Telegram">
-              ✈️ Gửi Telegram
+            <button class="btn-zalo" onclick="captureAndSendToZalo('tabBhxHubs')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);">
+              💬 Gửi Zalo
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabBhxHubs')">
               📸 Copy Bảng 5 Hubs
@@ -1328,8 +1333,8 @@
             </select>
           </div>
           <div class="sheet-toolbar-right">
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabBhxDist')" title="Gửi bảng phân bổ BHX vào Telegram">
-              ✈️ Gửi Telegram
+            <button class="btn-zalo" onclick="captureAndSendToZalo('tabBhxDist')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);">
+              💬 Gửi Zalo
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabBhxDist')">
               📸 Copy Bảng Phân Bổ
@@ -1389,11 +1394,11 @@
             <span id="fmStoreCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">35 CH</span>
           </div>
           <div class="sheet-toolbar-right">
-            <button class="btn-capture-telegram" onclick="sendSheetToTelegram('tabFmSku')" title="Gửi bảng tổng hợp FamilyMart vào Telegram">
-              ✈️ Gửi Telegram
+            <button class="btn-zalo" onclick="captureAndSendToZalo('tabFmSku')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng tổng hợp FamilyMart gửi Zalo">
+              💬 Gửi Zalo
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabFmSku')" title="Chụp bảng tổng hợp FamilyMart (8 cột rõ nét để gửi Zalo)">
-              📸 Copy Ảnh Tổng Hợp (Gửi Zalo Rõ Nét)
+              📸 Copy Ảnh Tổng Hợp
             </button>
             <button class="btn-capture-outline" onclick="captureCurrentSheet('tabFmSkuFull')" title="Chụp đầy đủ toàn bộ 46 cột SKU">
               📊 Copy Full 46 SKU
@@ -1414,77 +1419,161 @@
         </div>
       </div>
 
+      <!-- Tab 6: So Sánh & Tăng Trưởng (ĐƯỢC ĐƯA VỀ CUỐI THEO YÊU CẦU) -->
+      <div id="tabCompare" class="tab-content" style="display:none;">
+        <div class="sheet-toolbar" style="flex-wrap:wrap; gap:12px;">
+          <div class="sheet-toolbar-left" style="gap:10px; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label style="font-size:13px; font-weight:700; color:#0f172a;">📍 Mốc Hiện Tại:</label>
+              <select class="search-input" id="compareSelectBase" onchange="renderCompareTable()" style="padding:6px 10px; font-size:12.5px; font-weight:600; min-width:180px;">
+                <option value="latest">Lần nạp mới nhất (Hiện tại)</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label style="font-size:13px; font-weight:700; color:#0f172a;">↔️ So Với:</label>
+              <select class="search-input" id="compareSelectTarget" onchange="renderCompareTable()" style="padding:6px 10px; font-size:12.5px; font-weight:600; min-width:180px;">
+                <option value="prev">Lần nạp liền trước</option>
+              </select>
+            </div>
+            <button type="button" class="btn btn-outline" onclick="openHistoryManagerModal()" style="font-size:12.5px; padding:6px 12px; border-radius:10px; color:#0f766e; border-color:#99f6e4; background:#f0fdfa;">
+              📂 Quản Lý Lịch Sử (<span id="historyCountBadge">0</span> mốc)
+            </button>
+          </div>
+          <div class="sheet-toolbar-right" style="gap:8px;">
+            <button class="btn-zalo" onclick="captureAndSendToZalo('tabCompare')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);">
+              💬 Gửi Zalo
+            </button>
+            <button type="button" class="btn" onclick="copyCompareZaloMessage()" style="background:#059669; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(5,150,105,0.3);" title="Tạo tin nhắn tóm tắt mức tăng trưởng gửi nhóm Zalo">
+              📋 Copy Tin Nhắn Tăng Trưởng
+            </button>
+            <button class="btn-capture" onclick="captureCurrentSheet('tabCompare')" title="Chụp ảnh bảng so sánh">
+              📸 Copy Ảnh
+            </button>
+            <button class="btn-capture-outline" onclick="downloadCurrentSheetImage('tabCompare')" title="Tải ảnh về máy">
+              💾 Tải Ảnh
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Cards Mini Grid So Sánh -->
+        <div id="compareKpiGrid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:12px; margin-bottom:16px;"></div>
+
+        <!-- Bảng So Sánh Tăng Trưởng Chuyên Biệt -->
+        <div class="table-container" id="compareTableContainer">
+          <table>
+            <thead>
+              <tr style="background:#0f766e; color:#ffffff;">
+                <th class="text-center" style="width:45px;">STT</th>
+                <th>Nhân Viên</th>
+                <th class="text-right" id="thCompareTargetLabel" style="min-width:130px;">Kỳ Trước (VNĐ)</th>
+                <th class="text-right" id="thCompareBaseLabel" style="min-width:130px;">Kỳ Này (VNĐ)</th>
+                <th class="text-right" style="background:#134e4a; color:#fde047; min-width:140px;">Tăng Thêm (+VNĐ)</th>
+                <th class="text-center" style="background:#134e4a; color:#fde047; min-width:95px;">% Tăng</th>
+                <th class="text-center" style="min-width:130px;">Đánh Giá Tốc Độ</th>
+              </tr>
+            </thead>
+            <tbody id="compareTableBody"></tbody>
+            <tfoot id="compareTableFoot" style="background:#1F4E78; color:white; font-weight:700;"></tfoot>
+          </table>
+        </div>
+      </div>
+
     </div>
 
   </div>
 
-  <!-- Modal Telegram Bot Config -->
-  <div class="modal-overlay" id="telegramConfigModal">
-    <div class="modal-content" style="max-width:580px; text-align:left;">
-      <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px solid #E2E8F0; padding-bottom:12px;">
-        <span style="font-size:32px;">🤖</span>
-        <div>
-          <h3 style="font-size:18px; font-weight:800; color:#0f172a; margin:0;">Cấu Hình Bot Telegram Nhận Báo Cáo</h3>
-          <p style="font-size:12.5px; color:#64748B; margin:2px 0 0 0;">Gửi báo cáo & ảnh bảng biểu sắc nét trực tiếp vào Telegram</p>
+  <!-- Modal 1: Cảnh Báo Điểm Bán 0 Doanh Số & Nhắc Việc Zalo (Feature 4) -->
+  <div class="modal-overlay" id="modalZeroSalesReminder">
+    <div class="modal-content" style="max-width:680px; text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; border-bottom:1.5px solid #fee2e2; padding-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:28px;">⚠️</span>
+          <div>
+            <h3 style="font-size:17px; font-weight:800; color:#b91c1c; margin:0;">Báo Động Cửa Hàng Chưa Phát Sinh Doanh Số</h3>
+            <p style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">Danh sách điểm bán 0 đ gom nhóm theo Nhân Viên phụ trách</p>
+          </div>
         </div>
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalZeroSalesReminder')" style="padding:4px 10px; font-size:12px;">Đóng ✕</button>
       </div>
 
-      <div style="background:#F0F9FF; border:1px solid #BAE6FD; border-radius:10px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; color:#0369A1; line-height:1.6;">
-        💡 <strong>Hướng dẫn nhanh:</strong><br>
-        1. <strong>Bot Token:</strong> Lấy từ <a href="https://t.me/BotFather" target="_blank" style="color:#0284c7; font-weight:700;">@BotFather</a> của bot <code>Baocaodoanhso_bot</code>.<br>
-        2. <strong>Chat ID:</strong> ID cá nhân (lấy từ <a href="https://t.me/userinfobot" target="_blank" style="color:#0284c7; font-weight:700;">@userinfobot</a>, VD: <code>8935343795</code>) hoặc ID nhóm Telegram (dạng số âm <code>-100...</code>).<br>
-        <em>⚠️ Lưu ý: Nếu gửi tin nhắn cá nhân, bạn hãy mở bot trên Telegram và bấm <strong>/start</strong> trước!</em>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <label style="font-size:13px; font-weight:700; color:#0f172a; display:block; margin-bottom:6px;">
-          🔑 Telegram Bot Token:
-        </label>
-        <input type="password" id="tgInputToken" class="search-input" placeholder="Dán mã Token (ví dụ: 7123456789:AAHqj...)" style="width:100%; font-family:monospace; font-size:13px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-          <span style="font-size:11.5px; color:#94A3B8;">Lưu trữ an toàn trên trình duyệt của bạn (localStorage)</span>
-          <a href="javascript:void(0)" onclick="toggleTokenVisibility()" style="font-size:11.5px; color:#0284C7; font-weight:600;">👁️ Hiện/Ẩn Token</a>
-        </div>
-      </div>
-
-      <div style="margin-bottom:16px;">
-        <label style="font-size:13px; font-weight:700; color:#0f172a; display:block; margin-bottom:6px;">
-          💬 Chat ID Nhận Báo Cáo:
-        </label>
-        <input type="text" id="tgInputChatId" class="search-input" placeholder="VD: 8935343795 hoặc ID nhóm -100..." style="width:100%; font-size:13px;" value="8935343795">
-        <span style="font-size:11.5px; color:#94A3B8; display:block; margin-top:4px;">Gợi ý: Nhập ID người nhận hoặc ID nhóm để cả team cùng nhận báo cáo.</span>
-      </div>
-
-      <div style="background:#ECFDF5; border:1.5px dashed #10B981; border-radius:10px; padding:12px 14px; margin-bottom:16px;">
-        <div style="font-size:13px; font-weight:800; color:#065F46; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
-          <span>⚡</span>
-          <span>Kích Hoạt Bot Chạy Trực Tiếp Trên Vercel (1-Click Webhook)</span>
-        </div>
-        <p style="font-size:12px; color:#047857; margin:0 0 10px 0; line-height:1.4;">
-          Cho phép bạn gửi thẳng 2 file <code>.xlsb</code> vào Bot trên ứng dụng Telegram — Bot trên Vercel sẽ tự động trả về <strong>Ảnh biểu đồ + File Excel + Báo cáo</strong> mà không cần mở web!
-        </p>
-        <button class="btn btn-success" type="button" onclick="activateVercelBotWebhook()" id="btnActivateWebhook" style="font-size:12.5px; padding:8px 16px; width:100%; justify-content:center; box-shadow:0 3px 10px rgba(16, 185, 129, 0.25);">
-          🔗 Kích Hoạt Bot Ngay (Kết Nối Vercel)
+      <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:#991b1b; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <span>Tổng cộng có <strong id="zeroModalTotalStores" style="font-size:14px; color:#dc2626;">0</strong> cửa hàng chưa có đơn hàng trong kỳ báo cáo.</span>
+        <button type="button" class="btn" onclick="copyZeroSalesTextPrompt()" style="background:#ea580c; color:#ffffff; font-weight:700; padding:6px 14px; border-radius:8px; font-size:12.5px; border:none; cursor:pointer;">
+          📋 Sao Chép Tin Nhắn Zalo
         </button>
       </div>
 
-      <div style="margin-bottom:18px;">
-        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; font-weight:600; color:#334155;">
-          <input type="checkbox" id="tgIncludeExcel" checked style="width:16px; height:16px; accent-color:#0284C7;">
-          <span>Gửi kèm cả file Excel <code>Team_CamGiang_Report.xlsx</code> (5 sheets) sau khi gửi 4 ảnh</span>
+      <!-- Preview văn bản gửi Zalo -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12.5px; font-weight:700; color:#0f172a; display:block; margin-bottom:4px;">
+          💬 Mẫu tin nhắn soạn sẵn (Sẵn sàng dán vào nhóm Zalo team):
         </label>
+        <textarea id="zeroSalesTextContent" readonly style="width:100%; height:130px; font-size:12.5px; font-family:inherit; padding:10px 12px; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; color:#1e293b; line-height:1.5; resize:vertical;"></textarea>
       </div>
 
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-top:1px solid #E2E8F0; padding-top:14px;">
-        <button class="btn btn-outline" onclick="testTelegramConnection()" id="btnTestTg" style="color:#0284C7; border-color:#BAE6FD;">
-          🧪 Kiểm Tra Kết Nối
+      <!-- Bảng chi tiết danh sách -->
+      <div style="max-height:240px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px;">
+        <table style="width:100%; font-size:12px; border-collapse:collapse;">
+          <thead style="background:#f1f5f9; position:sticky; top:0; z-index:10;">
+            <tr>
+              <th style="padding:6px 8px; text-align:center; width:35px;">STT</th>
+              <th style="padding:6px 8px; text-align:left;">Nhân Viên</th>
+              <th style="padding:6px 8px; text-align:center; width:70px;">Chuỗi</th>
+              <th style="padding:6px 8px; text-align:left;">Mã CH</th>
+              <th style="padding:6px 8px; text-align:left;">Tên & Địa Chỉ</th>
+            </tr>
+          </thead>
+          <tbody id="zeroModalTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px; border-top:1px solid #e2e8f0; padding-top:12px;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalZeroSalesReminder')">Đóng</button>
+        <button type="button" class="btn" onclick="copyZeroSalesTextPrompt()" style="background:#0068ff; color:#fff; font-weight:700; padding:8px 18px; border-radius:10px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
+          💬 Copy Tin Nhắn & Mở Zalo
         </button>
-        <div style="display:flex; gap:10px;">
-          <button class="btn btn-outline" onclick="closeModal('telegramConfigModal')">Hủy</button>
-          <button class="btn btn-telegram" onclick="saveTelegramConfig()">
-            💾 Lưu Cấu Hình
-          </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Quản Lý Lịch Sử Snapshot (Feature 5) -->
+  <div class="modal-overlay" id="modalHistoryManager">
+    <div class="modal-content" style="max-width:680px; text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; border-bottom:1.5px solid #ccfbf1; padding-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:28px;">📂</span>
+          <div>
+            <h3 style="font-size:17px; font-weight:800; color:#0f766e; margin:0;">Quản Lý Lịch Sử Báo Cáo (Snapshots)</h3>
+            <p style="font-size:12.5px; color:#64748b; margin:2px 0 0 0;">Xem lại các mốc ngày đã lưu, tải lại số liệu cũ hoặc xóa mốc</p>
+          </div>
         </div>
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalHistoryManager')" style="padding:4px 10px; font-size:12px;">Đóng ✕</button>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:12.5px; color:#475569;">Đang lưu trữ: <strong id="historyModalCount" style="color:#0f766e;">0</strong> mốc báo cáo</span>
+        <button type="button" class="btn btn-outline" onclick="clearAllSnapshots()" style="color:#b91c1c; border-color:#fca5a5; background:#fff1f2; font-size:12px; padding:4px 10px;">
+          🗑️ Xóa Toàn Bộ Lịch Sử
+        </button>
+      </div>
+
+      <div style="max-height:300px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px;">
+        <table style="width:100%; font-size:12px; border-collapse:collapse;">
+          <thead style="background:#f8fafc; position:sticky; top:0; z-index:10;">
+            <tr>
+              <th style="padding:8px; text-align:center; width:40px;">STT</th>
+              <th style="padding:8px; text-align:left;">Tên Mốc Báo Cáo</th>
+              <th style="padding:8px; text-align:right;">Tổng Doanh Số</th>
+              <th style="padding:8px; text-align:center;">% Timegone</th>
+              <th style="padding:8px; text-align:center; width:120px;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="historyModalTableBody"></tbody>
+        </table>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:14px; border-top:1px solid #e2e8f0; padding-top:10px;">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modalHistoryManager')">Đóng</button>
       </div>
     </div>
   </div>
@@ -4478,6 +4567,8 @@ const DEFAULT_FM_STORES = [
         </tr>
       `;
       setupTablePinchZoom();
+      updateZeroSalesCount();
+      saveReportSnapshot(data);
     }
 
     function renderStoresTable(stores) {
@@ -4813,6 +4904,34 @@ const DEFAULT_FM_STORES = [
       renderFmSkuTableBody(filtered, processedReportData.fm_sku_matrix.categories || FM_CATEGORIES, timegone);
     }
 
+    let isZeroSalesFilterActive = false;
+
+    function toggleZeroSalesFilter() {
+      isZeroSalesFilterActive = !isZeroSalesFilterActive;
+      const btn = document.getElementById('btnToggleZeroSales');
+      if (btn) {
+        if (isZeroSalesFilterActive) {
+          btn.style.background = '#dc2626';
+          btn.style.color = '#ffffff';
+          btn.style.borderColor = '#b91c1c';
+          btn.style.boxShadow = '0 0 0 2px rgba(220, 38, 38, 0.2)';
+        } else {
+          btn.style.background = '#fef2f2';
+          btn.style.color = '#b91c1c';
+          btn.style.borderColor = '#f87171';
+          btn.style.boxShadow = 'none';
+        }
+      }
+      filterStoresTable();
+    }
+
+    function updateZeroSalesCount() {
+      if (!processedReportData || !processedReportData.stores) return;
+      const zeroStores = processedReportData.stores.filter(s => !s.actual || s.actual <= 0);
+      const badge = document.getElementById('zeroSalesCountBadge');
+      if (badge) badge.innerText = zeroStores.length;
+    }
+
     function filterStoresTable() {
       if (!processedReportData) return;
       const search = document.getElementById('searchStore').value.toLowerCase();
@@ -4823,18 +4942,487 @@ const DEFAULT_FM_STORES = [
         const matchSearch = !search || s.employee_name.toLowerCase().includes(search) || s.store_address.toLowerCase().includes(search) || (s.store_code && s.store_code.toLowerCase().includes(search));
         const matchChain = !chain || s.chain === chain;
         const matchEmp = !emp || s.employee_name === emp;
-        return matchSearch && matchChain && matchEmp;
+        const matchZero = !isZeroSalesFilterActive || (!s.actual || s.actual <= 0);
+        return matchSearch && matchChain && matchEmp && matchZero;
       });
 
       const countBadge = document.getElementById('storesCountBadge');
-      if (countBadge) countBadge.innerText = filtered.length + ' CH';
+      if (countBadge) {
+        countBadge.innerText = (isZeroSalesFilterActive ? '⚠️ ' : '') + filtered.length + ' CH' + (isZeroSalesFilterActive ? ' (0đ)' : '');
+      }
 
       renderStoresTable(filtered);
     }
 
+    function openZeroSalesReminderModal() {
+      if (!processedReportData || !processedReportData.stores) {
+        alert('Vui lòng nạp 2 file doanh số hoặc bấm "Xem Thử Với Dữ Liệu Mẫu" trước!');
+        return;
+      }
+      const zeroStores = processedReportData.stores.filter(s => !s.actual || s.actual <= 0);
+      const totalEl = document.getElementById('zeroModalTotalStores');
+      if (totalEl) totalEl.innerText = zeroStores.length;
+
+      // Group by employee
+      const byEmp = {};
+      zeroStores.forEach(s => {
+        if (!byEmp[s.employee_name]) byEmp[s.employee_name] = [];
+        byEmp[s.employee_name].push(s);
+      });
+
+      // Render table in modal
+      const tbody = document.getElementById('zeroModalTableBody');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (zeroStores.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#059669; font-weight:700;">🎉 Tuyệt vời! Toàn bộ cửa hàng đều đã phát sinh doanh số!</td></tr>';
+        } else {
+          zeroStores.forEach((s, idx) => {
+            tbody.innerHTML += `
+              <tr style="border-bottom:1px solid #f1f5f9;">
+                <td style="text-align:center; padding:6px; color:#64748b;">${idx + 1}</td>
+                <td style="padding:6px 8px; font-weight:700; color:#0f172a;">${s.employee_name}</td>
+                <td style="text-align:center; padding:6px;"><span style="background:#fee2e2; color:#b91c1c; padding:2px 6px; border-radius:4px; font-weight:700; font-size:11px;">${s.chain}</span></td>
+                <td style="padding:6px 8px; font-family:monospace; color:#475569;">${s.store_code || '-'}</td>
+                <td style="padding:6px 8px; color:#334155; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${s.store_address}</td>
+              </tr>
+            `;
+          });
+        }
+      }
+
+      // Format ready-to-copy Zalo message
+      const dateHeader = document.getElementById('headerBuildDate') ? document.getElementById('headerBuildDate').innerText.replace(/[()]/g, '') : 'Hôm nay';
+      let msg = `⚠️ BÁO ĐỘNG ĐIỂM BÁN CHƯA CÓ ĐƠN HÀNG - TEAM CẨM GIANG\n`;
+      msg += `📅 Ngày báo cáo: ${dateHeader}\n`;
+      msg += `📊 Tổng số điểm bán chưa phát sinh đơn: ${zeroStores.length} Cửa hàng\n\n`;
+      msg += `Chi tiết theo nhân viên phụ trách:\n`;
+
+      const empKeys = Object.keys(byEmp);
+      if (empKeys.length === 0) {
+        msg += `🎉 Toàn bộ cửa hàng đều đã có đơn hàng!\n`;
+      } else {
+        empKeys.forEach(emp => {
+          const list = byEmp[emp];
+          msg += `👤 ${emp} (${list.length} CH chưa có đơn):\n`;
+          list.forEach((s, i) => {
+            const addrShort = s.store_address.length > 45 ? s.store_address.substring(0, 45) + '...' : s.store_address;
+            msg += `  ${i + 1}. [${s.chain}] ${s.store_code ? s.store_code + ' - ' : ''}${addrShort}\n`;
+          });
+          msg += `\n`;
+        });
+        msg += `👉 Đề nghị các bạn NV phụ trách khẩn trương kiểm tra tồn kho, date hàng tại cửa hàng và hỗ trợ đặt đơn gấp trong ngày!\n(Trân trọng cảm ơn!)`;
+      }
+
+      const txt = document.getElementById('zeroSalesTextContent');
+      if (txt) txt.value = msg;
+
+      showModal('modalZeroSalesReminder');
+    }
+
+    function copyZeroSalesTextPrompt() {
+      const txt = document.getElementById('zeroSalesTextContent');
+      if (!txt || !txt.value) return;
+      navigator.clipboard.writeText(txt.value).then(() => {
+        alert('✅ ĐÃ SAO CHÉP MẪU TIN NHẮN NHẮC VIỆC ZALO THÀNH CÔNG!\n\nBạn có thể mở ngay Zalo và Dán (Paste) vào nhóm chat của team.');
+      }).catch(err => {
+        txt.select();
+        document.execCommand('copy');
+        alert('✅ Đã sao chép nội dung tin nhắn nhắc việc Zalo!');
+      });
+    }
+
     // =========================================================================
-    // FILTER FUNCTIONS ACROSS TABS
+    // FEATURE 5: LƯU LỊCH SỬ BÁO CÁO & SO SÁNH TĂNG TRƯỞNG (DELTA COMPARISON)
     // =========================================================================
+    const SNAPSHOT_STORAGE_KEY = 'TEAM_CAMGIANG_SALES_SNAPSHOTS_V2';
+
+    function getSavedSnapshots() {
+      try {
+        const raw = localStorage.getItem(SNAPSHOT_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        console.warn('Cannot load snapshots', e);
+        return [];
+      }
+    }
+
+    function saveReportSnapshot(data) {
+      if (!data || !data.employees || !data.employees.length) return;
+      try {
+        const snapshots = getSavedSnapshots();
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())} - ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
+        const totalActual = data.total_actual_team || data.employees.reduce((acc, x) => acc + (x.total_actual || 0), 0);
+
+        // Tránh trùng lặp nếu người dùng bấm tính toán lại trong vòng 2 phút với cùng tổng số tiền
+        const lastSnap = snapshots.length > 0 ? snapshots[0] : null;
+        if (lastSnap && Math.abs(Date.now() - lastSnap.timestamp) < 120000 && lastSnap.total_actual === totalActual) {
+          lastSnap.timeStr = timeStr;
+          lastSnap.total_actual = totalActual;
+          lastSnap.total_bhx = data.total_actual_bhx || 0;
+          lastSnap.total_cvs = data.total_actual_cvs || 0;
+          localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshots));
+          updateCompareSelectors();
+          updateGrowthBanner();
+          return;
+        }
+
+        const newSnap = {
+          id: 'snap_' + Date.now(),
+          timestamp: Date.now(),
+          timeStr: timeStr,
+          label: `Mốc ${timeStr} (${formatNumber(totalActual)} đ)`,
+          total_actual: totalActual,
+          total_bhx: data.total_actual_bhx || 0,
+          total_cvs: data.total_actual_cvs || 0,
+          total_target: data.total_target || 0,
+          timegone: data.timegone || 0,
+          employees: data.employees.map(e => ({
+            name: e.name,
+            total_actual: e.total_actual || 0,
+            bhx_actual: e.bhx_actual || 0,
+            cvs_total: e.cvs_total || 0,
+            target: e.target || 0,
+            percent: e.percent || 0
+          }))
+        };
+
+        snapshots.unshift(newSnap);
+        if (snapshots.length > 30) {
+          snapshots.length = 30; // Giới hạn tối đa 30 mốc
+        }
+
+        localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshots));
+        updateCompareSelectors();
+        updateGrowthBanner();
+      } catch (e) {
+        console.warn('Error saving report snapshot', e);
+      }
+    }
+
+    function updateCompareSelectors() {
+      const snapshots = getSavedSnapshots();
+      const selBase = document.getElementById('compareSelectBase');
+      const selTarget = document.getElementById('compareSelectTarget');
+      const badge = document.getElementById('historyCountBadge');
+      const modalCount = document.getElementById('historyModalCount');
+      if (badge) badge.innerText = snapshots.length;
+      if (modalCount) modalCount.innerText = snapshots.length;
+
+      if (!selBase || !selTarget) return;
+
+      selBase.innerHTML = '<option value="latest">Lần nạp mới nhất (Hiện tại)</option>';
+      selTarget.innerHTML = '';
+
+      if (snapshots.length <= 1) {
+        selTarget.innerHTML = '<option value="">(Chưa có mốc trước để so sánh)</option>';
+      } else {
+        selTarget.innerHTML = `<option value="${snapshots[1].id}">Lần nạp liền trước (${snapshots[1].timeStr})</option>`;
+        for (let i = 2; i < snapshots.length; i++) {
+          selTarget.innerHTML += `<option value="${snapshots[i].id}">${snapshots[i].label}</option>`;
+        }
+      }
+
+      for (let i = 1; i < snapshots.length; i++) {
+        selBase.innerHTML += `<option value="${snapshots[i].id}">${snapshots[i].label}</option>`;
+      }
+
+      renderCompareTable();
+    }
+
+    function updateGrowthBanner() {
+      const snapshots = getSavedSnapshots();
+      const banner = document.getElementById('growthSummaryBanner');
+      const desc = document.getElementById('growthBannerDesc');
+      if (!banner || !desc) return;
+
+      if (snapshots.length < 2) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      const curr = snapshots[0];
+      const prev = snapshots[1];
+      const deltaTotal = curr.total_actual - prev.total_actual;
+      const deltaBhx = (curr.total_bhx || 0) - (prev.total_bhx || 0);
+      const deltaCvs = (curr.total_cvs || 0) - (prev.total_cvs || 0);
+      const pctGrowth = prev.total_actual > 0 ? ((deltaTotal / prev.total_actual) * 100).toFixed(1) : '0.0';
+
+      const sign = deltaTotal >= 0 ? '+' : '';
+      const color = deltaTotal >= 0 ? '#059669' : '#dc2626';
+
+      desc.innerHTML = `So với lần nạp trước (${prev.timeStr}): Toàn team tăng <strong style="color:${color}; font-size:14px;">${sign}${formatNumber(deltaTotal)} ₫</strong> (${sign}${pctGrowth}%) • BHX: <strong>${deltaBhx >= 0 ? '+' : ''}${formatNumber(deltaBhx)} ₫</strong> • CVS: <strong>${deltaCvs >= 0 ? '+' : ''}${formatNumber(deltaCvs)} ₫</strong>`;
+      banner.style.display = 'block';
+    }
+
+    function switchToCompareTab() {
+      const btn = document.getElementById('btnTabCompare');
+      if (btn) {
+        switchTab('tabCompare', btn);
+        renderCompareTable();
+      }
+    }
+
+    function renderCompareTable() {
+      const snapshots = getSavedSnapshots();
+      const tbody = document.getElementById('compareTableBody');
+      const tfoot = document.getElementById('compareTableFoot');
+      const kpiGrid = document.getElementById('compareKpiGrid');
+      const thTargetLabel = document.getElementById('thCompareTargetLabel');
+      const thBaseLabel = document.getElementById('thCompareBaseLabel');
+
+      if (!tbody || !tfoot) return;
+
+      if (snapshots.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:#64748b;">Chưa có dữ liệu báo cáo nào được lưu. Hãy nạp file doanh số để bắt đầu so sánh!</td></tr>';
+        tfoot.innerHTML = '';
+        if (kpiGrid) kpiGrid.innerHTML = '';
+        return;
+      }
+
+      const selBase = document.getElementById('compareSelectBase');
+      const selTarget = document.getElementById('compareSelectTarget');
+      const baseVal = selBase ? selBase.value : 'latest';
+      const targetVal = selTarget ? selTarget.value : 'prev';
+
+      let snapBase = (baseVal === 'latest' || !baseVal) ? snapshots[0] : snapshots.find(s => s.id === baseVal);
+      if (!snapBase) snapBase = snapshots[0];
+
+      let snapTarget = null;
+      if (targetVal === 'prev' || !targetVal) {
+        snapTarget = snapshots.length > 1 ? snapshots[1] : null;
+      } else {
+        snapTarget = snapshots.find(s => s.id === targetVal);
+      }
+
+      if (thBaseLabel) thBaseLabel.innerText = `Kỳ Này (${snapBase.timeStr || 'Hiện tại'})`;
+      if (thTargetLabel) thTargetLabel.innerText = snapTarget ? `Kỳ Trước (${snapTarget.timeStr})` : 'Kỳ Trước (Chưa có)';
+
+      if (!snapTarget) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">Chưa có mốc liền trước để đối chiếu. Hãy tiếp tục nạp dữ liệu ở các lần tiếp theo để hệ thống tự động so sánh tăng trưởng!</td></tr>';
+        tfoot.innerHTML = '';
+        if (kpiGrid) {
+          kpiGrid.innerHTML = `
+            <div class="kpi-card" style="border-left:4px solid #0f766e;">
+              <div class="kpi-title">DOANH SỐ HIỆN TẠI</div>
+              <div class="kpi-value" style="color:#0f766e;">${formatNumber(snapBase.total_actual)} ₫</div>
+              <div class="kpi-subtitle">Mốc: ${snapBase.timeStr}</div>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      const deltaTotal = snapBase.total_actual - snapTarget.total_actual;
+      const deltaBhx = (snapBase.total_bhx || 0) - (snapTarget.total_bhx || 0);
+      const deltaCvs = (snapBase.total_cvs || 0) - (snapTarget.total_cvs || 0);
+      const pctGrowth = snapTarget.total_actual > 0 ? ((deltaTotal / snapTarget.total_actual) * 100).toFixed(1) : '0.0';
+
+      let topGrower = null;
+      let maxGrow = -Infinity;
+
+      const empMapTarget = {};
+      (snapTarget.employees || []).forEach(e => { empMapTarget[e.name] = e.total_actual; });
+
+      const compRows = (snapBase.employees || []).map((e, idx) => {
+        const prevAct = empMapTarget[e.name] !== undefined ? empMapTarget[e.name] : 0;
+        const currAct = e.total_actual || 0;
+        const diff = currAct - prevAct;
+        const pct = prevAct > 0 ? ((diff / prevAct) * 100).toFixed(1) : (currAct > 0 ? '100.0' : '0.0');
+        if (diff > maxGrow) {
+          maxGrow = diff;
+          topGrower = { name: e.name, diff: diff };
+        }
+        return {
+          name: e.name,
+          prev: prevAct,
+          curr: currAct,
+          diff: diff,
+          pct: pct
+        };
+      });
+
+      if (kpiGrid) {
+        kpiGrid.innerHTML = `
+          <div class="kpi-card" style="border-left:4px solid #059669;">
+            <div class="kpi-title">TĂNG TRƯỞNG TOÀN TEAM</div>
+            <div class="kpi-value" style="color:${deltaTotal >= 0 ? '#059669' : '#dc2626'}; font-size:22px;">
+              ${deltaTotal >= 0 ? '+' : ''}${formatNumber(deltaTotal)} ₫
+            </div>
+            <div class="kpi-subtitle">Tăng ${deltaTotal >= 0 ? '+' : ''}${pctGrowth}% so với mốc trước</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #0284c7;">
+            <div class="kpi-title">BHX TĂNG THÊM</div>
+            <div class="kpi-value" style="color:#0284c7; font-size:22px;">
+              ${deltaBhx >= 0 ? '+' : ''}${formatNumber(deltaBhx)} ₫
+            </div>
+            <div class="kpi-subtitle">Kênh 5 Hubs Bách Hóa Xanh</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #d97706;">
+            <div class="kpi-title">CVS TĂNG THÊM</div>
+            <div class="kpi-value" style="color:#d97706; font-size:22px;">
+              ${deltaCvs >= 0 ? '+' : ''}${formatNumber(deltaCvs)} ₫
+            </div>
+            <div class="kpi-subtitle">Chuỗi GS25, CK, FM, 7E, HĐ</div>
+          </div>
+          <div class="kpi-card" style="border-left:4px solid #7c3aed;">
+            <div class="kpi-title">🏆 BỨT PHÁ CAO NHẤT</div>
+            <div class="kpi-value" style="color:#7c3aed; font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${topGrower && topGrower.diff > 0 ? topGrower.name : 'Đều số'}
+            </div>
+            <div class="kpi-subtitle">${topGrower && topGrower.diff > 0 ? '+' + formatNumber(topGrower.diff) + ' ₫' : 'Chưa có bứt phá'}</div>
+          </div>
+        `;
+      }
+
+      compRows.sort((a, b) => b.diff - a.diff);
+
+      tbody.innerHTML = '';
+      compRows.forEach((r, idx) => {
+        let badgeRate = '';
+        if (r.diff > 30000000) {
+          badgeRate = '<span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11.5px;">🚀 Tăng mạnh</span>';
+        } else if (r.diff > 0) {
+          badgeRate = '<span style="background:#f0fdf4; color:#166534; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11.5px;">↗️ Tăng đều</span>';
+        } else if (r.diff === 0) {
+          badgeRate = '<span style="background:#f1f5f9; color:#64748b; padding:3px 8px; border-radius:6px; font-weight:600; font-size:11.5px;">➡️ Đứng số</span>';
+        } else {
+          badgeRate = '<span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:6px; font-weight:700; font-size:11.5px;">↘️ Giảm</span>';
+        }
+
+        const diffColor = r.diff > 0 ? '#059669' : (r.diff === 0 ? '#64748b' : '#dc2626');
+        const sign = r.diff > 0 ? '+' : '';
+
+        tbody.innerHTML += `
+          <tr>
+            <td class="text-center" style="color:#64748b; font-weight:700;">${idx + 1}</td>
+            <td class="font-bold">${r.name}</td>
+            <td class="text-right" style="color:#64748b;">${formatNumber(r.prev)}</td>
+            <td class="text-right font-semibold">${formatNumber(r.curr)}</td>
+            <td class="text-right font-bold" style="color:${diffColor}; font-size:13.5px; background:${r.diff > 0 ? '#f0fdf4' : '#ffffff'};">
+              ${sign}${formatNumber(r.diff)}
+            </td>
+            <td class="text-center font-bold" style="color:${diffColor};">
+              ${sign}${r.pct}%
+            </td>
+            <td class="text-center">${badgeRate}</td>
+          </tr>
+        `;
+      });
+
+      const signTot = deltaTotal >= 0 ? '+' : '';
+      tfoot.innerHTML = `
+        <tr style="background:#1F4E78;">
+          <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important; font-size:13px;">TỔNG CỘNG TEAM</td>
+          <td class="text-right font-bold" style="color:#CBD5E1 !important;">${formatNumber(snapTarget.total_actual)}</td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(snapBase.total_actual)}</td>
+          <td class="text-right font-bold" style="color:#FDE047 !important; font-size:14px; background:#134e4a;">${signTot}${formatNumber(deltaTotal)}</td>
+          <td class="text-center font-bold" style="color:#FDE047 !important; font-size:13.5px; background:#134e4a;">${signTot}${pctGrowth}%</td>
+          <td class="text-center font-bold" style="color:#86EFAC !important;">${deltaTotal >= 0 ? '🚀 TĂNG TRƯỞNG' : '⚠️ CẦN BỨT PHÁ'}</td>
+        </tr>
+      `;
+    }
+
+    function copyCompareZaloMessage() {
+      const snapshots = getSavedSnapshots();
+      if (snapshots.length < 2) {
+        alert('Cần ít nhất 2 mốc báo cáo để tạo tin nhắn so sánh tăng trưởng!');
+        return;
+      }
+      const selBase = document.getElementById('compareSelectBase');
+      const selTarget = document.getElementById('compareSelectTarget');
+      const baseVal = selBase ? selBase.value : 'latest';
+      const targetVal = selTarget ? selTarget.value : 'prev';
+
+      let snapBase = (baseVal === 'latest' || !baseVal) ? snapshots[0] : snapshots.find(s => s.id === baseVal);
+      if (!snapBase) snapBase = snapshots[0];
+      let snapTarget = (targetVal === 'prev' || !targetVal) ? (snapshots.length > 1 ? snapshots[1] : null) : snapshots.find(s => s.id === targetVal);
+      if (!snapTarget) return;
+
+      const deltaTotal = snapBase.total_actual - snapTarget.total_actual;
+      const pctGrowth = snapTarget.total_actual > 0 ? ((deltaTotal / snapTarget.total_actual) * 100).toFixed(1) : '0.0';
+      const signTot = deltaTotal >= 0 ? '+' : '';
+
+      const empMapTarget = {};
+      (snapTarget.employees || []).forEach(e => { empMapTarget[e.name] = e.total_actual; });
+
+      const compRows = (snapBase.employees || []).map(e => {
+        const prev = empMapTarget[e.name] || 0;
+        const diff = (e.total_actual || 0) - prev;
+        return { name: e.name, curr: e.total_actual || 0, diff: diff };
+      }).sort((a, b) => b.diff - a.diff);
+
+      let msg = `📈 BÁO CÁO TĂNG TRƯỞNG DOANH SỐ - TEAM CẨM GIANG\n`;
+      msg += `📍 So sánh: Mốc ${snapBase.timeStr} vs ${snapTarget.timeStr}\n\n`;
+      msg += `🔥 TỔNG TEAM TĂNG: ${signTot}${formatNumber(deltaTotal)} ₫ (${signTot}${pctGrowth}%)\n`;
+      msg += `• Doanh số hiện tại: ${formatNumber(snapBase.total_actual)} ₫\n`;
+      msg += `• Doanh số mốc trước: ${formatNumber(snapTarget.total_actual)} ₫\n\n`;
+      msg += `Chi tiết tăng trưởng từng nhân viên:\n`;
+
+      compRows.forEach((r, idx) => {
+        const sign = r.diff > 0 ? '+' : '';
+        const icon = r.diff > 0 ? '↗️' : (r.diff === 0 ? '➡️' : '↘️');
+        msg += `${idx + 1}. ${icon} ${r.name}: ${sign}${formatNumber(r.diff)} ₫ (Tổng đạt: ${formatNumber(r.curr)} ₫)\n`;
+      });
+
+      msg += `\n💪 Chúc cả team tiếp tục giữ vững đà tăng tốc để về đích rực rỡ!`;
+
+      navigator.clipboard.writeText(msg).then(() => {
+        alert('✅ ĐÃ SAO CHÉP TIN NHẮN TĂNG TRƯỞNG THÀNH CÔNG!\n\nBạn có thể dán ngay vào nhóm chat Zalo của team.');
+      }).catch(() => {
+        alert('Đã tạo xong tin nhắn tăng trưởng.');
+      });
+    }
+
+    function openHistoryManagerModal() {
+      const snapshots = getSavedSnapshots();
+      const countEl = document.getElementById('historyModalCount');
+      if (countEl) countEl.innerText = snapshots.length;
+      const tbody = document.getElementById('historyModalTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      if (snapshots.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px; color:#64748b;">Chưa có mốc lịch sử nào.</td></tr>';
+      } else {
+        snapshots.forEach((s, idx) => {
+          tbody.innerHTML += `
+            <tr style="border-bottom:1px solid #f1f5f9;">
+              <td style="text-align:center; padding:8px; font-weight:700; color:#64748b;">${idx + 1}</td>
+              <td style="padding:8px; font-weight:600; color:#0f172a;">${s.label || s.timeStr}</td>
+              <td style="padding:8px; text-align:right; font-weight:700; color:#0f766e;">${formatNumber(s.total_actual)} ₫</td>
+              <td style="padding:8px; text-align:center;">${s.timegone || 0}%</td>
+              <td style="padding:8px; text-align:center;">
+                <button type="button" class="btn btn-outline" onclick="deleteSnapshot('${s.id}')" style="color:#dc2626; border-color:#fca5a5; padding:3px 8px; font-size:11px; border-radius:6px;">
+                  Xóa
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      showModal('modalHistoryManager');
+    }
+
+    function deleteSnapshot(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa mốc lịch sử này?')) return;
+      let snapshots = getSavedSnapshots();
+      snapshots = snapshots.filter(s => s.id !== id);
+      localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshots));
+      updateCompareSelectors();
+      updateGrowthBanner();
+      openHistoryManagerModal();
+    }
+
+    function clearAllSnapshots() {
+      if (!confirm('CẢNH BÁO: Thao tác này sẽ xóa toàn bộ các mốc lịch sử đã lưu trên máy của bạn. Tiếp tục?')) return;
+      localStorage.removeItem(SNAPSHOT_STORAGE_KEY);
+      updateCompareSelectors();
+      updateGrowthBanner();
+      openHistoryManagerModal();
+    }
     function filterTeamTable() {
       if (!processedReportData) return;
       const isTarget = (window.currentReportMode === 'target');
@@ -7835,6 +8423,8 @@ const DEFAULT_FM_STORES = [
       updateTargetBannerUI();
       setupTablePinchZoom();
       initAppVersionDisplay();
+      updateCompareSelectors();
+      updateGrowthBanner();
 
       // Khởi tạo chế độ báo cáo
       const savedMode = localStorage.getItem('PREFERRED_REPORT_MODE');
@@ -7859,9 +8449,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.0.7",
+      versionName: "v1.0.8",
       versionCode: 1,
-      buildDate: "17:09 - 18/09/2026"
+      buildDate: "17:59 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8086,9 +8676,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.7</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.8</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">17:09 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">17:59 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
@@ -8201,9 +8791,6 @@ const DEFAULT_FM_STORES = [
         <a class="btn btn-success" id="btnDownloadImgLink" href="javascript:void(0)" onclick="downloadOrShareCurrentCapturedImg()">
           💾 Tải / Chia Sẻ Khác
         </a>
-        <button class="btn btn-telegram" id="btnSendPreviewToTg" onclick="sendCurrentCapturedImageToTelegram()">
-          ✈️ Gửi Telegram
-        </button>
         <button class="btn btn-outline" onclick="closeModal('imagePreviewModal')">
           Đóng
         </button>

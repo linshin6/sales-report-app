@@ -1,9 +1,9 @@
 {
   "latestVersionCode": 1,
-  "latestVersionName": "1.0.7",
+  "latestVersionName": "1.0.8",
   "minSupportedVersion": 1,
-  "releaseNotes": "1. Sửa dứt điểm lỗi nhảy sang hộp thoại Chia sẻ: Bấm Cài Đặt sẽ mở thẳng Trình Cài Đặt Gói Android (Package Installer).\n2. Ứng dụng tự thoát khi cài đặt và cập nhật phiên bản mới khi mở lại.\n3. Hỗ trợ đầy đủ bộ đệm Native Bridge installApkFromBase64.",
+  "releaseNotes": "1. Bổ sung mục '📈 So Sánh & Tăng Trưởng' ở cuối thanh Tab: Tự động lưu lịch sử báo cáo và so sánh chi tiết tăng trưởng (+VNĐ, % tăng) với lần nạp trước.\n2. Bổ sung tính năng '⚠️ Báo Động Cửa Hàng 0đ': Lọc nhanh điểm bán chưa có đơn và tạo mẫu tin nhắn Zalo 1-chạm đôn đốc nhân viên.\n3. Tinh giản toàn diện giao diện: Gỡ bỏ các nút Telegram và Google Sheets để tập trung tối đa vào luồng làm việc thực tế với Zalo và Excel.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-18T17:08:00Z"
+  "updatedAt": "2026-09-18T18:00:00Z"
 }
