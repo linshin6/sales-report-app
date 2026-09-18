@@ -1,7 +1,8 @@
 {
-  "latestVersionCode": 7,
-  "latestVersionName": "1.0.6",
-  "releaseNotes": "• Đổi tên mục thành Chi Tiết Cửa Hàng CVS (không cố định số 138)\n• Tự động quét và cập nhật danh sách cửa hàng CVS thực tế khi gửi file Target\n• Hiển thị số lượng cửa hàng phụ trách động trên Tab, Toolbar và thẻ KPI",
+  "latestVersionCode": 8,
+  "latestVersionName": "1.0.7",
+  "minSupportedVersion": 1,
+  "releaseNotes": "1. Sửa dứt điểm lỗi nhảy sang hộp thoại Chia sẻ: Bấm Cài Đặt sẽ mở thẳng Trình Cài Đặt Gói Android (Package Installer).\n2. Ứng dụng tự thoát khi cài đặt và cập nhật phiên bản mới khi mở lại.\n3. Hỗ trợ đầy đủ bộ đệm Native Bridge installApkFromBase64.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
-  "forceUpdate": false
+  "updatedAt": "2026-09-18T16:00:00Z"
 }

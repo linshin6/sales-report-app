@@ -17,3 +17,7 @@ android/local.properties
 ~$*
 tools/
 
+
+.bangiao/
+android-33.jar
+javac_errors.txt

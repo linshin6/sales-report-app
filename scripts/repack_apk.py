@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import datetime
 import re
+import glob
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WWW_DIR = os.path.join(ROOT_DIR, 'android', 'app', 'src', 'main', 'assets', 'www')
@@ -14,6 +15,31 @@ OUT_DIR = os.path.join(ROOT_DIR, 'out_apk')
 TOOLS_DIR = os.path.join(ROOT_DIR, 'tools')
 SIGNER_JAR = os.path.join(TOOLS_DIR, 'uber-apk-signer.jar')
 JAVA_EXE = os.path.join(TOOLS_DIR, 'jre', 'bin', 'java.exe')
+R8_JAR = os.path.join(TOOLS_DIR, 'r8.jar')
+ANDROID_JAR = os.path.join(ROOT_DIR, 'android-33.jar')
+LIBS_DIR = os.path.join(TOOLS_DIR, 'android_libs')
+STRIPPED_BASE_DEX = os.path.join(TOOLS_DIR, 'stripped_base.dex')
+
+BUILD_DIR = os.path.join(ROOT_DIR, 'build')
+OUT_CLASSES = os.path.join(BUILD_DIR, 'classes')
+OUT_DEX_DIR = os.path.join(BUILD_DIR, 'final_dex')
+FINAL_CLASSES_DEX = os.path.join(OUT_DEX_DIR, 'classes.dex')
+
+def get_javac_path():
+    candidates = [
+        r"C:\Users\giang\.antigravity-ide\extensions\redhat.java-1.56.0-win32-x64\jre\21.0.12.1-win32-x86_64\bin\javac.exe",
+        shutil.which("javac")
+    ]
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    # Scan extension dir
+    ext_dir = os.path.expanduser(r"~\.antigravity-ide\extensions")
+    if os.path.exists(ext_dir):
+        for root, dirs, files in os.walk(ext_dir):
+            if "javac.exe" in files:
+                return os.path.join(root, "javac.exe")
+    return None
 
 def sync_and_stamp_assets():
     now_str = datetime.datetime.now().strftime("%H:%M - %d/%m/%Y")
@@ -56,8 +82,74 @@ def sync_and_stamp_assets():
         if os.path.exists(src):
             shutil.copy2(src, dst)
 
+def compile_java_and_build_dex():
+    print("1. Bien dich ma nguon Java native (MainActivity, AppUpdateManager)...")
+    javac_path = get_javac_path()
+    if not javac_path:
+        print("[!] Canh bao: Khong tim thay javac.exe. Bo qua bien dich Java, su dung classes.dex hien tai.")
+        return False
+
+    if not os.path.exists(STRIPPED_BASE_DEX) or not os.path.exists(R8_JAR):
+        print("[!] Canh bao: Thieu stripped_base.dex hoac r8.jar. Bo qua bien dich DEX.")
+        return False
+
+    if os.path.exists(OUT_CLASSES):
+        shutil.rmtree(OUT_CLASSES)
+    os.makedirs(OUT_CLASSES, exist_ok=True)
+
+    jar_files = [ANDROID_JAR] + glob.glob(os.path.join(LIBS_DIR, "*.jar"))
+    classpath = ";".join(jar_files)
+    java_srcs = glob.glob(os.path.join(ROOT_DIR, "android", "app", "src", "main", "java", "com", "salesreport", "app", "*.java"))
+
+    javac_cmd = [
+        javac_path,
+        "-cp", classpath,
+        "-d", OUT_CLASSES,
+        "-source", "1.8",
+        "-target", "1.8",
+        "-encoding", "UTF-8"
+    ] + java_srcs
+
+    res = subprocess.run(javac_cmd, capture_output=True, text=True)
+    if res.returncode != 0:
+        print("[X] Loi bien dich Java:\n", res.stderr or res.stdout)
+        return False
+
+    print("   -> Bien dich Java thanh cong!")
+
+    print("2. Gop bytecode DEX bang Google D8...")
+    if os.path.exists(OUT_DEX_DIR):
+        shutil.rmtree(OUT_DEX_DIR)
+    os.makedirs(OUT_DEX_DIR, exist_ok=True)
+
+    class_files = []
+    for root, dirs, files in os.walk(OUT_CLASSES):
+        for file in files:
+            if file.endswith('.class'):
+                class_files.append(os.path.join(root, file))
+
+    d8_cmd = [
+        JAVA_EXE, '-cp', R8_JAR, 'com.android.tools.r8.D8',
+        '--min-api', '26',
+        '--lib', ANDROID_JAR,
+        '--output', OUT_DEX_DIR
+    ]
+    for jar in glob.glob(os.path.join(LIBS_DIR, '*.jar')):
+        d8_cmd.extend(['--lib', jar])
+
+    d8_cmd.append(STRIPPED_BASE_DEX)
+    d8_cmd.extend(class_files)
+
+    res_d8 = subprocess.run(d8_cmd, capture_output=True, text=True)
+    if res_d8.returncode != 0 or not os.path.exists(FINAL_CLASSES_DEX):
+        print("[X] Loi D8 merge:\n", res_d8.stderr or res_d8.stdout)
+        return False
+
+    print(f"   -> D8 merge thanh cong: classes.dex ({os.path.getsize(FINAL_CLASSES_DEX):,} bytes)")
+    return True
+
 def main():
-    print("=== DANG DONG GOI VA CAP NHAT APK (PORTABLE SIGNER) ===")
+    print("=== DANG DONG GOI VA CAP NHAT APK (FULL NATIVE + WEB ASSETS) ===")
     if not os.path.exists(BASE_APK):
         print(f"Error: Base APK not found at {BASE_APK}")
         sys.exit(1)
@@ -67,11 +159,16 @@ def main():
         sys.exit(1)
 
     sync_and_stamp_assets()
+    has_new_dex = compile_java_and_build_dex()
 
-    print("1. Dong goi ma nguon web moi nhat vao APK...")
+    print("3. Dong goi ma nguon web & DEX moi nhat vao APK...")
     with zipfile.ZipFile(BASE_APK, 'r') as zin, zipfile.ZipFile(TEMP_UNSIGNED, 'w', zipfile.ZIP_DEFLATED) as zout:
         for item in zin.infolist():
             if item.filename.startswith('META-INF/'):
+                continue
+            if item.filename == 'classes.dex' and has_new_dex and os.path.exists(FINAL_CLASSES_DEX):
+                with open(FINAL_CLASSES_DEX, 'rb') as f:
+                    zout.writestr(item, f.read())
                 continue
             if item.filename.startswith('assets/www/'):
                 rel_name = item.filename[len('assets/www/'):]
@@ -82,7 +179,7 @@ def main():
                     continue
             zout.writestr(item, zin.read(item.filename))
 
-    print("2. Ky so (ZipAlign & APK Signature Scheme v2/v3)...")
+    print("4. Ky so (ZipAlign & APK Signature Scheme v2/v3)...")
     if os.path.exists(OUT_DIR):
         shutil.rmtree(OUT_DIR)
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -104,7 +201,7 @@ def main():
         print("Error: Signed APK not generated.")
         sys.exit(1)
 
-    print("3. Cap nhat file APK dau ra duy nhat...")
+    print("5. Cap nhat file APK dau ra duy nhat...")
     apk1 = os.path.join(ROOT_DIR, 'BaoCaoDoanhSo_TeamCamGiang.apk')
     shutil.copy2(signed_path, apk1)
 
@@ -120,6 +217,7 @@ def main():
     print("========================================================")
     print(" DA CAP NHAT THANH CONG FILE APK MOI NHAT:")
     print(" -> BaoCaoDoanhSo_TeamCamGiang.apk")
+    print(" -> BaoCaoThucDat.apk")
     print("========================================================")
 
 if __name__ == '__main__':
