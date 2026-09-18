@@ -7748,7 +7748,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.0.0",
       versionCode: 1,
-      buildDate: "13:07 - 18/09/2026"
+      buildDate: "13:20 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -7779,24 +7779,82 @@ const DEFAULT_FM_STORES = [
       }
       if (elFooterV) elFooterV.textContent = vName;
       if (elFooterD) elFooterD.textContent = bDate;
+
+      // Tự động kiểm tra bản cập nhật ngầm khi mở ứng dụng (không làm phiền nếu không có bản mới)
+      setTimeout(() => {
+        checkAppUpdateManual(true);
+      }, 1500);
     }
 
-    function checkAppUpdateManual() {
+    let otaDownloadLink = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+
+    function checkAppUpdateManual(isSilent) {
+      if (!isSilent) {
+        // Hiển thị phản hồi tức thì khi bấm thủ công
+        console.log("Đang kiểm tra bản cập nhật OTA...");
+      }
+
+      // Luôn dùng URL đầy đủ của Vercel để tránh lỗi WebView appassets
+      const VERSION_URL = 'https://bcgiang.vercel.app/version.json?t=' + Date.now();
+      const FALLBACK_URL = 'https://raw.githubusercontent.com/linshin6/sales-report-app/main/version.json?t=' + Date.now();
+
+      const fetchWithFallback = (url) => {
+        return fetch(url, { headers: { 'Accept': 'application/json' } })
+          .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          });
+      };
+
+      fetchWithFallback(VERSION_URL)
+        .catch(() => fetchWithFallback(FALLBACK_URL))
+        .then(data => {
+          if (data && data.latestVersionCode > APP_METADATA.versionCode) {
+            otaDownloadLink = data.apkDownloadUrl || otaDownloadLink;
+            showOtaUpdateModal(data);
+          } else {
+            if (!isSilent) {
+              alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
+            }
+          }
+        })
+        .catch(err => {
+          console.warn('Lỗi kết nối kiểm tra cập nhật:', err);
+          if (!isSilent) {
+            // Nếu có kết nối AndroidBridge thì gọi thử tầng Native
+            if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
+              window.AndroidBridge.checkForUpdate();
+            } else {
+              alert(`Phiên bản hiện tại: ${APP_METADATA.versionName}\nNgày cập nhật: ${APP_METADATA.buildDate}\n(Không thể kết nối máy chủ kiểm tra bản mới)`);
+            }
+          }
+        });
+    }
+
+    function showOtaUpdateModal(data) {
+      const elTitle = document.getElementById('otaModalTitle');
+      const elBadge = document.getElementById('otaModalBadge');
+      const elNotes = document.getElementById('otaModalNotes');
+
+      if (elTitle) elTitle.innerText = 'Đã Có Bản Cập Nhật Mới!';
+      if (elBadge) elBadge.innerText = 'Phiên bản v' + (data.latestVersionName || 'Mới nhất');
+      if (elNotes) {
+        const formattedNotes = (data.releaseNotes || 'Cập nhật số liệu và cải tiến hiệu năng.')
+          .split('\n').map(line => line.trim()).filter(l => l).join('<br>');
+        elNotes.innerHTML = formattedNotes;
+      }
+
+      showModal('otaUpdateModal');
+    }
+
+    function triggerOtaDownload() {
+      closeModal('otaUpdateModal');
+      // Nếu có AndroidBridge bản mới hỗ trợ DownloadManager
       if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
         window.AndroidBridge.checkForUpdate();
       } else {
-        fetch('version.json?t=' + Date.now())
-          .then(res => res.json())
-          .then(data => {
-            if (data && data.latestVersionCode > APP_METADATA.versionCode) {
-              alert(`🚀 CÓ BẢN CẬP NHẬT MỚI: v${data.latestVersionName}!\n\nNội dung mới:\n${data.releaseNotes}\n\nĐường dẫn tải APK:\n${data.apkDownloadUrl}`);
-            } else {
-              alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
-            }
-          })
-          .catch(err => {
-            alert(`Phiên bản hiện tại: ${APP_METADATA.versionName}\nNgày cập nhật: ${APP_METADATA.buildDate}`);
-          });
+        // Tải trực tiếp APK từ Vercel tốc độ cao
+        window.location.href = otaDownloadLink;
       }
     }
   </script>
@@ -7811,7 +7869,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.0</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:07 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:20 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
@@ -7819,6 +7877,29 @@ const DEFAULT_FM_STORES = [
       </div>
     </div>
   </footer>
+
+  <!-- Modal OTA Update -->
+  <div class="modal-overlay" id="otaUpdateModal">
+    <div class="modal-content" style="max-width:440px; text-align:center; padding:24px; border-radius:18px; box-shadow:0 20px 40px rgba(0,0,0,0.15);">
+      <div style="width:64px; height:64px; border-radius:50%; background:#f0fdfa; border:2px solid #14b8a6; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:30px;">
+        🚀
+      </div>
+      <h3 style="font-size:19px; font-weight:800; color:#0f172a; margin-bottom:6px;" id="otaModalTitle">
+        Đã Có Bản Cập Nhật Mới!
+      </h3>
+      <div style="display:inline-block; background:#f0fdfa; color:#0f766e; font-weight:700; font-size:13px; padding:4px 14px; border-radius:20px; border:1px solid #99f6e4; margin-bottom:14px;" id="otaModalBadge">
+        Phiên bản v1.0.1
+      </div>
+      <div style="text-align:left; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:#334155; line-height:1.6;" id="otaModalNotes">
+        • Tự động cập nhật OTA<br>
+        • Tối ưu hóa giao diện
+      </div>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button class="btn btn-outline" onclick="closeModal('otaUpdateModal')" style="flex:1; border-radius:10px;">Để Sau</button>
+        <button class="btn btn-primary" onclick="triggerOtaDownload()" style="flex:1.4; background:#0f766e; color:#fff; font-weight:800; border-radius:10px;">⬇️ Cập Nhật Ngay</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Image Preview & Copy Modal -->
   <div class="modal-overlay" id="imagePreviewModal">
