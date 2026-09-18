@@ -129,17 +129,24 @@
     </div>
 
     <!-- Khung hoàn tất -->
-    <div id="completeSection" style="display:none; background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:16px; padding:16px; margin-bottom:20px; text-align:center;">
-      <div style="font-size:26px; margin-bottom:4px;">✅</div>
-      <div style="font-weight:800; color:#065f46; font-size:16px; margin-bottom:6px;">
+    <div id="completeSection" style="display:none; background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:16px; padding:18px 16px; margin-bottom:20px; text-align:center;">
+      <div style="font-size:30px; margin-bottom:6px;">✅</div>
+      <div style="font-weight:800; color:#065f46; font-size:16.5px; margin-bottom:6px;">
         ĐÃ TẢI XONG BẢN CẬP NHẬT 100%!
       </div>
-      <p style="font-size:13px; color:#047857; margin-bottom:12px;">
-        File APK đã sẵn sàng. Bấm nút bên dưới để mở tệp hoặc cài đặt ngay:
+      <p style="font-size:13px; color:#047857; margin-bottom:14px; line-height:1.5;" id="completeHelpText">
+        File APK đã nạp thành công. Bấm nút dưới đây để lưu vào máy và mở cài đặt ngay:
       </p>
-      <button id="btnOpenApk" onclick="openDownloadedFile()" class="btn-download" style="background:linear-gradient(13deg, #059669, #10b981); border:none; cursor:pointer; padding:14px; font-size:15px; margin-bottom:0;">
-        🚀 BẤM VÀO ĐÂY ĐỂ CÀI ĐẶT NGAY
-      </button>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button id="btnOpenApk" onclick="openDownloadedFile()" class="btn-download" style="background:linear-gradient(135deg, #059669, #10b981); border:none; cursor:pointer; padding:15px; font-size:15px; margin-bottom:0; box-shadow:0 8px 20px rgba(5, 150, 105, 0.35);">
+          🚀 LƯU VÀO MÁY & MỞ CÀI ĐẶT NGAY
+        </button>
+
+        <a id="btnOpenChrome" href="intent://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk#Intent;scheme=https;action=android.intent.action.VIEW;end" style="display:block; background:#f0fdf4; color:#0f766e; border:1.5px solid #99f6e4; border-radius:14px; padding:12px; font-size:13.5px; font-weight:700; text-decoration:none;">
+          🌐 Hoặc Mở Tải Bằng Trình Duyệt Chrome
+        </a>
+      </div>
     </div>
 
     <div class="guide-box">
@@ -150,10 +157,10 @@
         <strong>Bước 1:</strong> Nếu trên máy <strong>đã có app cũ</strong>, hãy <strong>GỠ CÀI ĐẶT</strong> app cũ ra trước để tránh lỗi xung đột chữ ký (khiến bấm cài đặt không hiện ra gì).
       </div>
       <div class="guide-step">
-        <strong>Bước 2:</strong> Bấm nút tải ở trên. Khi cây tiến độ đạt <strong>100%</strong>, hệ điều hành sẽ tự hiện bảng cài đặt.
+        <strong>Bước 2:</strong> Bấm nút <strong>LƯU VÀO MÁY & MỞ CÀI ĐẶT NGAY</strong> ở trên (hoặc nút Chrome).
       </div>
       <div class="guide-step">
-        <strong>Bước 3:</strong> Bạn cũng có thể mở ứng dụng <strong>Quản lý tập tin (File Manager)</strong> &gt; mục <strong>Download (Tải về)</strong> &gt; bấm vào file <code>BaoCaoDoanhSo_TeamCamGiang.apk</code> để Cài đặt bất kỳ lúc nào.
+        <strong>Bước 3:</strong> Bạn cũng có thể mở ứng dụng <strong>Quản lý tập tin (File Manager)</strong> &gt; mục <strong>Download (Tải về)</strong> &gt; thư mục <code>BaoCaoDoanhSo</code> &gt; bấm vào file <code>BaoCaoDoanhSo_TeamCamGiang.apk</code> để Cài đặt bất kỳ lúc nào.
       </div>
     </div>
   </div>
@@ -202,7 +209,7 @@
             document.getElementById('progressSection').style.display = 'none';
             document.getElementById('completeSection').style.display = 'block';
             openDownloadedFile();
-          }, 500);
+          }, 400);
         } else {
           alert('Lỗi tải file: HTTP ' + xhr.status + '. Đang mở liên kết trực tiếp...');
           window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
@@ -218,17 +225,47 @@
     }
 
     function openDownloadedFile() {
-      if (!savedBlob) {
-        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+      const btn = document.getElementById('btnOpenApk');
+      if (btn) btn.innerText = '⏳ Đang lưu file vào Tải về...';
+
+      // 1. Nếu chạy trong app Android WebView (có AndroidBridge)
+      if (window.AndroidBridge && savedBlob) {
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          if (reader.result) {
+            const parts = reader.result.split(',');
+            const base64Data = parts.length > 1 ? parts[1] : parts[0];
+
+            if (typeof window.AndroidBridge.installApkFromBase64 === 'function') {
+              window.AndroidBridge.installApkFromBase64(base64Data, 'BaoCaoDoanhSo_TeamCamGiang.apk');
+              if (btn) btn.innerText = '🚀 ĐÃ MỞ TRÌNH CÀI ĐẶT';
+              return;
+            }
+
+            if (typeof window.AndroidBridge.saveAndShare === 'function') {
+              window.AndroidBridge.saveAndShare(base64Data, 'BaoCaoDoanhSo_TeamCamGiang.apk', 'application/vnd.android.package-archive');
+              if (btn) btn.innerText = '✅ ĐÃ LƯU VÀO DOWNLOAD & MỞ BẢNG CÀI ĐẶT';
+              return;
+            }
+          }
+        };
+        reader.readAsDataURL(savedBlob);
         return;
       }
-      const blobUrl = URL.createObjectURL(savedBlob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = 'BaoCaoDoanhSo_TeamCamGiang.apk';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => a.remove(), 1000);
+
+      // 2. Nếu chạy trên trình duyệt Web ngoài (Chrome, Cốc Cốc)
+      if (savedBlob) {
+        const blobUrl = URL.createObjectURL(savedBlob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'BaoCaoDoanhSo_TeamCamGiang.apk';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => a.remove(), 1000);
+        if (btn) btn.innerText = '✅ ĐÃ XUẤT FILE TẢI VỀ';
+      } else {
+        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+      }
     }
   </script>
   </div>
