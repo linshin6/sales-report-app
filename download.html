@@ -104,63 +104,21 @@
       <span>🚀 Phiên bản mới: <strong id="downloadBadgeVersion">v1.1.0 (Code 11)</strong></span>
     </div>
 
-    <!-- Nút bắt đầu tải -->
+    <!-- Nút bắt đầu tải trực tiếp -->
     <div id="downloadBtnSection">
-      <a href="https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk" class="btn-download" style="border:none; cursor:pointer; font-size:16px; text-decoration:none; display:block;">
-        ⬇️ BẤM ĐỂ TẢI XUỐNG BẢN APK MỚI NHẤT
+      <a href="https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk" download="BaoCaoDoanhSo_TeamCamGiang.apk" class="btn-download" style="border:none; cursor:pointer; font-size:16px; text-decoration:none; display:block; padding:18px 20px;">
+        ⬇️ TẢI & CÀI ĐẶT NGAY (1-CHẠM)
       </a>
     </div>
 
-    <!-- Khung tiến độ % -->
-    <div id="progressSection" style="display:none; background:#f8fafc; border:1.5px solid #ccfbf1; border-radius:16px; padding:18px; margin-bottom:20px;">
-      <div style="font-weight:700; color:#0f172a; font-size:15px; margin-bottom:6px;">
-        📥 Đang tải file cài đặt APK...
+    <div style="background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:16px; padding:18px 16px; margin:20px 0; text-align:left;">
+      <div style="font-weight:800; color:#1e40af; font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <span>⚡ HƯỚNG DẪN CÀI ĐẶT 100% THÀNH CÔNG:</span>
       </div>
-      <div style="background:#e2e8f0; border-radius:20px; height:22px; width:100%; overflow:hidden; position:relative; box-shadow:inset 0 2px 4px rgba(0,0,0,0.1); margin-bottom:10px;">
-        <div id="progressBarFill" style="background:linear-gradient(90deg, #0f766e, #14b8a6, #3b82f6); height:100%; width:0%; transition:width 0.2s ease; border-radius:20px;"></div>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:13.5px; color:#0f766e;">
-        <span id="progressPercent" style="font-size:17px; font-weight:800;">0%</span>
-        <span id="progressMb" style="color:#64748b; font-size:12.5px;">0 MB / 3.4 MB</span>
-      </div>
-      <div id="progressStatus" style="font-size:12px; color:#64748b; margin-top:8px;">
-        ⚡ Đang tải file trực tiếp về thiết bị...
-      </div>
-    </div>
-
-    <!-- Khung hoàn tất -->
-    <div id="completeSection" style="display:none; background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:16px; padding:18px 16px; margin-bottom:20px; text-align:center;">
-      <div style="font-size:30px; margin-bottom:6px;">✅</div>
-      <div style="font-weight:800; color:#065f46; font-size:16.5px; margin-bottom:6px;">
-        ĐÃ TẢI XONG BẢN CẬP NHẬT 100%!
-      </div>
-      <p style="font-size:13px; color:#047857; margin-bottom:14px; line-height:1.5;" id="completeHelpText">
-        File APK đã nạp thành công. Bấm nút dưới đây để lưu vào máy và mở cài đặt ngay:
-      </p>
-
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <button id="btnOpenApk" onclick="openDownloadedFile()" class="btn-download" style="background:linear-gradient(135deg, #059669, #10b981); border:none; cursor:pointer; padding:15px; font-size:15px; margin-bottom:0; box-shadow:0 8px 20px rgba(5, 150, 105, 0.35);">
-          🚀 LƯU VÀO MÁY & MỞ CÀI ĐẶT NGAY
-        </button>
-
-        <a id="btnOpenChrome" href="intent://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk#Intent;scheme=https;action=android.intent.action.VIEW;end" style="display:block; background:#f0fdf4; color:#0f766e; border:1.5px solid #99f6e4; border-radius:14px; padding:12px; font-size:13.5px; font-weight:700; text-decoration:none;">
-          🌐 Hoặc Mở Tải Bằng Trình Duyệt Chrome
-        </a>
-      </div>
-    </div>
-
-    <div class="guide-box">
-      <div class="guide-title">
-        <span>⚠️ LƯU Ý ĐỂ CÀI ĐẶT THÀNH CÔNG:</span>
-      </div>
-      <div class="guide-step">
-        <strong>Bước 1:</strong> Nếu trên máy <strong>đã có app cũ</strong>, hãy <strong>GỠ CÀI ĐẶT</strong> app cũ ra trước để tránh lỗi xung đột chữ ký (khiến bấm cài đặt không hiện ra gì).
-      </div>
-      <div class="guide-step">
-        <strong>Bước 2:</strong> Bấm nút <strong>LƯU VÀO MÁY & MỞ CÀI ĐẶT NGAY</strong> ở trên (hoặc nút Chrome).
-      </div>
-      <div class="guide-step">
-        <strong>Bước 3:</strong> Bạn cũng có thể mở ứng dụng <strong>Quản lý tập tin (File Manager)</strong> &gt; mục <strong>Download (Tải về)</strong> &gt; thư mục <code>BaoCaoDoanhSo</code> &gt; bấm vào file <code>BaoCaoDoanhSo_TeamCamGiang.apk</code> để Cài đặt bất kỳ lúc nào.
+      <div style="font-size:13px; color:#1e3a8a; line-height:1.7;">
+        • <strong>Bước 1:</strong> Bấm nút màu xanh <strong>"TẢI & CÀI ĐẶT NGAY"</strong> ở trên.<br>
+        • <strong>Bước 2:</strong> Khi tải xong trong 2-3 giây, màn hình điện thoại sẽ hiện thanh thông báo ở dưới: <strong>"Đã tải xong BaoCaoDoanhSo_TeamCamGiang.apk"</strong> kèm nút <strong>[ MỞ ]</strong>.<br>
+        • <strong>Bước 3:</strong> Bạn chỉ cần <strong>BẤM NÚT [ MỞ ]</strong> ➔ Bấm <strong>Cập nhật</strong> (hoặc Cài đặt) là ứng dụng tự động mở lên phiên bản mới nhất! Không cần phải lục tìm trong bất kỳ thư mục nào.
       </div>
     </div>
   </div>

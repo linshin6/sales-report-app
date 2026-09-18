@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.app.PendingIntent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -24,7 +26,10 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -237,6 +242,8 @@ public class AppUpdateManager {
             return;
         }
 
+        mDownloadedApkFile = apkFile;
+
         // Bắt lỗi quyền REQUEST_INSTALL_PACKAGES trên Android 8.0+ (API 26+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             boolean canInstall = mActivity.getPackageManager().canRequestPackageInstalls();
@@ -260,6 +267,50 @@ public class AppUpdateManager {
             }
         }
 
+        // 1. Ưu tiên PackageInstaller.Session (Chuẩn Android hiện đại, không dùng FileProvider, không bị Scoped Storage chặn)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            PackageInstaller.Session session = null;
+            try {
+                PackageInstaller packageInstaller = mActivity.getPackageManager().getPackageInstaller();
+                PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
+                params.setAppPackageName(mActivity.getPackageName());
+                int sessionId = packageInstaller.createSession(params);
+                session = packageInstaller.openSession(sessionId);
+
+                try (InputStream in = new FileInputStream(apkFile);
+                     OutputStream out = session.openWrite("package_update", 0, apkFile.length())) {
+                    byte[] buffer = new byte[65536];
+                    int len;
+                    while ((len = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, len);
+                    }
+                    session.fsync(out);
+                }
+
+                Intent callbackIntent = new Intent(mActivity, MainActivity.class);
+                callbackIntent.setAction("com.salesreport.app.INSTALL_COMPLETE");
+                int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    pendingFlags |= PendingIntent.FLAG_MUTABLE;
+                }
+                PendingIntent pendingIntent = PendingIntent.getActivity(mActivity, sessionId, callbackIntent, pendingFlags);
+                session.commit(pendingIntent.getIntentSender());
+                session.close();
+                session = null;
+                mPendingInstall = false;
+                Log.d(TAG, "PackageInstaller session committed successfully");
+                return;
+            } catch (Exception e) {
+                Log.w(TAG, "PackageInstaller session failed, falling back to FileProvider Intent", e);
+                if (session != null) {
+                    try {
+                        session.abandon();
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+
+        // 2. Phương thức 2: FileProvider Intent (với cấp quyền trực tiếp cho PackageInstaller)
         try {
             Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".provider", apkFile);
             Intent intent = new Intent(Intent.ACTION_VIEW);

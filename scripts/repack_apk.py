@@ -14,6 +14,8 @@ TEMP_UNSIGNED = os.path.join(ROOT_DIR, 'temp_unsigned.apk')
 OUT_DIR = os.path.join(ROOT_DIR, 'out_apk')
 TOOLS_DIR = os.path.join(ROOT_DIR, 'tools')
 SIGNER_JAR = os.path.join(TOOLS_DIR, 'uber-apk-signer.jar')
+APKTOOL_JAR = os.path.join(TOOLS_DIR, 'apktool.jar')
+APK_SRC_DIR = os.path.join(TOOLS_DIR, 'apk_src')
 JAVA_EXE = os.path.join(TOOLS_DIR, 'jre', 'bin', 'java.exe')
 R8_JAR = os.path.join(TOOLS_DIR, 'r8.jar')
 ANDROID_JAR = os.path.join(ROOT_DIR, 'android-33.jar')
@@ -46,15 +48,15 @@ def sync_and_stamp_assets():
     
     # Doc thong tin version tu version.json
     version_json_path = os.path.join(ROOT_DIR, 'version.json')
-    v_code = 1
-    v_name = "1.0.0"
+    v_code = 11
+    v_name = "1.1.0"
     if os.path.exists(version_json_path):
         try:
             import json
             with open(version_json_path, 'r', encoding='utf-8') as f:
                 v_data = json.load(f)
-                v_code = v_data.get('latestVersionCode', 1)
-                v_name = v_data.get('latestVersionName', '1.0.0')
+                v_code = v_data.get('latestVersionCode', 11)
+                v_name = v_data.get('latestVersionName', '1.1.0')
         except Exception as e:
             print(f"Warn: {e}")
 
@@ -81,6 +83,28 @@ def sync_and_stamp_assets():
         dst = os.path.join(WWW_DIR, fname)
         if os.path.exists(src):
             shutil.copy2(src, dst)
+
+    # 3. Dong bo sang tools/apk_src/ (neu co) de apktool dong goi truc tiep
+    if os.path.exists(APK_SRC_DIR):
+        apk_www = os.path.join(APK_SRC_DIR, 'assets', 'www')
+        os.makedirs(apk_www, exist_ok=True)
+        for fname in ['index.html', 'view.html', 'master_data.js', 'version.json']:
+            src = os.path.join(ROOT_DIR, fname)
+            dst = os.path.join(apk_www, fname)
+            if os.path.exists(src):
+                shutil.copy2(src, dst)
+
+        # Cap nhat versionCode va versionName trong apktool.yml
+        yml_path = os.path.join(APK_SRC_DIR, 'apktool.yml')
+        if os.path.exists(yml_path):
+            with open(yml_path, 'r', encoding='utf-8') as f:
+                yml_c = f.read()
+            yml_c = re.sub(r'versionCode:.*', f'versionCode: {v_code}', yml_c)
+            yml_c = re.sub(r'versionName:.*', f'versionName: {v_name}', yml_c)
+            with open(yml_path, 'w', encoding='utf-8') as f:
+                f.write(yml_c)
+
+    return v_code, v_name
 
 def compile_java_and_build_dex():
     print("1. Bien dich ma nguon Java native (MainActivity, AppUpdateManager)...")
@@ -150,34 +174,52 @@ def compile_java_and_build_dex():
 
 def main():
     print("=== DANG DONG GOI VA CAP NHAT APK (FULL NATIVE + WEB ASSETS) ===")
-    if not os.path.exists(BASE_APK):
-        print(f"Error: Base APK not found at {BASE_APK}")
-        sys.exit(1)
-        
     if not os.path.exists(JAVA_EXE) or not os.path.exists(SIGNER_JAR):
         print(f"Error: Java or Signer tool not found in {TOOLS_DIR}")
         sys.exit(1)
 
-    sync_and_stamp_assets()
+    v_code, v_name = sync_and_stamp_assets()
     has_new_dex = compile_java_and_build_dex()
 
-    print("3. Dong goi ma nguon web & DEX moi nhat vao APK...")
-    with zipfile.ZipFile(BASE_APK, 'r') as zin, zipfile.ZipFile(TEMP_UNSIGNED, 'w', zipfile.ZIP_DEFLATED) as zout:
-        for item in zin.infolist():
-            if item.filename.startswith('META-INF/'):
-                continue
-            if item.filename == 'classes.dex' and has_new_dex and os.path.exists(FINAL_CLASSES_DEX):
-                with open(FINAL_CLASSES_DEX, 'rb') as f:
-                    zout.writestr(item, f.read())
-                continue
-            if item.filename.startswith('assets/www/'):
-                rel_name = item.filename[len('assets/www/'):]
-                local_path = os.path.join(WWW_DIR, rel_name)
-                if os.path.exists(local_path):
-                    with open(local_path, 'rb') as f:
+    if os.path.exists(TEMP_UNSIGNED):
+        os.remove(TEMP_UNSIGNED)
+
+    # 3. Su dung Apktool neu co san thu muc nguon apk_src de dam bao Manifest co REQUEST_INSTALL_PACKAGES
+    use_apktool = os.path.exists(APKTOOL_JAR) and os.path.exists(APK_SRC_DIR)
+    
+    if use_apktool:
+        print("3. Dong goi APK bang Apktool (Tich hop REQUEST_INSTALL_PACKAGES & Version v" + str(v_name) + ")...")
+        if has_new_dex and os.path.exists(FINAL_CLASSES_DEX):
+            shutil.copy2(FINAL_CLASSES_DEX, os.path.join(APK_SRC_DIR, 'classes.dex'))
+
+        apktool_cmd = [JAVA_EXE, '-jar', APKTOOL_JAR, 'b', APK_SRC_DIR, '-o', TEMP_UNSIGNED]
+        res_apktool = subprocess.run(apktool_cmd, capture_output=True, text=True)
+        if res_apktool.returncode != 0 or not os.path.exists(TEMP_UNSIGNED):
+            print("[!] Apktool build loi, chuyen sang phuong phap zipfile fallback:\n", res_apktool.stderr or res_apktool.stdout)
+            use_apktool = False
+
+    if not use_apktool:
+        print("3. (Fallback) Dong goi bang ZipFile...")
+        if not os.path.exists(BASE_APK):
+            print(f"Error: Base APK not found at {BASE_APK}")
+            sys.exit(1)
+
+        with zipfile.ZipFile(BASE_APK, 'r') as zin, zipfile.ZipFile(TEMP_UNSIGNED, 'w', zipfile.ZIP_DEFLATED) as zout:
+            for item in zin.infolist():
+                if item.filename.startswith('META-INF/'):
+                    continue
+                if item.filename == 'classes.dex' and has_new_dex and os.path.exists(FINAL_CLASSES_DEX):
+                    with open(FINAL_CLASSES_DEX, 'rb') as f:
                         zout.writestr(item, f.read())
                     continue
-            zout.writestr(item, zin.read(item.filename))
+                if item.filename.startswith('assets/www/'):
+                    rel_name = item.filename[len('assets/www/'):]
+                    local_path = os.path.join(WWW_DIR, rel_name)
+                    if os.path.exists(local_path):
+                        with open(local_path, 'rb') as f:
+                            zout.writestr(item, f.read())
+                        continue
+                zout.writestr(item, zin.read(item.filename))
 
     print("4. Ky so (ZipAlign & APK Signature Scheme v2/v3)...")
     if os.path.exists(OUT_DIR):
@@ -215,7 +257,7 @@ def main():
         shutil.rmtree(OUT_DIR)
 
     print("========================================================")
-    print(" DA CAP NHAT THANH CONG FILE APK MOI NHAT:")
+    print(f" DA CAP NHAT THANH CONG FILE APK MOI NHAT (v{v_name} - Code {v_code}):")
     print(" -> BaoCaoDoanhSo_TeamCamGiang.apk")
     print(" -> BaoCaoThucDat.apk")
     print("========================================================")

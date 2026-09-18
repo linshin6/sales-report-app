@@ -8451,7 +8451,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.1.0",
       versionCode: 11,
-      buildDate: "18:51 - 18/09/2026"
+      buildDate: "19:10 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8655,17 +8655,17 @@ const DEFAULT_FM_STORES = [
     }
 
     function installDownloadedApk() {
-      // 1. Ưu tiên số 1: Native Bridge downloadAndInstallApk (Tải ngầm luồng Java và mở Package Installer)
-      if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
-        closeModal('otaUpdateModal');
-        window.AndroidBridge.downloadAndInstallApk(otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk');
-        return;
-      }
-
-      // 2. Ưu tiên số 2: Native Bridge installApkFromBase64 (Ghi trực tiếp từ Blob bộ nhớ vào internal cache)
+      // 1. Ưu tiên số 1: Native Bridge installApkFromBase64 (Gói APK đã tải sẵn 100% trong RAM, cài đặt ngay lập tức trong 0.1 giây)
       if (window.AndroidBridge && typeof window.AndroidBridge.installApkFromBase64 === 'function' && downloadedApkBase64) {
         closeModal('otaUpdateModal');
         window.AndroidBridge.installApkFromBase64(downloadedApkBase64, downloadedApkFilename);
+        return;
+      }
+
+      // 2. Ưu tiên số 2: Native Bridge downloadAndInstallApk (Tải ngầm luồng Java và mở Package Installer)
+      if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
+        closeModal('otaUpdateModal');
+        window.AndroidBridge.downloadAndInstallApk(otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk');
         return;
       }
 
@@ -8686,7 +8686,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.0</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">18:51 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">19:10 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

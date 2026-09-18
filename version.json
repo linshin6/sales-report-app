@@ -2,7 +2,7 @@
   "latestVersionCode": 11,
   "latestVersionName": "1.1.0",
   "minSupportedVersion": 1,
-  "releaseNotes": "🧪 [BẢN CẬP NHẬT THỬ NGHIỆM OTA - v1.1.0]\n• Thử nghiệm tính năng tự động tải và kích hoạt trình cài đặt APK trong app.\n• Không thay đổi dữ liệu báo cáo và các công thức hiện tại.",
+  "releaseNotes": "🚀 [BẢN CẬP NHẬT OTA TỰ ĐỘNG HOÀN TOÀN - v1.1.0]\n• Tích hợp chuẩn PackageInstaller Session và quyền cài đặt tự động.\n• Khắc phục triệt để lỗi Trình cài đặt gói bị tắt ngang trên Android.\n• Tự động hoàn tất quy trình cập nhật không cần tìm file.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
   "updatedAt": "2026-09-18T18:52:00Z"
