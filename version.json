@@ -1,9 +1,10 @@
 {
-  "latestVersionCode": 10,
-  "latestVersionName": "1.0.9",
+  "latestVersionCode": 11,
+  "latestVersionName": "1.1.0",
   "minSupportedVersion": 1,
-  "releaseNotes": "1. Khắc phục triệt để lỗi xung đột 2 popup cập nhật khi mở app.\n2. Nâng cấp bộ cài đặt APK trực tiếp (sử dụng internal cache & cấp quyền rõ ràng cho Package Installer chống văng app).\n3. Tích hợp nút cài đặt qua trình duyệt dự phòng bảo đảm 100% cập nhật thành công trên mọi dòng máy.\n4. Mục '📈 So Sánh & Tăng Trưởng' và '⚠️ Báo Động Cửa Hàng 0đ' hoạt động mượt mà, tối ưu hóa.",
+  "releaseNotes": "🧪 [BẢN CẬP NHẬT THỬ NGHIỆM OTA - v1.1.0]\n• Thử nghiệm tính năng tự động tải và kích hoạt trình cài đặt APK trong app.\n• Không thay đổi dữ liệu báo cáo và các công thức hiện tại.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-18T18:15:00Z"
+  "updatedAt": "2026-09-18T18:52:00Z"
 }
+
