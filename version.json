@@ -1,7 +1,7 @@
 {
-  "latestVersionCode": 4,
-  "latestVersionName": "1.0.3",
-  "releaseNotes": "• Bản cập nhật thử nghiệm v1.0.3\n• Kiểm tra tính năng tự động đổi phiên bản OTA\n• Hệ thống hoạt động mượt mà",
+  "latestVersionCode": 5,
+  "latestVersionName": "1.0.4",
+  "releaseNotes": "• Hiển thị thanh tiến độ % tải trực tiếp trong ứng dụng\n• Tự động nhận diện và cập nhật chuẩn 232 CH BHX Hệ Thống\n• Cải tiến cơ chế mở trình cài đặt APK mượt mà",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false
 }

@@ -145,6 +145,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Setup download listener to forward binary downloads
+        mWebView.setDownloadListener((url, userAgent, contentDisposition, mimetype, contentLength) -> {
+            try {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                startActivity(i);
+            } catch (Exception e) {
+                Log.e(TAG, "DownloadListener error", e);
+            }
+        });
+
         // Register AndroidBridge
         mWebView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
@@ -153,6 +164,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public class AndroidBridge {
+
+        @JavascriptInterface
+        public void installApkFromBase64(final String base64Data, final String filename) {
+            mExecutor.execute(() -> {
+                try {
+                    byte[] fileBytes = Base64.decode(base64Data, Base64.DEFAULT);
+                    File downloadDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                    if (downloadDir != null && !downloadDir.exists()) {
+                        downloadDir.mkdirs();
+                    }
+                    File apkFile = new File(downloadDir, filename != null ? filename : "update.apk");
+                    if (apkFile.exists()) {
+                        apkFile.delete();
+                    }
+                    try (FileOutputStream fos = new FileOutputStream(apkFile)) {
+                        fos.write(fileBytes);
+                    }
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Đang mở trình cài đặt bản mới...", Toast.LENGTH_SHORT).show();
+                        AppUpdateManager.getInstance(MainActivity.this).installApk(apkFile);
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "installApkFromBase64 error", e);
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Lỗi cài đặt APK: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                }
+            });
+        }
 
         @JavascriptInterface
         public void saveAndShare(final String base64Data, final String filename, final String mimeType) {
