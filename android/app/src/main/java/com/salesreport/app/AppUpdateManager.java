@@ -108,7 +108,12 @@ public class AppUpdateManager {
                 mMainHandler.post(() -> {
                     if (mActivity.isFinishing() || mActivity.isDestroyed()) return;
 
-                    if (latestVersionCode > currentVersionCode) {
+                    // Không bao giờ hiện popup nếu tên phiên bản trùng nhau (đã cài đặt bản mới nhất)
+                    boolean isSameVersion = latestVersionName.equalsIgnoreCase(currentVersionName) 
+                            || ("v" + latestVersionName).equalsIgnoreCase(currentVersionName)
+                            || latestVersionName.equalsIgnoreCase("v" + currentVersionName);
+
+                    if (!isSameVersion && latestVersionCode > currentVersionCode) {
                         showUpdateDialog(latestVersionName, releaseNotes, apkDownloadUrl, forceUpdate);
                     } else {
                         if (isManualCheck) {
@@ -322,23 +327,47 @@ public class AppUpdateManager {
 
     private long getCurrentVersionCode() {
         try {
+            try (java.io.InputStream is = mActivity.getAssets().open("www/version.json");
+                 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+                JSONObject obj = new JSONObject(sb.toString());
+                long code = obj.optLong("latestVersionCode", -1);
+                if (code > 0) return code;
+            } catch (Exception ignored) {}
+
             PackageInfo pInfo = mActivity.getPackageManager().getPackageInfo(mActivity.getPackageName(), 0);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 return pInfo.getLongVersionCode();
             } else {
                 return pInfo.versionCode;
             }
-        } catch (PackageManager.NameNotFoundException e) {
+        } catch (Exception e) {
             return 1;
         }
     }
 
     private String getCurrentVersionName() {
         try {
+            try (java.io.InputStream is = mActivity.getAssets().open("www/version.json");
+                 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line);
+                }
+                JSONObject obj = new JSONObject(sb.toString());
+                String v = obj.optString("latestVersionName", "");
+                if (!v.isEmpty()) return v;
+            } catch (Exception ignored) {}
+
             PackageInfo pInfo = mActivity.getPackageManager().getPackageInfo(mActivity.getPackageName(), 0);
-            return pInfo.versionName != null ? pInfo.versionName : "1.0.0";
-        } catch (PackageManager.NameNotFoundException e) {
-            return "1.0.0";
+            return pInfo.versionName != null ? pInfo.versionName : "1.0.7";
+        } catch (Exception e) {
+            return "1.0.7";
         }
     }
 }

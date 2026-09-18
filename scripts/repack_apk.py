@@ -76,7 +76,7 @@ def sync_and_stamp_assets():
 
     # 2. Dong bo sang assets/www/
     os.makedirs(WWW_DIR, exist_ok=True)
-    for fname in ['index.html', 'view.html', 'master_data.js']:
+    for fname in ['index.html', 'view.html', 'master_data.js', 'version.json']:
         src = os.path.join(ROOT_DIR, fname)
         dst = os.path.join(WWW_DIR, fname)
         if os.path.exists(src):

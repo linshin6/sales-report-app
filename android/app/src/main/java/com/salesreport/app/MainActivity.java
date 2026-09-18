@@ -84,8 +84,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Tự động kiểm tra bản cập nhật OTA trong nền (không làm phiền người dùng nếu không có bản mới)
-        AppUpdateManager.getInstance(this).checkForUpdate(false);
+        // Khởi tạo hoàn tất
     }
 
     private void setupWebView() {
@@ -361,12 +360,29 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public String getAppVersionInfo() {
             try {
-                android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                long lastUpdateTime = pInfo.lastUpdateTime;
+                String vName = "1.0.7";
+                long vCode = 8;
+                try (java.io.InputStream is = getAssets().open("www/version.json");
+                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is))) {
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    org.json.JSONObject obj = new org.json.JSONObject(sb.toString());
+                    vName = obj.optString("latestVersionName", "1.0.7");
+                    vCode = obj.optLong("latestVersionCode", 8);
+                } catch (Exception ignored) {}
+
+                long lastUpdateTime = System.currentTimeMillis();
+                try {
+                    android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                    lastUpdateTime = pInfo.lastUpdateTime;
+                } catch (Exception ignored) {}
+
                 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm - dd/MM/yyyy", java.util.Locale.getDefault());
                 String dateStr = sdf.format(new java.util.Date(lastUpdateTime));
-                long vCode = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ? pInfo.getLongVersionCode() : pInfo.versionCode;
-                return "{\"versionName\":\"" + pInfo.versionName + "\",\"versionCode\":" + vCode + ",\"buildDate\":\"" + dateStr + "\"}";
+                return "{\"versionName\":\"" + vName + "\",\"versionCode\":" + vCode + ",\"buildDate\":\"" + dateStr + "\"}";
             } catch (Exception e) {
                 return "{}";
             }

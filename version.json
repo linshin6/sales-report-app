@@ -1,8 +1,9 @@
 {
-  "latestVersionCode": 8,
+  "latestVersionCode": 1,
   "latestVersionName": "1.0.7",
   "minSupportedVersion": 1,
   "releaseNotes": "1. Sửa dứt điểm lỗi nhảy sang hộp thoại Chia sẻ: Bấm Cài Đặt sẽ mở thẳng Trình Cài Đặt Gói Android (Package Installer).\n2. Ứng dụng tự thoát khi cài đặt và cập nhật phiên bản mới khi mở lại.\n3. Hỗ trợ đầy đủ bộ đệm Native Bridge installApkFromBase64.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
-  "updatedAt": "2026-09-18T16:00:00Z"
+  "forceUpdate": false,
+  "updatedAt": "2026-09-18T17:08:00Z"
 }
