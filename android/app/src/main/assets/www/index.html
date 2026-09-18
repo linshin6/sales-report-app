@@ -8450,8 +8450,8 @@ const DEFAULT_FM_STORES = [
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
       versionName: "v1.0.8",
-      versionCode: 1,
-      buildDate: "17:59 - 18/09/2026"
+      versionCode: 9,
+      buildDate: "18:03 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8514,7 +8514,13 @@ const DEFAULT_FM_STORES = [
       fetchWithFallback(VERSION_URL)
         .catch(() => fetchWithFallback(FALLBACK_URL))
         .then(data => {
-          if (data && data.latestVersionCode > APP_METADATA.versionCode) {
+          if (!data) return;
+          const currName = (APP_METADATA.versionName || '').replace('v', '').trim();
+          const latestName = (data.latestVersionName || '').replace('v', '').trim();
+          const hasNewCode = data.latestVersionCode > APP_METADATA.versionCode;
+          const hasNewName = latestName && currName && latestName !== currName;
+
+          if (hasNewCode || hasNewName) {
             otaDownloadLink = data.apkDownloadUrl || otaDownloadLink;
             showOtaUpdateModal(data);
           } else {
@@ -8678,7 +8684,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.8</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">17:59 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">18:03 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
