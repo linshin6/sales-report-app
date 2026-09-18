@@ -7784,7 +7784,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.0.5",
       versionCode: 6,
-      buildDate: "14:11 - 18/09/2026"
+      buildDate: "14:17 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -7977,32 +7977,38 @@ const DEFAULT_FM_STORES = [
     }
 
     function installDownloadedApk() {
-      if (!downloadedApkBlob && !downloadedApkBase64) {
-        alert('Chưa có file cập nhật trong bộ nhớ tạm.');
+      // 1. Nếu có Native Bridge checkForUpdate (Gọi trực tiếp trình cài đặt gói hệ thống qua AppUpdateManager)
+      if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
+        closeModal('otaUpdateModal');
+        window.AndroidBridge.checkForUpdate();
         return;
       }
 
-      // 1. Nếu có Native Bridge installApkFromBase64
+      // 2. Nếu có Native Bridge installApkFromBase64
       if (window.AndroidBridge && typeof window.AndroidBridge.installApkFromBase64 === 'function' && downloadedApkBase64) {
         window.AndroidBridge.installApkFromBase64(downloadedApkBase64, downloadedApkFilename);
         return;
       }
 
-      // 2. Nếu có Native Bridge saveAndShare (Lưu vào Tải về và mở trình quản lý/cài đặt)
+      // 3. Nếu có Native Bridge saveAndShare: lưu file vào Download và thông báo vị trí
       if (window.AndroidBridge && typeof window.AndroidBridge.saveAndShare === 'function' && downloadedApkBase64) {
         window.AndroidBridge.saveAndShare(downloadedApkBase64, downloadedApkFilename, 'application/vnd.android.package-archive');
         return;
       }
 
-      // 3. Fallback trình duyệt Web / WebView chuẩn: Kích hoạt tải file Blob
-      if (downloadedApkBlob) {
-        const blobUrl = URL.createObjectURL(downloadedApkBlob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = downloadedApkFilename;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => a.remove(), 1000);
+      // 4. Fallback mở intent cài đặt trực tiếp
+      try {
+        window.location.href = "intent://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk#Intent;scheme=https;type=application/vnd.android.package-archive;action=android.intent.action.VIEW;end";
+      } catch (e) {
+        if (downloadedApkBlob) {
+          const blobUrl = URL.createObjectURL(downloadedApkBlob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = downloadedApkFilename;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => a.remove(), 1000);
+        }
       }
     }
   </script>
@@ -8017,7 +8023,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.5</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:11 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:17 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
