@@ -287,18 +287,20 @@ public class AppUpdateManager {
                     session.fsync(out);
                 }
 
-                Intent callbackIntent = new Intent(mActivity, MainActivity.class);
-                callbackIntent.setAction("com.salesreport.app.INSTALL_COMPLETE");
+                // QUAN TRỌNG: Phải dùng PendingIntent.getBroadcast() gửi đến InstallStatusReceiver
+                // để xử lý STATUS_PENDING_USER_ACTION và hiển thị màn hình xác nhận cài đặt.
+                // Nếu dùng PendingIntent.getActivity(), callback bị nuốt mất và không hiện gì.
+                Intent callbackIntent = new Intent(mActivity, InstallStatusReceiver.class);
                 int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     pendingFlags |= PendingIntent.FLAG_MUTABLE;
                 }
-                PendingIntent pendingIntent = PendingIntent.getActivity(mActivity, sessionId, callbackIntent, pendingFlags);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, sessionId, callbackIntent, pendingFlags);
                 session.commit(pendingIntent.getIntentSender());
                 session.close();
                 session = null;
                 mPendingInstall = false;
-                Log.d(TAG, "PackageInstaller session committed successfully");
+                Log.d(TAG, "PackageInstaller session committed successfully via BroadcastReceiver");
                 return;
             } catch (Exception e) {
                 Log.w(TAG, "PackageInstaller session failed, falling back to FileProvider Intent", e);
