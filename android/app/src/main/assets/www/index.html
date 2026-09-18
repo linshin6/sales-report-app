@@ -7861,17 +7861,19 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.0.7",
       versionCode: 8,
-      buildDate: "15:58 - 18/09/2026"
+      buildDate: "16:50 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
+      // APP_METADATA luôn là nguồn chân lý chính xác nhất của phiên bản ứng dụng & OTA
       let vName = APP_METADATA.versionName;
       let bDate = APP_METADATA.buildDate;
 
+      // Chỉ lấy từ AndroidBridge nếu thông tin native lớn hơn phiên bản hiện tại
       if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionInfo === 'function') {
         try {
           const info = JSON.parse(window.AndroidBridge.getAppVersionInfo());
-          if (info && info.versionName) {
+          if (info && info.versionCode && info.versionCode > APP_METADATA.versionCode) {
             vName = 'v' + info.versionName;
             if (info.buildDate) bDate = info.buildDate;
           }
@@ -8086,7 +8088,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.7</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">15:58 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">16:50 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
