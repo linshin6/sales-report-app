@@ -1011,7 +1011,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.0.8</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.0.9</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -8431,9 +8431,9 @@ const DEFAULT_FM_STORES = [
       if (savedMode === 'target' || savedMode === 'actual') {
         setReportMode(savedMode);
       } else {
-        // Mặc định mở popup cho người dùng chọn: Có Target hoặc Không Target
+        // Mặc định chạy chế độ 'target', người dùng có thể đổi bất kỳ lúc nào qua nút trên thanh tiêu đề
+        localStorage.setItem('PREFERRED_REPORT_MODE', 'target');
         setReportMode('target');
-        openModeChoiceModal();
       }
 
       // Nếu đang chạy trong Apps Script thì tải master data đã lưu
@@ -8449,9 +8449,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.0.8",
-      versionCode: 9,
-      buildDate: "18:03 - 18/09/2026"
+      versionName: "v1.0.9",
+      versionCode: 10,
+      buildDate: "18:17 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8521,8 +8521,11 @@ const DEFAULT_FM_STORES = [
           const hasNewName = latestName && currName && latestName !== currName;
 
           if (hasNewCode || hasNewName) {
-            otaDownloadLink = data.apkDownloadUrl || otaDownloadLink;
-            showOtaUpdateModal(data);
+            const modal = document.getElementById('otaUpdateModal');
+            if (!modal || !modal.classList.contains('active')) {
+              otaDownloadLink = data.apkDownloadUrl || otaDownloadLink;
+              showOtaUpdateModal(data);
+            }
           } else {
             if (!isSilent) {
               alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
@@ -8532,17 +8535,17 @@ const DEFAULT_FM_STORES = [
         .catch(err => {
           console.warn('Lỗi kết nối kiểm tra cập nhật:', err);
           if (!isSilent) {
-            // Nếu có kết nối AndroidBridge thì gọi thử tầng Native
-            if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
-              window.AndroidBridge.checkForUpdate();
-            } else {
-              alert(`Phiên bản hiện tại: ${APP_METADATA.versionName}\nNgày cập nhật: ${APP_METADATA.buildDate}\n(Không thể kết nối máy chủ kiểm tra bản mới)`);
-            }
+            alert(`Phiên bản hiện tại: ${APP_METADATA.versionName}\nNgày cập nhật: ${APP_METADATA.buildDate}\n(Không thể kết nối máy chủ kiểm tra bản mới)`);
           }
         });
     }
 
     function showOtaUpdateModal(data) {
+      const modal = document.getElementById('otaUpdateModal');
+      if (modal && modal.classList.contains('active')) {
+        return; // Tránh mở lặp modal
+      }
+
       const elTitle = document.getElementById('otaModalTitle');
       const elBadge = document.getElementById('otaModalBadge');
       const elNotes = document.getElementById('otaModalNotes');
@@ -8652,22 +8655,21 @@ const DEFAULT_FM_STORES = [
     }
 
     function installDownloadedApk() {
-      // 1. Ưu tiên cao nhất: Native Bridge installApkFromBase64 (Ghi APK và kích hoạt Package Installer hệ thống)
+      // 1. Ưu tiên số 1: Native Bridge downloadAndInstallApk (Tải ngầm luồng Java và mở Package Installer)
+      if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
+        closeModal('otaUpdateModal');
+        window.AndroidBridge.downloadAndInstallApk(otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk');
+        return;
+      }
+
+      // 2. Ưu tiên số 2: Native Bridge installApkFromBase64 (Ghi trực tiếp từ Blob bộ nhớ vào internal cache)
       if (window.AndroidBridge && typeof window.AndroidBridge.installApkFromBase64 === 'function' && downloadedApkBase64) {
         closeModal('otaUpdateModal');
         window.AndroidBridge.installApkFromBase64(downloadedApkBase64, downloadedApkFilename);
         return;
       }
 
-      // 2. Native Bridge checkForUpdate (Kích hoạt trình quản lý cập nhật hệ thống)
-      if (window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
-        closeModal('otaUpdateModal');
-        window.AndroidBridge.checkForUpdate();
-        return;
-      }
-
-      // 3. TUYỆT ĐỐI KHÔNG gọi saveAndShare cho file APK (tránh hiện popup Chia sẻ Zalo/Telegram gây nhầm lẫn).
-      // Fallback: Chuyển hướng trực tiếp để trình duyệt / hệ thống mở Trình Cài Đặt Gói
+      // 3. Fallback: Mở trực tiếp link file APK bằng trình duyệt để Android tự động tải và cài đặt
       closeModal('otaUpdateModal');
       const directApkUrl = otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
       window.location.href = directApkUrl;
@@ -8682,9 +8684,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.8</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.9</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">18:03 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">18:17 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
@@ -8706,7 +8708,7 @@ const DEFAULT_FM_STORES = [
           Đã Có Bản Cập Nhật Mới!
         </h3>
         <div style="display:inline-block; background:#f0fdfa; color:#0f766e; font-weight:700; font-size:13px; padding:4px 14px; border-radius:20px; border:1px solid #99f6e4; margin-bottom:14px;" id="otaModalBadge">
-          Phiên bản v1.0.4
+          Phiên bản v1.0.9
         </div>
         <div style="text-align:left; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:#334155; line-height:1.6;" id="otaModalNotes">
           • Tự động cập nhật OTA<br>
@@ -8752,21 +8754,24 @@ const DEFAULT_FM_STORES = [
           ✅
         </div>
         <h3 style="font-size:19px; font-weight:800; color:#065f46; margin-bottom:6px;">
-          Đã Tải Thành Công 100%!
+          Đã Tải Xong Gói Cập Nhật!
         </h3>
-        <p style="font-size:13px; color:#334155; margin-bottom:18px; line-height:1.5;">
-          Gói cập nhật APK đã được tải về máy. Bấm nút dưới đây để mở cài đặt ngay lập tức:
+        <p style="font-size:13px; color:#334155; margin-bottom:16px; line-height:1.5;">
+          Bấm nút bên dưới để mở cài đặt ngay lập tức:
         </p>
 
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <button id="btnOtaInstallNow" class="btn btn-primary" onclick="installDownloadedApk()" style="width:100%; background:#059669; color:#fff; font-weight:800; font-size:15px; padding:14px; border-radius:12px; box-shadow:0 8px 20px rgba(5, 150, 105, 0.35); cursor:pointer;">
+          <button id="btnOtaInstallNow" class="btn btn-primary" onclick="installDownloadedApk()" style="width:100%; background:#059669; color:#fff; font-weight:800; font-size:15px; padding:13px; border-radius:12px; box-shadow:0 8px 20px rgba(5, 150, 105, 0.35); cursor:pointer;">
             🚀 BẤM CÀI ĐẶT BẢN MỚI NGAY
           </button>
+          <a href="https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk" target="_blank" style="display:block; width:100%; background:#2563eb; color:#ffffff; font-weight:700; font-size:13.5px; padding:12px; border-radius:12px; text-decoration:none; box-shadow:0 4px 12px rgba(37,99,235,0.25); text-align:center;">
+            🌐 CÀI QUA TRÌNH DUYỆT (Nếu máy tự đóng app)
+          </a>
           <a href="https://bcgiang.vercel.app/download.html" target="_blank" style="font-size:12.5px; color:#0f766e; text-decoration:underline; font-weight:600; padding:4px;">
-            🌐 Hoặc mở trang tải trực tiếp trên trình duyệt
+            📄 Xem hướng dẫn chi tiết tại trang tải về
           </a>
           <button class="btn btn-outline" onclick="closeModal('otaUpdateModal')" style="width:100%; border-radius:12px;">
-            Đóng
+            Để Sau
           </button>
         </div>
       </div>

@@ -169,16 +169,20 @@ public class MainActivity extends AppCompatActivity {
             mExecutor.execute(() -> {
                 try {
                     byte[] fileBytes = Base64.decode(base64Data, Base64.DEFAULT);
-                    File downloadDir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-                    if (downloadDir != null && !downloadDir.exists()) {
-                        downloadDir.mkdirs();
+                    File cacheDir = getCacheDir();
+                    if (cacheDir != null && !cacheDir.exists()) {
+                        cacheDir.mkdirs();
                     }
-                    File apkFile = new File(downloadDir, filename != null ? filename : "update.apk");
+                    File apkFile = new File(cacheDir, filename != null ? filename : "BaoCaoDoanhSo_TeamCamGiang.apk");
                     if (apkFile.exists()) {
                         apkFile.delete();
                     }
                     try (FileOutputStream fos = new FileOutputStream(apkFile)) {
                         fos.write(fileBytes);
+                        fos.flush();
+                    }
+                    if (!apkFile.exists() || apkFile.length() < 100000) {
+                        throw new IllegalStateException("File APK không hợp lệ hoặc kích thước quá nhỏ (" + (apkFile.exists() ? apkFile.length() : 0) + " bytes)");
                     }
                     runOnUiThread(() -> {
                         Toast.makeText(MainActivity.this, "Đang mở trình cài đặt bản mới...", Toast.LENGTH_SHORT).show();
@@ -186,7 +190,65 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } catch (Exception e) {
                     Log.e(TAG, "installApkFromBase64 error", e);
-                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Lỗi cài đặt APK: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Lỗi cài đặt trực tiếp: " + e.getMessage() + ". Đang chuyển sang trình duyệt...", Toast.LENGTH_LONG).show();
+                        AppUpdateManager.getInstance(MainActivity.this).openBrowserDownload();
+                    });
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void downloadAndInstallApk(final String downloadUrl) {
+            final String urlToUse = (downloadUrl != null && !downloadUrl.trim().isEmpty())
+                    ? downloadUrl.trim()
+                    : "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk";
+            mExecutor.execute(() -> {
+                try {
+                    runOnUiThread(() -> Toast.makeText(MainActivity.this, "Đang tải bản cập nhật ngầm...", Toast.LENGTH_SHORT).show());
+                    File cacheDir = getCacheDir();
+                    if (cacheDir != null && !cacheDir.exists()) {
+                        cacheDir.mkdirs();
+                    }
+                    File apkFile = new File(cacheDir, "BaoCaoDoanhSo_TeamCamGiang.apk");
+                    if (apkFile.exists()) {
+                        apkFile.delete();
+                    }
+
+                    java.net.URL url = new java.net.URL(urlToUse + (urlToUse.contains("?") ? "&" : "?") + "t=" + System.currentTimeMillis());
+                    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setConnectTimeout(10000);
+                    conn.setReadTimeout(25000);
+                    conn.connect();
+
+                    if (conn.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) {
+                        throw new IllegalStateException("HTTP " + conn.getResponseCode() + " " + conn.getResponseMessage());
+                    }
+
+                    try (java.io.InputStream in = conn.getInputStream();
+                         FileOutputStream out = new FileOutputStream(apkFile)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                        out.flush();
+                    }
+
+                    if (!apkFile.exists() || apkFile.length() < 100000) {
+                        throw new IllegalStateException("Kích thước file tải về quá nhỏ: " + (apkFile.exists() ? apkFile.length() : 0) + " bytes");
+                    }
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Tải xong! Đang mở trình cài đặt...", Toast.LENGTH_SHORT).show();
+                        AppUpdateManager.getInstance(MainActivity.this).installApk(apkFile);
+                    });
+                } catch (Exception e) {
+                    Log.e(TAG, "downloadAndInstallApk error", e);
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Không thể cài tự động: " + e.getMessage() + ". Đang mở trình duyệt...", Toast.LENGTH_LONG).show();
+                        AppUpdateManager.getInstance(MainActivity.this).openBrowserDownload();
+                    });
                 }
             });
         }

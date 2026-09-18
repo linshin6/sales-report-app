@@ -113,7 +113,9 @@ public class AppUpdateManager {
                             || ("v" + latestVersionName).equalsIgnoreCase(currentVersionName)
                             || latestVersionName.equalsIgnoreCase("v" + currentVersionName);
 
-                    if (!isSameVersion && latestVersionCode > currentVersionCode) {
+                    // Chỉ hiện popup Native nếu do người dùng chủ động bấm kiểm tra (isManualCheck == true).
+                    // Khi tự động kiểm tra, để giao diện Web HTML Modal đảm nhiệm, tuyệt đối không hiện đè popup Native.
+                    if (isManualCheck && !isSameVersion && latestVersionCode > currentVersionCode) {
                         showUpdateDialog(latestVersionName, releaseNotes, apkDownloadUrl, forceUpdate);
                     } else {
                         if (isManualCheck) {
@@ -154,19 +156,17 @@ public class AppUpdateManager {
         }
 
         try {
-            File downloadDir = mActivity.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-            if (downloadDir != null && !downloadDir.exists()) {
-                downloadDir.mkdirs();
+            File cacheDir = mActivity.getCacheDir();
+            if (cacheDir != null && !cacheDir.exists()) {
+                cacheDir.mkdirs();
             }
 
-            mDownloadedApkFile = new File(downloadDir, "update.apk");
+            mDownloadedApkFile = new File(cacheDir, "update.apk");
 
-            // Xóa file cũ nếu đã từng tải để tránh DownloadManager tự đổi tên thành update-1.apk
             if (mDownloadedApkFile.exists()) {
                 mDownloadedApkFile.delete();
             }
 
-            // Đăng ký BroadcastReceiver đón sự kiện tải xong
             registerDownloadReceiver();
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
@@ -181,12 +181,13 @@ public class AppUpdateManager {
                 mDownloadId = downloadManager.enqueue(request);
                 Toast.makeText(mActivity, "Đang tải bản cập nhật trong nền...", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(mActivity, "Không thể khởi động trình tải về của Android", Toast.LENGTH_SHORT).show();
+                openBrowserDownload();
             }
 
         } catch (Exception e) {
             Log.e(TAG, "Lỗi bắt đầu tải APK", e);
-            Toast.makeText(mActivity, "Lỗi tải APK: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(mActivity, "Lỗi tải APK: " + e.getMessage() + ". Đang mở trình duyệt...", Toast.LENGTH_LONG).show();
+            openBrowserDownload();
         }
     }
 
@@ -203,14 +204,13 @@ public class AppUpdateManager {
                 long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                 if (id == mDownloadId && mDownloadedApkFile != null && mDownloadedApkFile.exists()) {
                     unregisterDownloadReceiver();
-                    Toast.makeText(mActivity, "Tải xong! Chuẩn bị cài đặt...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mActivity, "Tải xong! Đang mở trình cài đặt...", Toast.LENGTH_SHORT).show();
                     installApk(mDownloadedApkFile);
                 }
             }
         };
 
         IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        // Hỗ trợ bắt buộc Android 13+ (API 33) với cờ RECEIVER_EXPORTED
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mActivity.registerReceiver(mDownloadReceiver, filter, Context.RECEIVER_EXPORTED);
         } else {
@@ -231,8 +231,9 @@ public class AppUpdateManager {
      * Kích hoạt Package Installer để cài đặt bản APK vừa tải.
      */
     public void installApk(File apkFile) {
-        if (apkFile == null || !apkFile.exists()) {
-            Toast.makeText(mActivity, "File cập nhật không tồn tại!", Toast.LENGTH_SHORT).show();
+        if (apkFile == null || !apkFile.exists() || apkFile.length() < 100000) {
+            Toast.makeText(mActivity, "File cài đặt chưa hoàn tất hoặc bị hỏng. Đang mở trình duyệt...", Toast.LENGTH_SHORT).show();
+            openBrowserDownload();
             return;
         }
 
@@ -260,17 +261,44 @@ public class AppUpdateManager {
         }
 
         try {
-            // SỬA LỖI QUAN TRỌNG: Dùng chính xác authority `${applicationId}.provider` đã khai báo trong AndroidManifest.xml
             Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".provider", apkFile);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            // Explicitly grant URI read permissions to all package installer components
+            java.util.List<android.content.pm.ResolveInfo> resInfoList = mActivity.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            for (android.content.pm.ResolveInfo resolveInfo : resInfoList) {
+                if (resolveInfo.activityInfo != null) {
+                    mActivity.grantUriPermission(resolveInfo.activityInfo.packageName, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+            }
+            for (String pkg : new String[]{"com.google.android.packageinstaller", "com.android.packageinstaller"}) {
+                try {
+                    mActivity.grantUriPermission(pkg, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Exception ignored) {}
+            }
+
             mActivity.startActivity(intent);
             mPendingInstall = false;
         } catch (Exception e) {
             Log.e(TAG, "Lỗi kích hoạt màn hình cài đặt", e);
-            Toast.makeText(mActivity, "Không thể mở màn hình cài đặt: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(mActivity, "Không thể mở màn hình cài đặt tự động: " + e.getMessage() + ". Đang chuyển sang trình duyệt...", Toast.LENGTH_LONG).show();
+            openBrowserDownload();
+        }
+    }
+
+    public void openBrowserDownload() {
+        try {
+            String downloadUrl = "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk";
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(downloadUrl));
+            browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            mActivity.startActivity(browserIntent);
+        } catch (Exception ex) {
+            Log.e(TAG, "Cannot open browser download", ex);
         }
     }
 
