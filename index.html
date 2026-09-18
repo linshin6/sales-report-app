@@ -1163,7 +1163,7 @@
       <div class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab('tabTeam', this)">👥 Tiến Độ 10 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
-        <button class="tab-btn" onclick="switchTab('tabStores', this)">🏪 Chi Tiết 138 Cửa Hàng CVS</button>
+        <button class="tab-btn" id="btnTabStores" onclick="switchTab('tabStores', this)">🏪 Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
         <button class="tab-btn" onclick="switchTab('tabFmSku', this)">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
@@ -1251,7 +1251,7 @@
             <select class="search-input" id="filterEmp" onchange="filterStoresTable()" style="padding:6px 12px; font-size:13px;">
               <option value="">Tất cả nhân viên</option>
             </select>
-            <span id="storeCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">142 Cửa hàng</span>
+            <span id="storesCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">Chi Tiết Cửa Hàng CVS</span>
           </div>
           <div class="sheet-toolbar-right">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabStores')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);" title="Chụp bảng và gửi ngay sang Zalo">
@@ -2862,18 +2862,29 @@ const DEFAULT_FM_STORES = [
     function updateTargetBannerUI() {
       const totalTgt = currentMaster.employees.reduce((acc, e) => acc + (e.target || 0), 0);
       const totalBhx = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
-      const sysBhx = currentMaster.total_stores_bhx || 233;
+      const sysBhx = currentMaster.total_stores_bhx || 232;
+      const cvsCount = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores.length : 138;
+
       if (document.getElementById('targetStatusTitle')) {
         document.getElementById('targetStatusTitle').innerText = 'Target Đang Áp Dụng: Tháng ' + currentMaster.month + '/' + currentMaster.year;
       }
       if (document.getElementById('targetStatusDesc')) {
-        document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX Team / ' + sysBhx + ' CH Toàn Hệ Thống';
+        document.getElementById('targetStatusDesc').innerText = 'Tổng Chỉ Tiêu: ' + formatNumber(totalTgt) + ' ₫ | ' + currentMaster.employees.length + ' Nhân Viên | ' + totalBhx + ' CH BHX Team / ' + sysBhx + ' CH Toàn Hệ Thống | ' + cvsCount + ' CH CVS';
       }
       if (document.getElementById('headerMonthYear')) {
         document.getElementById('headerMonthYear').innerText = currentMaster.month + '/' + currentMaster.year;
       }
       if (document.getElementById('headerTimegone')) {
         document.getElementById('headerTimegone').innerText = calculateRealtimeTimegone(currentMaster.month, currentMaster.year) + '%';
+      }
+
+      const btnTabStores = document.getElementById('btnTabStores');
+      if (btnTabStores) {
+        btnTabStores.innerHTML = `🏪 Chi Tiết Cửa Hàng CVS <span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:2px 7px; border-radius:10px; margin-left:4px; font-weight:700;">${cvsCount} CH</span>`;
+      }
+      const stBadge = document.getElementById('storesCountBadge');
+      if (stBadge) {
+        stBadge.innerText = cvsCount + ' Cửa hàng';
       }
     }
 
@@ -2910,6 +2921,7 @@ const DEFAULT_FM_STORES = [
             let foundTargets = {};
             let foundBhxStores = {};
             let foundTotalBhxSys = 0;
+            let foundCvsStores = [];
 
             // Sắp xếp thứ tự ưu tiên các sheet:
             // 1. Sheet Target T9 hoặc Target / Chỉ tiêu -> ƯU TIÊN SỐ 1
@@ -3000,6 +3012,7 @@ const DEFAULT_FM_STORES = [
                 const curTargets = {};
                 const curBhxStores = {};
                 const curFmTargets = {};
+                const curCvsStoresList = [];
                 const empCountMap = {};
                 let curSheetTotalBhxRows = 0;
                 const curSheetUniqueBhxCodes = new Set();
@@ -3029,7 +3042,7 @@ const DEFAULT_FM_STORES = [
                     if (bVal > 0 && bVal <= 350) curSheetSumBhxCol += bVal;
                   }
 
-                  // 2. Tiếp tục đọc target của từng nhân viên Team Cẩm Giang
+                  // 2. Tiếp tục đọc target và chi tiết cửa hàng của từng nhân viên Team Cẩm Giang
                   if (row.length <= Math.max(pgCol, tgtCol)) continue;
                   const pgVal = String(row[pgCol] || '').trim();
                   const normPg = normalizeText(pgVal);
@@ -3065,6 +3078,43 @@ const DEFAULT_FM_STORES = [
 
                     if (isBhx) {
                       curBhxStores[matchedEmp.name] = (curBhxStores[matchedEmp.name] || 0) + 1;
+                    } else {
+                      // Quét chi tiết cửa hàng CVS phụ trách thực tế từ file
+                      let chain = 'CVS';
+                      const rawChainName = tenstCol >= 0 ? String(row[tenstCol] || '').trim() : '';
+                      const rawAddr = addrCol >= 0 ? String(row[addrCol] || '').trim() : '';
+                      const rawCode = mastCol >= 0 ? String(row[mastCol] || '').trim() : '';
+                      const n_tenst = normalizeText(rawChainName);
+
+                      if (n_tenst.includes('circle') || n_tenst.includes('ck') || stCode.includes('VT3013') || stCode.includes('CIRCLEK')) {
+                        chain = 'Circle K';
+                      } else if (n_tenst.includes('gs25') || stCode.includes('VI3003') || stCode.includes('GS25')) {
+                        chain = 'GS25';
+                      } else if (n_tenst.includes('family') || n_tenst.includes('fm') || stCode.includes('KT3006') || stCode.includes('LK3001') || stCode.includes('TY3001') || stCode.includes('DP3007') || locStr.includes('fm')) {
+                        chain = 'FamilyMart';
+                      } else if (n_tenst.includes('7eleven') || n_tenst.includes('7e') || stCode.includes('SS4001') || stCode.includes('7ELEVEN')) {
+                        chain = '7-Eleven';
+                      } else if (n_tenst.includes('hoangduc') || n_tenst.includes('thecity') || stCode.includes('THECITY')) {
+                        chain = 'Hoàng Đức';
+                      } else if (n_tenst.includes('winmart') || n_tenst.includes('wmp') || stCode.includes('WMP')) {
+                        chain = 'WinMart+';
+                      } else if (rawChainName) {
+                        chain = rawChainName;
+                      }
+
+                      if (!stCode.includes('MT3006') && (rawAddr || rawCode || rawChainName)) {
+                        curCvsStoresList.push({
+                          employee_name: matchedEmp.name,
+                          chain: chain,
+                          store_code: rawCode,
+                          store_name: rawChainName || (chain + (rawCode ? (' - ' + rawCode) : '')),
+                          store_address: rawAddr,
+                          address: rawAddr,
+                          target: tgtVal || 0,
+                          actual: 0,
+                          actual_sales: 0
+                        });
+                      }
                     }
 
                     // Tự động bóc tách chỉ tiêu cửa hàng FamilyMart
@@ -3106,6 +3156,9 @@ const DEFAULT_FM_STORES = [
                   foundTargets = curTargets;
                   foundBhxStores = curBhxStores;
                   foundFmStoreTargets = curFmTargets;
+                  if (curCvsStoresList.length >= 20) {
+                    foundCvsStores = curCvsStoresList;
+                  }
                   if (curTotalSysBhx >= 50) {
                     foundTotalBhxSys = curTotalSysBhx;
                   }
@@ -3133,6 +3186,12 @@ const DEFAULT_FM_STORES = [
                 emp.bhx_stores = foundBhxStores[emp.name];
               }
             });
+
+            // Cập nhật danh sách cửa hàng CVS từ file Target (nếu có chi tiết)
+            if (foundCvsStores && foundCvsStores.length >= 20) {
+              currentMaster.cvs_stores = foundCvsStores;
+              allStoresList = foundCvsStores;
+            }
 
             // Cập nhật chỉ tiêu từng cửa hàng FamilyMart (nếu có từ FORM CHI TIÊU)
             if (Object.keys(foundFmStoreTargets).length > 0 && currentMaster.fm_stores) {
@@ -3173,23 +3232,26 @@ const DEFAULT_FM_STORES = [
             closeModal('loadingModal');
 
             const totalTgt = currentMaster.employees.reduce((a, b) => a + (b.target || 0), 0);
+            const totalCvsCount = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores.length : 138;
             const feedback = document.getElementById('targetUploadFeedback');
             if (feedback) {
               feedback.style.display = 'block';
               feedback.style.background = '#DCFCE7';
               feedback.style.color = '#15803D';
-              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 178) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 232) + ' CH Hệ Thống)';
+              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 178) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 232) + ' CH Hệ Thống | ' + totalCvsCount + ' CH CVS)';
             }
 
             // Tạo thông báo chi tiết từng nhân viên (đúng số tiền ô T4)
             let empListStr = currentMaster.employees.map((e, idx) => {
-              return `${idx + 1}. ${e.name}: ${formatNumber(e.target)} đ (${e.bhx_stores} CH BHX)`;
+              const empCvs = (currentMaster.cvs_stores || []).filter(s => s.employee_name === e.name).length;
+              return `${idx + 1}. ${e.name}: ${formatNumber(e.target)} đ (${e.bhx_stores} CH BHX ${empCvs > 0 ? '| ' + empCvs + ' CH CVS' : ''})`;
             }).join('\n');
 
             alert('🎉 ĐÃ ÁP DỤNG THÀNH CÔNG TARGET TỪ FORM CHI TIÊU!\n\n' +
                   '• Tổng Chỉ Tiêu Toàn Team: ' + formatNumber(totalTgt) + ' đ\n' +
                   '• Tổng Cửa Hàng BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 232) + ' CH\n' +
                   '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n' +
+                  '• Tổng Cửa Hàng CVS Phụ Trách: ' + totalCvsCount + ' CH\n' +
                   '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +
                   'Dữ liệu đã được lưu và áp dụng ngay lập tức!');
 
@@ -3821,7 +3883,7 @@ const DEFAULT_FM_STORES = [
       });
 
       const updatedStores = [];
-      const storesRef = allStoresList.length > 0 ? allStoresList : getInitialStores();
+      const storesRef = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores : (allStoresList.length > 0 ? allStoresList : getInitialStores());
 
       for (let s of storesRef) {
         let actual = 0;
@@ -4064,7 +4126,7 @@ const DEFAULT_FM_STORES = [
           <div class="kpi-card cvs">
             <div class="kpi-title">Thực Hiện CVS & NPP <span>🏪</span></div>
             <div class="kpi-value" id="kpiCvs">${formatMoney(data.total_cvs)}</div>
-            <div class="kpi-sub" id="kpiCvsStoresCount">138 Cửa hàng CVS</div>
+            <div class="kpi-sub" id="kpiCvsStoresCount">${(data.stores && data.stores.length) ? data.stores.length : 138} Cửa hàng CVS</div>
           </div>
           <div class="kpi-card total">
             <div class="kpi-title">Tổng Doanh Số TH <span>💰</span></div>
@@ -4092,7 +4154,7 @@ const DEFAULT_FM_STORES = [
           <div class="kpi-card cvs">
             <div class="kpi-title">Thực Hiện CVS & NPP <span>🏪</span></div>
             <div class="kpi-value" id="kpiCvs">${formatMoney(data.total_cvs)}</div>
-            <div class="kpi-sub" id="kpiCvsStoresCount">138 Cửa hàng CVS</div>
+            <div class="kpi-sub" id="kpiCvsStoresCount">${(data.stores && data.stores.length) ? data.stores.length : 138} Cửa hàng CVS</div>
           </div>
           <div class="kpi-card total">
             <div class="kpi-title">Tổng Doanh Số Thực Hiện <span>💰</span></div>
@@ -4105,6 +4167,16 @@ const DEFAULT_FM_STORES = [
             <div class="kpi-sub" id="kpiTimegoneDiff">Tiến độ tháng: ${(data.timegone || 0)}%</div>
           </div>
         `;
+      }
+
+      const btnTabStores = document.getElementById('btnTabStores');
+      if (btnTabStores) {
+        const cnt = (data.stores && data.stores.length) ? data.stores.length : 138;
+        btnTabStores.innerHTML = `🏪 Chi Tiết Cửa Hàng CVS <span style="font-size:11px; background:#e0e7ff; color:#3730a3; padding:2px 7px; border-radius:10px; margin-left:4px; font-weight:700;">${cnt} CH</span>`;
+      }
+      const stBadge = document.getElementById('storesCountBadge');
+      if (stBadge) {
+        stBadge.innerText = ((data.stores && data.stores.length) ? data.stores.length : 138) + ' Cửa hàng';
       }
     }
 
@@ -4411,6 +4483,8 @@ const DEFAULT_FM_STORES = [
     function renderStoresTable(stores) {
       const tbody = document.getElementById('storesTableBody');
       tbody.innerHTML = '';
+      const countBadge = document.getElementById('storesCountBadge');
+      if (countBadge) countBadge.innerText = (stores ? stores.length : 0) + ' Cửa hàng';
       if (!stores || !stores.length) return;
 
       const empOrderMap = {};
@@ -4943,8 +5017,8 @@ const DEFAULT_FM_STORES = [
         containerId = 'storesTableContainer';
         const emp = document.getElementById('filterEmp') ? document.getElementById('filterEmp').value : '';
         const chain = document.getElementById('filterChain') ? document.getElementById('filterChain').value : '';
-        baseName = 'Chi_Tiet_CVS_' + (emp ? emp.replace(/\s+/g, '_') : 'Full') + (chain ? ('_' + chain.replace(/\s+/g, '_')) : '');
-        subTitle = 'Chi Tiết Cửa Hàng CVS' + (emp ? (' - NV: ' + emp) : '') + (chain ? (' - Chuỗi: ' + chain) : ' (138 Cửa hàng)');
+        const cnt = (processedReportData && processedReportData.stores) ? processedReportData.stores.length : 138;
+        subTitle = 'Chi Tiết Cửa Hàng CVS' + (emp ? (' - NV: ' + emp) : '') + (chain ? (' - Chuỗi: ' + chain) : (' (' + cnt + ' Cửa hàng)'));
       } else if (sheetKey === 'tabBhxDist') {
         containerId = 'bhxDistTableContainer';
         const emp = document.getElementById('filterBhxEmp') ? document.getElementById('filterBhxEmp').value : '';
@@ -5580,8 +5654,8 @@ const DEFAULT_FM_STORES = [
         subTitle = empRank ? ('Xếp Hạng Nhân Viên: ' + empRank) : 'Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team';
       } else if (sheetKey === 'tabStores') {
         containerId = 'storesTableContainer';
-        baseName = 'Chi_Tiet_CVS_' + (empStores ? empStores.replace(/\s+/g, '_') : 'Full') + (chainStores ? ('_' + chainStores.replace(/\s+/g, '_')) : '');
-        subTitle = 'Chi Tiết Cửa Hàng CVS' + (empStores ? (' - NV: ' + empStores) : '') + (chainStores ? (' - Chuỗi: ' + chainStores) : ' (138 Cửa hàng)');
+        const cnt = (processedReportData && processedReportData.stores) ? processedReportData.stores.length : 138;
+        subTitle = 'Chi Tiết Cửa Hàng CVS' + (empStores ? (' - NV: ' + empStores) : '') + (chainStores ? (' - Chuỗi: ' + chainStores) : (' (' + cnt + ' Cửa hàng)'));
       } else if (sheetKey === 'tabBhxDist') {
         containerId = 'bhxDistTableContainer';
         baseName = 'Phan_Bo_BHX_' + (empBhx ? empBhx.replace(/\s+/g, '_') : 'Full');
@@ -7747,6 +7821,9 @@ const DEFAULT_FM_STORES = [
               if (!currentMaster.total_stores_bhx_team) {
                 currentMaster.total_stores_bhx_team = currentMaster.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0);
               }
+              if (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) {
+                allStoresList = currentMaster.cvs_stores;
+              }
             }
           }
         }
@@ -7784,7 +7861,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.0.5",
       versionCode: 6,
-      buildDate: "14:17 - 18/09/2026"
+      buildDate: "14:59 - 18/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8023,7 +8100,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.0.5</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:17 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:59 - 18/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

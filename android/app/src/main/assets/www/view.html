@@ -507,7 +507,7 @@
       <div class="kpi-card">
         <div class="kpi-label">Quy Mô & Cửa Hàng</div>
         <div class="kpi-value" style="color:#2563EB;" id="kpiStores">10 NV</div>
-        <div class="kpi-sub">138 Cửa hàng CVS • 35 CH FM</div>
+        <div class="kpi-sub" id="kpiStoresSub">Chi Tiết Cửa Hàng CVS</div>
       </div>
     </div>
 
@@ -517,7 +517,7 @@
         <button class="tab-btn active" onclick="switchTab('tabTeam')">📊 1. Tiến Độ 10 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank')">🏆 2. Xếp Hạng & Tỷ Trọng</button>
         <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 5 Hubs BHX</button>
-        <button class="tab-btn" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết 138 Cửa Hàng CVS</button>
+        <button class="tab-btn" id="btnTabCvsStores" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabFmSku')">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
 
@@ -1396,7 +1396,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Tiến Độ Tháng</div>
               <div class="kpi-value" style="color:#2563EB;">${data.timegone}%</div>
-              <div class="kpi-sub">10 NV • 138 Cửa hàng CVS</div>
+              <div class="kpi-sub">10 NV • ${(data.stores && data.stores.length) ? data.stores.length : 138} Cửa hàng CVS</div>
             </div>
           `;
         }
