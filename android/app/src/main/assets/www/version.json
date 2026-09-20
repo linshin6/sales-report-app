@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 15,
-  "latestVersionName": "1.1.4",
+  "latestVersionCode": 16,
+  "latestVersionName": "1.1.5",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.4]\n• Cập nhật tối ưu hiển thị bảng dữ liệu & giao diện di động.\n• Đồng bộ cơ chế kiểm tra và tự động cập nhật OTA mượt mà.\n• Cải thiện hiệu năng xử lý số liệu doanh số Team Cẩm Giang.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.5]\n• Khắc phục triệt để lỗi ảnh trắng khi copy / gửi ảnh bảng báo cáo qua Zalo.\n• Nâng cấp độ sắc nét Retina 2x khi chụp và xuất ảnh bảng.\n• Đồng bộ cơ chế tự động nhận diện cập nhật OTA.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-20T20:08:00Z"
+  "updatedAt": "2026-09-20T20:20:00Z"
 }
