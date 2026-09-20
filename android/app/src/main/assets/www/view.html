@@ -2119,40 +2119,120 @@
 
     async function captureTable(tableId, fileNamePrefix) {
       showToast('📸 Đang tạo ảnh sắc nét chuẩn Retina để copy vào bộ nhớ tạm...');
-      const target = document.getElementById(tableId);
-      if (!target) return;
+      const source = document.getElementById(tableId);
+      if (!source) return;
 
-      const prevZoom = target.style.zoom;
-      target.style.zoom = '1.0';
+      // Clone element ra wrapper riêng để tránh bị crop bởi overflow/max-height
+      const clone = source.cloneNode(true);
+
+      // Wrapper ẩn, dùng position:fixed + left:-99999px và visibility:visible (kèm onclone)
+      const wrapper = document.createElement('div');
+      wrapper.id = '__capture_wrapper__';
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-99999px';
+      wrapper.style.top = '0';
+      wrapper.style.zIndex = '-9999';
+      wrapper.style.opacity = '1';
+      wrapper.style.visibility = 'visible';
+      wrapper.style.pointerEvents = 'none';
+      wrapper.style.background = '#FFFFFF';
+      wrapper.style.padding = '10px';
+      wrapper.style.width = 'max-content';
+      wrapper.style.minWidth = 'max-content';
+      wrapper.style.maxWidth = 'none';
+      wrapper.style.overflow = 'visible';
+
+      // Loại bỏ mọi overflow, max-height, sticky trên clone
+      clone.style.overflow = 'visible';
+      clone.style.overflowX = 'visible';
+      clone.style.overflowY = 'visible';
+      clone.style.maxHeight = 'none';
+      clone.style.width = 'max-content';
+      clone.style.maxWidth = 'none';
+      clone.style.boxShadow = 'none';
+      clone.style.border = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.zoom = '1.0';
+
+      clone.querySelectorAll('*').forEach(el => {
+        const cs = getComputedStyle(el);
+        if (cs.position === 'sticky') {
+          el.style.position = 'static';
+        }
+        if (cs.overflow === 'hidden' || cs.overflow === 'auto' || cs.overflow === 'scroll' ||
+            cs.overflowX === 'hidden' || cs.overflowX === 'auto' || cs.overflowX === 'scroll' ||
+            cs.overflowY === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
+          el.style.overflow = 'visible';
+          el.style.overflowX = 'visible';
+          el.style.overflowY = 'visible';
+        }
+        if (cs.maxHeight !== 'none' && cs.maxHeight !== '') {
+          el.style.maxHeight = 'none';
+        }
+      });
+
+      const tbl = clone.querySelector('table');
+      if (tbl) {
+        tbl.style.width = 'max-content';
+        tbl.style.maxWidth = 'none';
+        tbl.style.zoom = '1.0';
+      }
+
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      // Chờ 1 frame để browser layout chính xác
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
       try {
-        const canvas = await html2canvas(target, {
+        const fullWidth = Math.max(wrapper.scrollWidth, 600);
+        const fullHeight = wrapper.scrollHeight;
+
+        const canvas = await html2canvas(wrapper, {
           scale: 2,
           useCORS: true,
+          allowTaint: true,
           backgroundColor: '#FFFFFF',
+          width: fullWidth,
+          height: fullHeight,
+          scrollX: 0,
+          scrollY: 0,
+          x: 0,
+          y: 0,
+          onclone: (clonedDoc) => {
+            const clonedWrapper = clonedDoc.getElementById('__capture_wrapper__');
+            if (clonedWrapper) {
+              clonedWrapper.style.position = 'static';
+              clonedWrapper.style.left = '0';
+              clonedWrapper.style.top = '0';
+              clonedWrapper.style.display = 'block';
+              clonedWrapper.style.visibility = 'visible';
+              clonedWrapper.style.opacity = '1';
+            }
+          },
           logging: false
         });
 
-        canvas.toBlob(async blob => {
-          if (blob && navigator.clipboard && navigator.clipboard.write) {
-            try {
-              await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-              showToast('✅ Đã copy ảnh vào bộ nhớ tạm! Bạn có thể dán ngay vào Zalo/Telegram.');
-              return;
-            } catch (e) {}
-          }
-          // Fallback download
-          const a = document.createElement('a');
-          a.href = canvas.toDataURL('image/png');
-          a.download = `${fileNamePrefix}_${new Date().toISOString().slice(0, 10)}.png`;
-          a.click();
-          showToast('✅ Đã tải ảnh bảng báo cáo về máy.');
-        }, 'image/png');
+        document.body.removeChild(wrapper);
+
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        if (blob && navigator.clipboard && navigator.clipboard.write) {
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            showToast('✅ Đã copy ảnh vào bộ nhớ tạm! Bạn có thể dán ngay vào Zalo/Telegram.');
+            return;
+          } catch (e) {}
+        }
+        // Fallback download
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = `${fileNamePrefix}_${new Date().toISOString().slice(0, 10)}.png`;
+        a.click();
+        showToast('✅ Đã tải ảnh bảng báo cáo về máy.');
 
       } catch (err) {
+        if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
         alert('Lỗi chụp ảnh: ' + err.message);
-      } finally {
-        target.style.zoom = prevZoom;
       }
     }
 

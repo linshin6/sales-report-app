@@ -118,9 +118,8 @@ public class AppUpdateManager {
                             || ("v" + latestVersionName).equalsIgnoreCase(currentVersionName)
                             || latestVersionName.equalsIgnoreCase("v" + currentVersionName);
 
-                    // Chỉ hiện popup Native nếu do người dùng chủ động bấm kiểm tra (isManualCheck == true).
-                    // Khi tự động kiểm tra, để giao diện Web HTML Modal đảm nhiệm, tuyệt đối không hiện đè popup Native.
-                    if (isManualCheck && !isSameVersion && latestVersionCode > currentVersionCode) {
+                    // Hiện popup Native cập nhật khi có bản mới (cả tự động lẫn thủ công)
+                    if (!isSameVersion && latestVersionCode > currentVersionCode) {
                         showUpdateDialog(latestVersionName, releaseNotes, apkDownloadUrl, forceUpdate);
                     } else {
                         if (isManualCheck) {
@@ -413,20 +412,13 @@ public class AppUpdateManager {
         }
     }
 
+    /**
+     * Lấy versionCode thực tế từ APK (build.gradle), KHÔNG đọc từ www/version.json.
+     * version.json trong assets là bản copy của server → luôn trùng server → OTA không bao giờ trigger.
+     * Chỉ dùng PackageInfo.versionCode (từ build.gradle defaultConfig).
+     */
     private long getCurrentVersionCode() {
         try {
-            try (java.io.InputStream is = mActivity.getAssets().open("www/version.json");
-                 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    sb.append(line);
-                }
-                JSONObject obj = new JSONObject(sb.toString());
-                long code = obj.optLong("latestVersionCode", -1);
-                if (code > 0) return code;
-            } catch (Exception ignored) {}
-
             PackageInfo pInfo = mActivity.getPackageManager().getPackageInfo(mActivity.getPackageName(), 0);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 return pInfo.getLongVersionCode();
@@ -438,24 +430,15 @@ public class AppUpdateManager {
         }
     }
 
+    /**
+     * Lấy versionName thực tế từ APK (build.gradle), KHÔNG đọc từ www/version.json.
+     */
     private String getCurrentVersionName() {
         try {
-            try (java.io.InputStream is = mActivity.getAssets().open("www/version.json");
-                 BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = br.readLine()) != null) {
-                    sb.append(line);
-                }
-                JSONObject obj = new JSONObject(sb.toString());
-                String v = obj.optString("latestVersionName", "");
-                if (!v.isEmpty()) return v;
-            } catch (Exception ignored) {}
-
             PackageInfo pInfo = mActivity.getPackageManager().getPackageInfo(mActivity.getPackageName(), 0);
-            return pInfo.versionName != null ? pInfo.versionName : "1.0.7";
+            return pInfo.versionName != null ? pInfo.versionName : "1.0.0";
         } catch (Exception e) {
-            return "1.0.7";
+            return "1.0.0";
         }
     }
 }

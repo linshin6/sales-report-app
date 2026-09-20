@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -84,7 +86,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Khởi tạo hoàn tất
+        // Khởi tạo hoàn tất — Tự động kiểm tra cập nhật OTA sau 3 giây
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!isFinishing() && !isDestroyed()) {
+                AppUpdateManager.getInstance(MainActivity.this).checkForUpdate(false);
+            }
+        }, 3000);
     }
 
     private void setupWebView() {
@@ -422,25 +429,16 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public String getAppVersionInfo() {
             try {
-                String vName = "1.0.7";
-                long vCode = 8;
-                try (java.io.InputStream is = getAssets().open("www/version.json");
-                     java.io.BufferedReader br = new java.io.BufferedReader(new java.io.InputStreamReader(is))) {
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line);
-                    }
-                    org.json.JSONObject obj = new org.json.JSONObject(sb.toString());
-                    vName = obj.optString("latestVersionName", "1.0.7");
-                    vCode = obj.optLong("latestVersionCode", 8);
-                } catch (Exception ignored) {}
-
-                long lastUpdateTime = System.currentTimeMillis();
-                try {
-                    android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-                    lastUpdateTime = pInfo.lastUpdateTime;
-                } catch (Exception ignored) {}
+                // Đọc version thực tế từ APK (build.gradle), không đọc từ www/version.json
+                android.content.pm.PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                String vName = pInfo.versionName != null ? pInfo.versionName : "1.0.0";
+                long vCode;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    vCode = pInfo.getLongVersionCode();
+                } else {
+                    vCode = pInfo.versionCode;
+                }
+                long lastUpdateTime = pInfo.lastUpdateTime;
 
                 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm - dd/MM/yyyy", java.util.Locale.getDefault());
                 String dateStr = sdf.format(new java.util.Date(lastUpdateTime));

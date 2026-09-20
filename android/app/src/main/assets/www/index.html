@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.3</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.4</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -5864,17 +5864,22 @@ const DEFAULT_FM_STORES = [
         });
       }
 
-      // Wrapper div
+      // Wrapper div — dùng position:fixed + left:-99999px và visibility:visible (kèm onclone)
+      // để html2canvas không bị bỏ qua nội dung (tránh lỗi xuất ảnh trắng)
       const wrapper = document.createElement('div');
       wrapper.id = '__capture_wrapper__';
       wrapper.style.position = 'fixed';
       wrapper.style.left = '-99999px';
       wrapper.style.top = '0';
       wrapper.style.zIndex = '-9999';
+      wrapper.style.opacity = '1';
+      wrapper.style.visibility = 'visible';
+      wrapper.style.pointerEvents = 'none';
       wrapper.style.background = '#FFFFFF';
       wrapper.style.padding = '22px 26px';
-      wrapper.style.borderRadius = '14px';
+      wrapper.style.borderRadius = '0';
       wrapper.style.width = 'max-content';
+      wrapper.style.minWidth = 'max-content';
       wrapper.style.maxWidth = 'none';
       wrapper.style.overflow = 'visible';
 
@@ -5885,15 +5890,18 @@ const DEFAULT_FM_STORES = [
       headerDiv.style.borderBottom = '2.5px solid #1F4E78';
       headerDiv.style.display = 'flex';
       headerDiv.style.justifyContent = 'space-between';
-      headerDiv.style.alignItems = 'center';
-      headerDiv.style.flexWrap = 'wrap';
-      headerDiv.style.gap = '12px';
+      headerDiv.style.alignItems = 'flex-start';
+      headerDiv.style.flexWrap = 'nowrap';
+      headerDiv.style.gap = '20px';
       headerDiv.style.fontFamily = "'Plus Jakarta Sans', Calibri, sans-serif";
+      headerDiv.style.minWidth = '100%';
 
       const timePct = processedReportData ? processedReportData.timegone : 0;
       const empCount = (processedReportData && processedReportData.employees) ? processedReportData.employees.length : 10;
 
       const titleH = document.createElement('div');
+      titleH.style.flex = '1';
+      titleH.style.minWidth = '0';
       const now = new Date();
       titleH.innerHTML = `
         <div style="font-size:18px; font-weight:800; color:#1F4E78; display:flex; align-items:center; gap:8px;">
@@ -5914,6 +5922,8 @@ const DEFAULT_FM_STORES = [
       metaH.style.textAlign = 'right';
       metaH.style.fontSize = '12px';
       metaH.style.color = '#64748B';
+      metaH.style.whiteSpace = 'nowrap';
+      metaH.style.flexShrink = '0';
       metaH.innerHTML = `
         <div>Team Lead: <strong style="color:#0F172A; font-size:13px;">Trần Thị Cẩm Giang</strong></div>
         <div style="margin-top:2px;">⏳ Timegone: <strong style="color:#B45309; font-size:13px;">${timePct}%</strong></div>
@@ -5924,17 +5934,35 @@ const DEFAULT_FM_STORES = [
       headerDiv.appendChild(metaH);
       wrapper.appendChild(headerDiv);
 
-      // Clean up clone styles so it displays at 100% full width without scrollbars
+      // Clean up clone styles — loại bỏ mọi overflow, border, border-radius
+      // để html2canvas chụp trọn vẹn 100% nội dung bảng
       clone.style.overflow = 'visible';
+      clone.style.overflowX = 'visible';
+      clone.style.overflowY = 'visible';
       clone.style.maxHeight = 'none';
       clone.style.width = 'max-content';
       clone.style.maxWidth = 'none';
       clone.style.boxShadow = 'none';
       clone.style.margin = '0';
+      clone.style.border = 'none';
+      clone.style.borderRadius = '0';
 
       clone.querySelectorAll('*').forEach(el => {
-        if (getComputedStyle(el).position === 'sticky') {
+        const cs = getComputedStyle(el);
+        if (cs.position === 'sticky') {
           el.style.position = 'static';
+        }
+        // Remove mọi overflow ẩn trên child elements
+        if (cs.overflow === 'hidden' || cs.overflow === 'auto' || cs.overflow === 'scroll' ||
+            cs.overflowX === 'hidden' || cs.overflowX === 'auto' || cs.overflowX === 'scroll' ||
+            cs.overflowY === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
+          el.style.overflow = 'visible';
+          el.style.overflowX = 'visible';
+          el.style.overflowY = 'visible';
+        }
+        // Remove max-height trên các container con
+        if (cs.maxHeight !== 'none' && cs.maxHeight !== '') {
+          el.style.maxHeight = 'none';
         }
       });
 
@@ -5948,6 +5976,9 @@ const DEFAULT_FM_STORES = [
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
+      // Chờ 1 frame để browser layout wrapper đúng kích thước
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
       try {
         const fullWidth = Math.max(wrapper.scrollWidth, 750);
         const fullHeight = wrapper.scrollHeight;
@@ -5959,10 +5990,21 @@ const DEFAULT_FM_STORES = [
           backgroundColor: '#FFFFFF',
           width: fullWidth,
           height: fullHeight,
-          windowWidth: fullWidth + 100,
-          windowHeight: fullHeight + 100,
           scrollX: 0,
           scrollY: 0,
+          x: 0,
+          y: 0,
+          onclone: (clonedDoc) => {
+            const clonedWrapper = clonedDoc.getElementById('__capture_wrapper__');
+            if (clonedWrapper) {
+              clonedWrapper.style.position = 'static';
+              clonedWrapper.style.left = '0';
+              clonedWrapper.style.top = '0';
+              clonedWrapper.style.display = 'block';
+              clonedWrapper.style.visibility = 'visible';
+              clonedWrapper.style.opacity = '1';
+            }
+          },
           logging: false
         });
 
@@ -6472,21 +6514,33 @@ const DEFAULT_FM_STORES = [
       wrapper.style.left = '-99999px';
       wrapper.style.top = '0';
       wrapper.style.zIndex = '-9999';
+      wrapper.style.opacity = '1';
+      wrapper.style.visibility = 'visible';
+      wrapper.style.pointerEvents = 'none';
       wrapper.style.background = '#FFFFFF';
       wrapper.style.padding = '22px 26px';
-      wrapper.style.borderRadius = '14px';
+      wrapper.style.borderRadius = '0';
       wrapper.style.display = 'block';
+      wrapper.style.width = 'max-content';
+      wrapper.style.minWidth = 'max-content';
+      wrapper.style.maxWidth = 'none';
+      wrapper.style.overflow = 'visible';
 
       const p = processedReportData || {};
       const headerDiv = document.createElement('div');
       headerDiv.style.display = 'flex';
       headerDiv.style.justifyContent = 'space-between';
-      headerDiv.style.alignItems = 'center';
+      headerDiv.style.alignItems = 'flex-start';
+      headerDiv.style.flexWrap = 'nowrap';
+      headerDiv.style.gap = '20px';
       headerDiv.style.marginBottom = '14px';
       headerDiv.style.paddingBottom = '10px';
       headerDiv.style.borderBottom = '2px solid #14b8a6';
+      headerDiv.style.minWidth = '100%';
 
       const titleH = document.createElement('div');
+      titleH.style.flex = '1';
+      titleH.style.minWidth = '0';
       const curPctAchieved = (typeof p.percent_achieved === 'number') ? p.percent_achieved : (p.total_target > 0 ? ((p.total_actual / p.total_target) * 100) : 0);
       const curTimegone = (typeof p.timegone === 'number') ? p.timegone : 0;
       const curDiff = curPctAchieved - curTimegone;
@@ -6509,6 +6563,8 @@ const DEFAULT_FM_STORES = [
       metaH.style.textAlign = 'right';
       metaH.style.fontSize = '12px';
       metaH.style.color = '#64748B';
+      metaH.style.whiteSpace = 'nowrap';
+      metaH.style.flexShrink = '0';
       const now = new Date();
       metaH.innerHTML = `
         <div>Team Lead: <strong>${p.team_lead || 'Trần Thị Cẩm Giang'}</strong></div>
@@ -6520,17 +6576,33 @@ const DEFAULT_FM_STORES = [
       headerDiv.appendChild(metaH);
       wrapper.appendChild(headerDiv);
 
+      // Clean up clone — loại bỏ mọi overflow, border, border-radius
       clone.style.overflow = 'visible';
+      clone.style.overflowX = 'visible';
+      clone.style.overflowY = 'visible';
       clone.style.maxHeight = 'none';
       clone.style.width = 'max-content';
       clone.style.maxWidth = 'none';
       clone.style.boxShadow = 'none';
       clone.style.margin = '0';
       clone.style.display = 'block';
+      clone.style.border = 'none';
+      clone.style.borderRadius = '0';
 
       clone.querySelectorAll('*').forEach(el => {
-        if (getComputedStyle(el).position === 'sticky') {
+        const cs = getComputedStyle(el);
+        if (cs.position === 'sticky') {
           el.style.position = 'static';
+        }
+        if (cs.overflow === 'hidden' || cs.overflow === 'auto' || cs.overflow === 'scroll' ||
+            cs.overflowX === 'hidden' || cs.overflowX === 'auto' || cs.overflowX === 'scroll' ||
+            cs.overflowY === 'hidden' || cs.overflowY === 'auto' || cs.overflowY === 'scroll') {
+          el.style.overflow = 'visible';
+          el.style.overflowX = 'visible';
+          el.style.overflowY = 'visible';
+        }
+        if (cs.maxHeight !== 'none' && cs.maxHeight !== '') {
+          el.style.maxHeight = 'none';
         }
       });
 
@@ -6543,6 +6615,9 @@ const DEFAULT_FM_STORES = [
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
+      // Chờ 1 frame để browser layout wrapper đúng kích thước
+      await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
       try {
         const fullWidth = Math.max(wrapper.scrollWidth, 750);
         const fullHeight = wrapper.scrollHeight;
@@ -6554,10 +6629,21 @@ const DEFAULT_FM_STORES = [
           backgroundColor: '#FFFFFF',
           width: fullWidth,
           height: fullHeight,
-          windowWidth: fullWidth + 100,
-          windowHeight: fullHeight + 100,
           scrollX: 0,
           scrollY: 0,
+          x: 0,
+          y: 0,
+          onclone: (clonedDoc) => {
+            const clonedWrapper = clonedDoc.getElementById('__capture_wrapper__');
+            if (clonedWrapper) {
+              clonedWrapper.style.position = 'static';
+              clonedWrapper.style.left = '0';
+              clonedWrapper.style.top = '0';
+              clonedWrapper.style.display = 'block';
+              clonedWrapper.style.visibility = 'visible';
+              clonedWrapper.style.opacity = '1';
+            }
+          },
           logging: false
         });
 
@@ -8625,23 +8711,28 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.1.3",
-      versionCode: 14,
-      buildDate: "22:18 - 18/09/2026"
+      versionName: "v1.1.4",
+      versionCode: 15,
+      buildDate: "20:13 - 20/09/2026"
     };
 
     function initAppVersionDisplay() {
-      // APP_METADATA luôn là nguồn chân lý chính xác nhất của phiên bản ứng dụng & OTA
+      // Trên APK (AndroidBridge), PHẢI dùng version thực tế từ PackageInfo
+      // để OTA so sánh đúng. Hardcode APP_METADATA trong HTML luôn = server version.json
+      // → nếu dùng hardcode, sẽ luôn báo "đã mới nhất".
       let vName = APP_METADATA.versionName;
       let bDate = APP_METADATA.buildDate;
 
-      // Chỉ lấy từ AndroidBridge nếu thông tin native lớn hơn phiên bản hiện tại
       if (window.AndroidBridge && typeof window.AndroidBridge.getAppVersionInfo === 'function') {
         try {
           const info = JSON.parse(window.AndroidBridge.getAppVersionInfo());
-          if (info && info.versionCode && info.versionCode > APP_METADATA.versionCode) {
-            vName = 'v' + info.versionName;
-            if (info.buildDate) bDate = info.buildDate;
+          if (info && info.versionName) {
+            // Ghi đè APP_METADATA bằng version thực tế từ APK
+            APP_METADATA.versionName = 'v' + info.versionName;
+            APP_METADATA.versionCode = info.versionCode || 1;
+            if (info.buildDate) APP_METADATA.buildDate = info.buildDate;
+            vName = APP_METADATA.versionName;
+            bDate = APP_METADATA.buildDate;
           }
         } catch (e) {
           console.warn('Cannot parse android version info', e);
@@ -8670,8 +8761,13 @@ const DEFAULT_FM_STORES = [
     let otaDownloadLink = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
 
     function checkAppUpdateManual(isSilent) {
+      // Trên APK (có AndroidBridge), ưu tiên gọi native checkForUpdate nếu manual
+      if (!isSilent && window.AndroidBridge && typeof window.AndroidBridge.checkForUpdate === 'function') {
+        window.AndroidBridge.checkForUpdate();
+        return;
+      }
+
       if (!isSilent) {
-        // Hiển thị phản hồi tức thì khi bấm thủ công
         console.log("Đang kiểm tra bản cập nhật OTA...");
       }
 
@@ -8704,7 +8800,12 @@ const DEFAULT_FM_STORES = [
             }
           } else {
             if (!isSilent) {
-              alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
+              if (!window.AndroidBridge) {
+                // Trên web (Vercel): Web luôn tự cập nhật, không cần OTA
+                alert(`✅ Bạn đang dùng phiên bản web mới nhất (${APP_METADATA.versionName})!\n\nWeb Vercel luôn tự động cập nhật.\nNếu bạn dùng ứng dụng APK trên điện thoại, hãy kiểm tra cập nhật trên đó.`);
+              } else {
+                alert(`✅ Ứng dụng đang ở phiên bản mới nhất (${APP_METADATA.versionName})!\nNgày cập nhật: ${APP_METADATA.buildDate}`);
+              }
             }
           }
         })
@@ -8860,9 +8961,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.3</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.4</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">22:18 - 18/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:13 - 20/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
