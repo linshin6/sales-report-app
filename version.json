@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 17,
-  "latestVersionName": "1.1.6",
+  "latestVersionCode": 18,
+  "latestVersionName": "1.1.7",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.6]\n• Tự động tải ngầm và kích hoạt trình cài đặt cập nhật trực tiếp trong ứng dụng.\n• Khắc phục triệt để lỗi ảnh trắng khi copy / gửi ảnh bảng báo cáo qua Zalo.\n• Tối ưu độ phân giải Retina 2x siêu nét khi xuất hình ảnh.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.7]\n• Khôi phục và bổ sung đầy đủ cột Chỉ Tiêu (Target), % Đạt và Cột Trạng Thái Tiến Độ (🟢 VƯỢT / 🟡 CẬN / 🔴 CHẬM so với Timegone) trên bảng báo cáo.\n• Tự động tải ngầm và bật thẳng hộp thoại cài đặt trực tiếp trong ứng dụng mà không cần mở trình duyệt.\n• Khắc phục hoàn toàn lỗi ảnh trắng khi copy/gửi bảng qua Zalo.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-20T20:23:00Z"
+  "updatedAt": "2026-09-20T20:33:00Z"
 }

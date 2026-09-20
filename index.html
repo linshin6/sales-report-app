@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.6</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.7</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -4451,66 +4451,73 @@ const DEFAULT_FM_STORES = [
       const tfoot = document.getElementById('teamTableFoot');
       if (!tbody || !tfoot) return;
 
-      const isTarget = (mode === 'target');
+      const timegone = (typeof data.timegone === 'number') ? data.timegone : 0;
 
       if (thead) {
-        if (isTarget) {
-          thead.innerHTML = `
-            <tr>
-              <th class="text-center" style="width:45px;">STT</th>
-              <th>Nhân Viên</th>
-              <th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>
-              <th class="text-right">BHX (cố định)</th>
-              <th class="text-right">GS25</th>
-              <th class="text-right">7-Eleven</th>
-              <th class="text-right">FamilyMart</th>
-              <th class="text-right">Circle K</th>
-              <th class="text-right">Hoàng Đức</th>
-              <th class="text-right" style="background:#2E75B6; color:#fff;">Tổng TH (BHX+CVS)</th>
-              <th class="text-center" style="background:#1F4E78; color:#fff; min-width:85px;">% Đạt</th>
-            </tr>
-          `;
-        } else {
-          thead.innerHTML = `
-            <tr>
-              <th class="text-center" style="width:45px;">STT</th>
-              <th>Nhân Viên</th>
-              <th class="text-right">BHX (cố định)</th>
-              <th class="text-right">GS25</th>
-              <th class="text-right">7-Eleven</th>
-              <th class="text-right">FamilyMart</th>
-              <th class="text-right">Circle K</th>
-              <th class="text-right">Hoàng Đức</th>
-              <th class="text-right" style="background:#2E75B6;">Tổng TH (BHX+CVS)</th>
-            </tr>
-          `;
-        }
+        thead.innerHTML = `
+          <tr>
+            <th class="text-center" style="width:45px;">STT</th>
+            <th>Nhân Viên</th>
+            <th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>
+            <th class="text-right">BHX (cố định)</th>
+            <th class="text-right">GS25</th>
+            <th class="text-right">7-Eleven</th>
+            <th class="text-right">FamilyMart</th>
+            <th class="text-right">Circle K</th>
+            <th class="text-right">Hoàng Đức</th>
+            <th class="text-right" style="background:#2E75B6; color:#fff;">Tổng TH (BHX+CVS)</th>
+            <th class="text-center" style="background:#1F4E78; color:#fff; min-width:85px;">% Đạt</th>
+            <th class="text-center" style="background:#0F766E; color:#fff; min-width:110px;">Trạng Thái (vs TG)</th>
+          </tr>
+        `;
       }
 
       tbody.innerHTML = '';
       (data.employees || []).forEach((e, idx) => {
-        const chipClass = (e.percent >= data.timegone) ? 'chip-pass' : ((e.percent >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+        const pct = (typeof e.percent === 'number') ? e.percent : (e.target > 0 ? Number(((e.total_actual / e.target) * 100).toFixed(1)) : 0);
+        const diff = pct - timegone;
+        const status = pct >= timegone ? 'VƯỢT' : (pct >= timegone * 0.75 ? 'CẬN' : 'CHẬM');
+        const chipClass = (pct >= timegone) ? 'chip-pass' : ((pct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+        
+        let statusBadge = '';
+        if (status === 'VƯỢT') {
+          statusBadge = `<span style="background:#DCFCE7; color:#15803D; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${diff.toFixed(1)}%)</span>`;
+        } else if (status === 'CẬN') {
+          statusBadge = `<span style="background:#FEF3C7; color:#B45309; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${diff.toFixed(1)}%)</span>`;
+        } else {
+          statusBadge = `<span style="background:#FEE2E2; color:#B91C1C; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${diff.toFixed(1)}%)</span>`;
+        }
+
         tbody.innerHTML += `
           <tr>
             <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
             <td class="font-bold" style="color:#0f172a;">${e.name}</td>
-            ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
+            <td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">${formatNumber(e.target || 0)}</td>
             <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.fm_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.ck_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
-            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
-            ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
+            <td class="text-right font-bold" style="color:#0f766e; background:#F0FDF4;">${formatNumber(e.total_actual)}</td>
+            <td class="text-center"><span class="${chipClass}">${pct}%</span></td>
+            <td class="text-center">${statusBadge}</td>
           </tr>
         `;
       });
 
+      const teamPct = (typeof data.percent_achieved === 'number') ? data.percent_achieved : (data.total_target > 0 ? Number(((data.total_actual / data.total_target) * 100).toFixed(1)) : 0);
+      const teamDiff = teamPct - timegone;
+      const teamStatusBadge = (teamPct >= timegone)
+          ? `<span style="background:#15803D; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${teamDiff.toFixed(1)}%)</span>`
+          : ((teamPct >= timegone * 0.75)
+              ? `<span style="background:#D97706; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${teamDiff.toFixed(1)}%)</span>`
+              : `<span style="background:#DC2626; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${teamDiff.toFixed(1)}%)</span>`);
+
       tfoot.innerHTML = `
         <tr style="background:#0f172a;">
           <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">TỔNG TEAM</td>
-          ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(data.total_target)}</td>` : ''}
+          <td class="text-right font-bold" style="color:#FCD34D !important;">${formatNumber(data.total_target)}</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.gs25_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.se_actual || 0), 0))}</td>
@@ -4518,7 +4525,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.ck_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.hd_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(data.total_actual)}</td>
-          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved}%</td>` : ''}
+          <td class="text-center font-bold" style="color:#FDE047 !important;">${teamPct}%</td>
+          <td class="text-center font-bold">${teamStatusBadge}</td>
         </tr>
       `;
     }
@@ -5613,21 +5621,37 @@ const DEFAULT_FM_STORES = [
       const countBadge = document.getElementById('teamEmpCountBadge');
       if (countBadge) countBadge.innerText = filtered.length + ' Nhân viên';
 
+      const timegone = (typeof processedReportData.timegone === 'number') ? processedReportData.timegone : 0;
+
       filtered.forEach((e, idx) => {
-        const chipClass = (e.percent >= processedReportData.timegone) ? 'chip-pass' : ((e.percent >= processedReportData.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+        const pct = (typeof e.percent === 'number') ? e.percent : (e.target > 0 ? Number(((e.total_actual / e.target) * 100).toFixed(1)) : 0);
+        const diff = pct - timegone;
+        const status = pct >= timegone ? 'VƯỢT' : (pct >= timegone * 0.75 ? 'CẬN' : 'CHẬM');
+        const chipClass = (pct >= timegone) ? 'chip-pass' : ((pct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+
+        let statusBadge = '';
+        if (status === 'VƯỢT') {
+          statusBadge = `<span style="background:#DCFCE7; color:#15803D; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${diff.toFixed(1)}%)</span>`;
+        } else if (status === 'CẬN') {
+          statusBadge = `<span style="background:#FEF3C7; color:#B45309; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${diff.toFixed(1)}%)</span>`;
+        } else {
+          statusBadge = `<span style="background:#FEE2E2; color:#B91C1C; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${diff.toFixed(1)}%)</span>`;
+        }
+
         tbody.innerHTML += `
           <tr>
             <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
             <td class="font-bold" style="color:#0f172a;">${e.name}</td>
-            ${isTarget ? `<td class="text-right font-bold" style="color:#1E3A5F;">${formatNumber(e.target)}</td>` : ''}
+            <td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">${formatNumber(e.target || 0)}</td>
             <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.fm_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.ck_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
-            <td class="text-right font-bold" style="color:#0f766e;">${formatNumber(e.total_actual)}</td>
-            ${isTarget ? `<td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>` : ''}
+            <td class="text-right font-bold" style="color:#0f766e; background:#F0FDF4;">${formatNumber(e.total_actual)}</td>
+            <td class="text-center"><span class="${chipClass}">${pct}%</span></td>
+            <td class="text-center">${statusBadge}</td>
           </tr>
         `;
       });
@@ -5640,14 +5664,20 @@ const DEFAULT_FM_STORES = [
       const totCk = filtered.reduce((a, b) => a + (b.ck_actual || 0), 0);
       const totHd = filtered.reduce((a, b) => a + (b.hd_actual || 0), 0);
       const totAct = filtered.reduce((a, b) => a + (b.total_actual || 0), 0);
-      const totPct = totTgt > 0 ? parseFloat(((totAct / totTgt) * 100).toFixed(2)) : 0;
+      const totPct = totTgt > 0 ? parseFloat(((totAct / totTgt) * 100).toFixed(1)) : 0;
+      const totDiff = totPct - timegone;
+      const totStatusBadge = (totPct >= timegone)
+          ? `<span style="background:#15803D; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${totDiff.toFixed(1)}%)</span>`
+          : ((totPct >= timegone * 0.75)
+              ? `<span style="background:#D97706; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${totDiff.toFixed(1)}%)</span>`
+              : `<span style="background:#DC2626; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${totDiff.toFixed(1)}%)</span>`);
 
       const footLabel = selEmp ? ('TỔNG (' + selEmp.toUpperCase() + ')') : 'TỔNG TEAM';
 
       tfoot.innerHTML = `
         <tr style="background:#0f172a;">
           <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">${footLabel}</td>
-          ${isTarget ? `<td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totTgt)}</td>` : ''}
+          <td class="text-right font-bold" style="color:#FCD34D !important;">${formatNumber(totTgt)}</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(totBhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totGs)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totSe)}</td>
@@ -5655,7 +5685,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totCk)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totHd)}</td>
           <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(totAct)}</td>
-          ${isTarget ? `<td class="text-center font-bold" style="color:#FDE047 !important;">${totPct}%</td>` : ''}
+          <td class="text-center font-bold" style="color:#FDE047 !important;">${totPct}%</td>
+          <td class="text-center font-bold">${totStatusBadge}</td>
         </tr>
       `;
     }
@@ -8688,15 +8719,8 @@ const DEFAULT_FM_STORES = [
       updateCompareSelectors();
       updateGrowthBanner();
 
-      // Khởi tạo chế độ báo cáo
-      const savedMode = localStorage.getItem('PREFERRED_REPORT_MODE');
-      if (savedMode === 'target' || savedMode === 'actual') {
-        setReportMode(savedMode);
-      } else {
-        // Mặc định chạy chế độ 'target', người dùng có thể đổi bất kỳ lúc nào qua nút trên thanh tiêu đề
-        localStorage.setItem('PREFERRED_REPORT_MODE', 'target');
-        setReportMode('target');
-      }
+      // Khởi tạo chế độ báo cáo — luôn ưu tiên hiển thị đầy đủ Chỉ Tiêu & % Đạt KPI
+      setReportMode('target');
 
       // Nếu đang chạy trong Apps Script thì tải master data đã lưu
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -8711,9 +8735,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.1.6",
-      versionCode: 17,
-      buildDate: "20:23 - 20/09/2026"
+      versionName: "v1.1.7",
+      versionCode: 18,
+      buildDate: "20:32 - 20/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8961,9 +8985,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.6</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.7</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:23 - 20/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:32 - 20/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
