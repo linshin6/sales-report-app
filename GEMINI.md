@@ -39,3 +39,7 @@ Khi thư mục này được mở trên bất kỳ máy tính nào:
    - Kho Khô (`VT4050` Nam Tân Uyên = `430,620,084 đ`) chia đều cho số cửa hàng phát sinh đơn hàng mát toàn hệ thống (`230 cửa hàng`) = `1,872,261 đ/CH`.
    - Mỗi cửa hàng có phát sinh đơn trong team nhận: `1,872,261 đ` + `Thành tiền hàng mát của cửa hàng đó`. Cửa hàng không có đơn nhận `0 đ`.
    - Tổng Circle K của toàn team: **`69,457,638 đ`** (22 CH có đơn, 5 CH không có đơn).
+
+6. **Tự động đẩy Code/APK lên GitHub phục vụ OTA (Bắt buộc):**
+   - Bất kỳ khi nào hoàn thành sửa đổi code web (`index.html`, `view.html`), native Java hoặc build lại APK, agent **BẮT BUỘC** phải tự động chạy `git add .`, `git commit` và `git push origin main`.
+   - Đảm bảo Vercel (`bcgiang.vercel.app`) luôn có sẵn `version.json` và file APK mới nhất để người dùng cập nhật OTA mượt mà qua ứng dụng trên điện thoại.
