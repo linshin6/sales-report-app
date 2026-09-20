@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 16,
-  "latestVersionName": "1.1.5",
+  "latestVersionCode": 17,
+  "latestVersionName": "1.1.6",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.5]\n• Khắc phục triệt để lỗi ảnh trắng khi copy / gửi ảnh bảng báo cáo qua Zalo.\n• Nâng cấp độ sắc nét Retina 2x khi chụp và xuất ảnh bảng.\n• Đồng bộ cơ chế tự động nhận diện cập nhật OTA.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.6]\n• Tự động tải ngầm và kích hoạt trình cài đặt cập nhật trực tiếp trong ứng dụng.\n• Khắc phục triệt để lỗi ảnh trắng khi copy / gửi ảnh bảng báo cáo qua Zalo.\n• Tối ưu độ phân giải Retina 2x siêu nét khi xuất hình ảnh.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-20T20:20:00Z"
+  "updatedAt": "2026-09-20T20:23:00Z"
 }

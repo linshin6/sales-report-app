@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -154,81 +155,62 @@ public class AppUpdateManager {
     }
 
     private void downloadAndInstall(final String apkUrl, final String versionName) {
-        if (apkUrl == null || apkUrl.trim().isEmpty()) {
-            Toast.makeText(mActivity, "Đường dẫn tải file APK không hợp lệ!", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        final String urlToUse = (apkUrl != null && !apkUrl.trim().isEmpty())
+                ? apkUrl.trim()
+                : "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk";
 
-        try {
-            File cacheDir = mActivity.getCacheDir();
-            if (cacheDir != null && !cacheDir.exists()) {
-                cacheDir.mkdirs();
-            }
-
-            mDownloadedApkFile = new File(cacheDir, "update.apk");
-
-            if (mDownloadedApkFile.exists()) {
-                mDownloadedApkFile.delete();
-            }
-
-            registerDownloadReceiver();
-
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl));
-            request.setTitle("Cập nhật Báo Cáo Doanh Số");
-            request.setDescription("Đang tải phiên bản v" + versionName + "...");
-            request.setDestinationUri(Uri.fromFile(mDownloadedApkFile));
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setMimeType("application/vnd.android.package-archive");
-
-            DownloadManager downloadManager = (DownloadManager) mActivity.getSystemService(Context.DOWNLOAD_SERVICE);
-            if (downloadManager != null) {
-                mDownloadId = downloadManager.enqueue(request);
-                Toast.makeText(mActivity, "Đang tải bản cập nhật trong nền...", Toast.LENGTH_SHORT).show();
-            } else {
-                openBrowserDownload();
-            }
-
-        } catch (Exception e) {
-            Log.e(TAG, "Lỗi bắt đầu tải APK", e);
-            Toast.makeText(mActivity, "Lỗi tải APK: " + e.getMessage() + ". Đang mở trình duyệt...", Toast.LENGTH_LONG).show();
-            openBrowserDownload();
-        }
-    }
-
-    private void registerDownloadReceiver() {
-        if (mDownloadReceiver != null) {
+        mExecutor.execute(() -> {
             try {
-                mActivity.unregisterReceiver(mDownloadReceiver);
-            } catch (Exception ignored) {}
-        }
+                mMainHandler.post(() -> Toast.makeText(mActivity, "Đang tải bản cập nhật ngầm...", Toast.LENGTH_SHORT).show());
 
-        mDownloadReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                if (id == mDownloadId && mDownloadedApkFile != null && mDownloadedApkFile.exists()) {
-                    unregisterDownloadReceiver();
-                    Toast.makeText(mActivity, "Tải xong! Đang mở trình cài đặt...", Toast.LENGTH_SHORT).show();
-                    installApk(mDownloadedApkFile);
+                File cacheDir = mActivity.getCacheDir();
+                if (cacheDir != null && !cacheDir.exists()) {
+                    cacheDir.mkdirs();
                 }
+
+                File apkFile = new File(cacheDir, "update.apk");
+                if (apkFile.exists()) {
+                    apkFile.delete();
+                }
+
+                URL url = new URL(urlToUse + (urlToUse.contains("?") ? "&" : "?") + "t=" + System.currentTimeMillis());
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+                conn.connect();
+
+                if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                    throw new IllegalStateException("HTTP " + conn.getResponseCode() + " " + conn.getResponseMessage());
+                }
+
+                try (InputStream in = conn.getInputStream();
+                     FileOutputStream out = new FileOutputStream(apkFile)) {
+                    byte[] buffer = new byte[16384];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                    out.flush();
+                }
+
+                if (!apkFile.exists() || apkFile.length() < 100000) {
+                    throw new IllegalStateException("Kích thước file tải về quá nhỏ (" + (apkFile.exists() ? apkFile.length() : 0) + " bytes)");
+                }
+
+                mDownloadedApkFile = apkFile;
+                mMainHandler.post(() -> {
+                    Toast.makeText(mActivity, "Tải xong! Đang mở trình cài đặt...", Toast.LENGTH_SHORT).show();
+                    installApk(apkFile);
+                });
+
+            } catch (Exception e) {
+                Log.e(TAG, "Lỗi tải APK trực tiếp", e);
+                mMainHandler.post(() -> {
+                    Toast.makeText(mActivity, "Lỗi tải ngầm: " + e.getMessage() + ". Đang mở trình duyệt...", Toast.LENGTH_LONG).show();
+                    openBrowserDownload();
+                });
             }
-        };
-
-        IntentFilter filter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            mActivity.registerReceiver(mDownloadReceiver, filter, Context.RECEIVER_EXPORTED);
-        } else {
-            mActivity.registerReceiver(mDownloadReceiver, filter);
-        }
-    }
-
-    private void unregisterDownloadReceiver() {
-        if (mDownloadReceiver != null) {
-            try {
-                mActivity.unregisterReceiver(mDownloadReceiver);
-            } catch (Exception ignored) {}
-            mDownloadReceiver = null;
-        }
+        });
     }
 
     /**
@@ -266,68 +248,19 @@ public class AppUpdateManager {
             }
         }
 
-        // 1. Ưu tiên PackageInstaller.Session (Chuẩn Android hiện đại, không dùng FileProvider, không bị Scoped Storage chặn)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mExecutor.execute(() -> {
-                PackageInstaller.Session session = null;
-                try {
-                    PackageInstaller packageInstaller = mActivity.getPackageManager().getPackageInstaller();
-                    PackageInstaller.SessionParams params = new PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL);
-                    params.setAppPackageName(mActivity.getPackageName());
-                    int sessionId = packageInstaller.createSession(params);
-                    session = packageInstaller.openSession(sessionId);
-
-                    try (InputStream in = new FileInputStream(apkFile);
-                         OutputStream out = session.openWrite("package_update", 0, apkFile.length())) {
-                        byte[] buffer = new byte[65536];
-                        int len;
-                        while ((len = in.read(buffer)) != -1) {
-                            out.write(buffer, 0, len);
-                        }
-                        session.fsync(out);
-                    }
-
-                    // QUAN TRỌNG: Phải dùng PendingIntent.getBroadcast() gửi đến InstallStatusReceiver
-                    // để xử lý STATUS_PENDING_USER_ACTION và hiển thị màn hình xác nhận cài đặt.
-                    Intent callbackIntent = new Intent(mActivity, InstallStatusReceiver.class);
-                    int pendingFlags = PendingIntent.FLAG_UPDATE_CURRENT;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        pendingFlags |= PendingIntent.FLAG_MUTABLE;
-                    }
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(mActivity, sessionId, callbackIntent, pendingFlags);
-                    session.commit(pendingIntent.getIntentSender());
-                    session.close();
-                    session = null;
-                    mPendingInstall = false;
-                    Log.d(TAG, "PackageInstaller session committed successfully via BroadcastReceiver (background thread)");
-                } catch (Exception e) {
-                    Log.w(TAG, "PackageInstaller session failed, falling back to FileProvider Intent", e);
-                    if (session != null) {
-                        try {
-                            session.abandon();
-                        } catch (Exception ignored) {}
-                    }
-                    mMainHandler.post(() -> installViaFileProvider(apkFile));
-                }
-            });
-            return;
-        }
-
         installViaFileProvider(apkFile);
     }
 
     private void installViaFileProvider(File apkFile) {
-        // 2. Phương thức 2: FileProvider Intent (với cấp quyền trực tiếp cho PackageInstaller)
         try {
             Uri apkUri = FileProvider.getUriForFile(mActivity, mActivity.getPackageName() + ".provider", apkFile);
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            // Explicitly grant URI read permissions to all package installer components
+            // Cấp quyền đọc URI cho package installer hệ thống
             java.util.List<android.content.pm.ResolveInfo> resInfoList = mActivity.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
             for (android.content.pm.ResolveInfo resolveInfo : resInfoList) {
                 if (resolveInfo.activityInfo != null) {
@@ -374,7 +307,6 @@ public class AppUpdateManager {
     }
 
     public void onDestroy() {
-        unregisterDownloadReceiver();
         mExecutor.shutdown();
         sInstance = null; // Fix memory leak & ensure clean restart if activity recreated
     }
