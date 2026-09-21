@@ -1344,7 +1344,7 @@ const MASTER_DATA = {
     {
       "employee_name": "Não Thị Anh Đào",
       "chain": "GS25",
-      "store_code": "",
+      "store_code": "CVS_GS25.79.7021",
       "store_address": "40 Đ. Thống Nhất, Đông Hòa, Hồ Chí Minh, Việt Nam",
       "actual": 873680
     },

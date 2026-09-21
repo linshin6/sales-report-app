@@ -51,19 +51,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 1.2 Đọc từ Cloud Storage Bytebin (Global CDN)
-    try {
-      const bbRes = await fetch(`https://bytebin.lucko.me/${encodeURIComponent(id)}`, {
-        signal: AbortSignal.timeout(5000)
-      });
-      if (bbRes.ok) {
-        const data = await bbRes.json();
-        return res.status(200).json({ ok: true, data: data, source: 'cloud' });
-      }
-    } catch (eBb) {
-      console.warn('Lỗi đọc từ Bytebin:', eBb.message);
-    }
-
     return res.status(404).json({ ok: false, error: 'Không tìm thấy báo cáo hoặc mã đã hết hạn' });
   }
 
@@ -114,43 +101,13 @@ module.exports = async (req, res) => {
           });
         }
       } catch (eKvSave) {
-        console.warn('Lỗi lưu vào KV, chuyển sang Cloud Storage:', eKvSave.message);
+        console.warn('Lỗi lưu vào KV:', eKvSave.message);
       }
-    }
-
-    // 2.2 Lưu vào Cloud Storage Bytebin (Siêu nhanh, ID 10 ký tự)
-    try {
-      const bbRes = await fetch('https://bytebin.lucko.me/post', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'SalesReportApp/2.0'
-        },
-        body: JSON.stringify(reportContent),
-        signal: AbortSignal.timeout(6000)
-      });
-
-      if (bbRes.ok) {
-        const bbData = await bbRes.json();
-        if (bbData && bbData.key) {
-          const reportId = bbData.key;
-          const cleanUrl = `${baseUrl}/r/${reportId}`;
-          return res.status(200).json({
-            ok: true,
-            id: reportId,
-            url: cleanUrl,
-            shortUrl: cleanUrl,
-            source: 'cloud'
-          });
-        }
-      }
-    } catch (eBbSave) {
-      console.warn('Lỗi lưu vào Bytebin:', eBbSave.message);
     }
 
     return res.status(500).json({
       ok: false,
-      error: 'Không thể lưu báo cáo lên Cloud Storage lúc này'
+      error: 'Không thể lưu báo cáo lên Storage lúc này'
     });
   }
 

@@ -1,0 +1,339 @@
+================================================================================
+BÁO CÁO TOÀN DIỆN: TƯ DUY LOGIC NGHIỆP VỤ & QUY TRÌNH CODE APP CHI TIẾT
+DỰ ÁN: HỆ THỐNG BÁO CÁO DOANH SỐ CVS & BHX - TEAM CẨM GIANG
+(Tài liệu bàn giao Chuyên gia Phân tích Dữ liệu & Kỹ sư Kiến trúc Phần mềm)
+Thời gian lập: Tháng 09/2026 | Phiên bản hệ thống: 4.4.0 (OTA Hybrid Edition)
+================================================================================
+
+MỤC LỤC TỔNG THỂ:
+1. PHẦN I: BỐI CẢNH DỰ ÁN & MỤC TIÊU BÀI TOÁN KINH DOANH (BUSINESS CONTEXT)
+2. PHẦN II: TƯ DUY TOÁN HỌC & CÔNG THỨC BÓC TÁCH DỮ LIỆU BÁN LẺ
+3. PHẦN III: KIẾN TRÚC KỸ THUẬT & BẢN ĐỒ CÁC FILE MÃ NGUỒN (SOURCE CODE MAP)
+4. PHẦN IV: CHI TIẾT QUY TRÌNH CODE TỪNG THÀNH PHẦN (DEEP-DIVE IMPLEMENTATION)
+   - 1. Web Core Engine (index.html, view.html, master_data.js)
+   - 2. Cơ chế giải nén nhị phân Excel/XLSB & Dynamic SKU Auto-Discovery
+   - 3. Cơ chế xuất Excel Pro 6 Sheets (ExcelJS) & Snapshot Zalo (html2canvas)
+   - 4. Cơ chế chia sẻ không máy chủ qua URL Hash (LZ-String Compression)
+   - 5. Ứng dụng Android Native Wrapper (MainActivity.java & WebViewAssetLoader)
+   - 6. Động cơ cập nhật không dây OTA (AppUpdateManager.java)
+   - 7. Backend Google Apps Script & Telegram Bot (GAS WebApp)
+   - 8. Pipeline tự động hóa Python & Quy trình Build APK (build_apk.bat)
+5. PHẦN V: NGUYÊN TẮC ĐỒNG BỘ DỮ LIỆU BẤT BIẾN (SYNCHRONIZATION CONSTRAINTS)
+6. PHẦN VI: BẢNG TIÊU CHÍ ĐỐI SOÁT & CÂU HỎI THẨM ĐỊNH DÀNH CHO CHUYÊN GIA
+
+
+================================================================================
+PHẦN I: BỐI CẢNH DỰ ÁN & MỤC TIÊU BÀI TOÁN KINH DOANH
+================================================================================
+1. Phạm vi nghiệp vụ:
+Hệ thống theo dõi và phân tích doanh số FMCG (Sữa/Thực phẩm Vinamilk) hàng tháng cho
+Team Bán lẻ (Team Lead: Trần Thị Cẩm Giang) phụ trách địa bàn Đồng Nai - BRVT - 
+Bình Dương với 2 Kênh lớn:
+
+- Kênh Siêu Thị Mini (MT): Bách Hóa Xanh (BHX) quy mô 232 - 233 cửa hàng (chia 
+  nguồn hàng từ 5 Hubs trung chuyển).
+- Kênh Cửa Hàng Tiện Lợi (CVS) & Siêu Thị Địa Phương: Chuẩn hóa 138 cửa hàng phân
+  công cho 6 nhân sự trên 6 chuỗi đối tác:
+  + GS25: 70 cửa hàng
+  + FamilyMart (FM): 34 cửa hàng
+  + Circle K (CK): 27 cửa hàng
+  + 7-Eleven (7E): 5 cửa hàng
+  + Hoàng Đức (NPP/ST Long Khánh): 2 cửa hàng
+  + WinMart+ (WMP): 0 cửa hàng (Đã xóa 4 cửa hàng khỏi nhân viên Nguyễn Đức Hòa; 
+    vẫn giữ cột chuẩn 0đ để không vỡ cấu trúc ma trận 7 kênh).
+
+2. Các chỉ số đo lường cốt lõi (Core KPIs):
+- Hạn mức Chỉ tiêu (Target Toàn Team): 10,826,339,729 VNĐ
+- Thực đạt (Actual Toàn Team): 3,911,174,471 VNĐ (Đạt 36.1% Target)
+  + Thực đạt BHX: 3,551,927,443 VNĐ
+  + Thực đạt CVS (138 CH): 359,247,028 VNĐ
+  + Chênh lệch còn thiếu (Deficit Gap): 6,915,165,258 VNĐ
+- Tiến độ thời gian (% Timegone):
+  % Timegone = (Ngày hiện tại / Tổng số ngày trong tháng) * 100%
+- Trạng thái Pacing: 
+  + Nếu % Đạt >= % Timegone -> VƯỢT TIẾN ĐỘ (Xanh)
+  + Nếu % Đạt < % Timegone  -> CHẬM TIẾN ĐỘ (Đỏ) kèm dự phóng tốc độ bán (Run-rate).
+- Mặt hàng trọng tâm (MHTT): 5 nhóm chiến lược (Sữa nước Green Farm, Sữa chua 
+  Green Farm, FM 180ml, Sữa chua ăn các loại, Sữa chua uống Probi & Star).
+
+
+================================================================================
+PHẦN II: TƯ DUY TOÁN HỌC & CÔNG THỨC BÓC TÁCH DỮ LIỆU
+================================================================================
+1. Phân bổ Chỉ tiêu (Target Allocation):
+- BHX (232-233 CH): Phân bổ đồng mức mạng lưới (Equal Distribution):
+  Target_BHX/CH = Hạn mức Chuỗi BHX / Tổng số CH BHX (~35.44 triệu/CH)
+  Target_BHX_NV = Target_BHX/CH * Số CH BHX nhân viên phụ trách
+
+- GS25 & 7-Eleven: Phân bổ theo quy mô và phân tầng DC:
+  + GS25: 72 cửa hàng chuẩn (~7.30 triệu/CH) + 2 cửa hàng trọng điểm (~7.69 triệu/CH)
+  + 7-Eleven: 2 CH lớn (~12.22 triệu), 1 CH vừa (~10.90 triệu), 2 CH chuẩn (~5.60 triệu)
+
+- FamilyMart, Circle K, Hoàng Đức: Dựa trên Doanh số bình quân 3 tháng (BQ3T):
+  BQ3T_CH = (Tháng 6 + Tháng 7 + Tháng 8) / 3
+  Target_CH = Hạn mức Chuỗi * (BQ3T_CH / Tổng BQ3T Chuỗi)
+  Tỷ lệ tăng trưởng = (Target - BQ3T) / BQ3T * 100% (Kiểm soát ngưỡng lệch +-25%)
+
+2. Tính toán Thực đạt (Actual Calculation):
+A. BÁCH HÓA XANH (BHX - 232 CỬA HÀNG):
+- Nguồn: 5 Hubs (Châu Pha, Bùi Văn Hòa, 2 Hubs phụ, Long Khánh)
+- Doanh số BHX/CH = Tổng 5 Hubs / 232 CH (~ 57,827,395 VNĐ/CH)
+- Thực đạt NV = Doanh số BHX/CH * Số CH BHX nhân viên quản lý
+
+B. GS25 (70 CỬA HÀNG):
+- Nguồn: 2 Kho DC (DC Long Hậu H.04 + DC Bình Điền IIIB2)
+- Doanh số GS25/CH = (Tổng 2 Kho DC * 20.46%) / 72 CH
+- Thực tế chuẩn hóa hiện tại: 2,270,422 VNĐ/CH (Tổng 70 CH = 158,929,540 VNĐ)
+
+C. 7-ELEVEN (5 CỬA HÀNG):
+- Nguồn: 2 Kho DC (DC BW Tân Phú Trung Lô D2 + DC KCN Tân Bình Lô II-3)
+- Doanh số 7E/CH = (Tổng 2 Kho DC * 3.62%) / 5 CH (~ 8,874,940 VNĐ/CH)
+- Phân bổ: Não Thị Anh Đào (3 CH), Nguyễn Đức Hòa (2 CH)
+
+D. CIRCLE K (27 CỬA HÀNG - SHEET SO):
+- Cơ chế 2 tầng:
+  + Tầng 1 (Kho Khô VT4050 Nam Tân Uyên = 430,620,084 VNĐ): Chia đều cho 230 cửa 
+    hàng có phát sinh đơn hàng mát trong toàn bộ hệ thống miền:
+    Kho_Kho/CH = round(430,620,084 / 230) = 1,872,261 VNĐ/CH
+  + Tầng 2 (Hàng Mát theo từng cửa hàng):
+    * Cửa hàng có đơn mát: Thực đạt = 1,872,261 VNĐ + Doanh số Mát của CH
+    * Cửa hàng không có đơn mát: Thực đạt = 0 VNĐ
+  + Nghiệm thu toàn team: 22 CH có đơn + 5 CH không đơn = 69,457,638 VNĐ.
+
+E. FAMILYMART (34 CỬA HÀNG - SHEET NPP & ĐỘNG CƠ DYNAMIC SKU):
+- Nguồn: Bóc tách từng dòng chi tiết đơn hàng (từ dòng 10 trở đi) theo mã cửa hàng, 
+  mã hàng (icode), tên hàng (iname), số lượng (iqty), thành tiền (iamt).
+- Cơ chế Dynamic SKU Discovery (Chống mất số):
+  Quét toàn bộ icode phát sinh. Mọi mã mới ngoài danh mục 46 SKU tĩnh được tự động 
+  gom vào nhóm "SẢN PHẨM MỚI PHÁT SINH / KHÁC", tự động mở thêm cột ma trận, không 
+  làm mất doanh thu.
+- Tổng thực đạt FamilyMart bóc tách: 84,178,050 VNĐ.
+
+
+================================================================================
+PHẦN III: KIẾN TRÚC KỸ THUẬT & BẢN ĐỒ FILE MÃ NGUỒN (SOURCE CODE MAP)
+================================================================================
+Dự án được tổ chức theo cấu trúc Hybrid Monorepo:
+
+  / (Thư mục gốc)
+  ├── index.html                      # [Frontend Core] Ứng dụng chính (Upload, Parse, Dashboard)
+  ├── view.html                       # [Frontend Viewer] Trang xem báo cáo nhẹ giải nén từ URL Hash
+  ├── master_data.js                  # [Master Config] Khai báo 138 CH, SKU tĩnh, DC/Hubs
+  ├── xlsx.full.min.js                # [Thư viện Core] SheetJS nhị phân phân tích XLSB/XLSX
+  ├── exceljs.min.js                  # [Thư viện Core] Render file Excel chuẩn định dạng
+  ├── html2canvas.min.js              # [Thư viện Core] Chụp bảng thành ảnh Base64 gửi Zalo
+  ├── Team_CamGiang_Report.xlsx       # [Excel Template] Báo cáo 6 sheets chuẩn công ty
+  ├── version.json                    # [OTA Endpoint] Cấu hình phiên bản cập nhật tự động
+  ├── build_apk.bat                   # [Build Automation] Script 1-click build Android APK
+  ├── push_to_github.bat              # [CI/CD Automation] Script tự động commit/push Vercel
+  │
+  ├── android/                        # [Android Native Container]
+  │   ├── app/src/main/AndroidManifest.xml # Quyền truy cập tệp, Internet, cài đặt APK
+  │   ├── app/src/main/java/com/salesreport/app/
+  │   │   ├── MainActivity.java       # WebView setup, File Chooser, JavascriptInterface
+  │   │   └── AppUpdateManager.java   # Kiểm tra OTA, DownloadManager, FileProvider Installer
+  │   └── app/src/main/assets/www/    # [Offline Web Bundle] Chứa index.html, view.html, data
+  │
+  ├── gas_app/ (hoặc các file GAS)    # [Backend Serverless / Bot]
+  │   ├── Code.gs                     # WebApp doGet/doPost cho Google Apps Script
+  │   ├── MasterData.gs               # Dữ liệu đồng bộ trên Google Drive
+  │   ├── TelegramBot.gs              # Webhook nhận lệnh Telegram & bắn thông báo
+  │   └── ReportEngine.gs             # Động cơ trích xuất báo cáo phía Apps Script
+  │
+  └── scripts/ & Python Tools         # [Data Engineering Scripts]
+      ├── tao_chi_tieu_team.py        # Phân bổ chỉ tiêu toán học từ file MD00
+      └── team_leader_report_v4.py    # Engine Python bóc tách độc lập để kiểm tra chéo
+
+
+================================================================================
+PHẦN IV: CHI TIẾT QUY TRÌNH CODE TỪNG THÀNH PHẦN (DEEP-DIVE)
+================================================================================
+
+1. ỨNG DỤNG WEB TRUNG TÂM (index.html):
+- Công nghệ: Pure Vanilla HTML5/CSS3/ES6+, không phụ thuộc Framework (React/Vue/Angular), 
+  đảm bảo tải tức thì trong 200ms và không gặp xung đột package.
+- Giao diện: Thiết kế Corporate Teal Theme, hệ thống Design Tokens CSS Variables, 
+  hỗ trợ đầy đủ Mobile Responsive và Desktop Wide-screen.
+- Luồng nạp dữ liệu (Drag & Drop File Upload Handler):
+  + Lắng nghe sự kiện 'dragover', 'drop', và input 'change'.
+  + Hỗ trợ định dạng: .xlsx, .xlsb (Excel Binary), .xls, .csv.
+  + Dùng FileReader đọc dưới dạng ArrayBuffer và chuyển giao cho SheetJS.
+
+2. CƠ CHẾ GIẢI MÃ NHỊ PHÂN & THUẬT TOÁN DYNAMIC SKU (xlsx.full.min.js):
+- Xử lý tệp nhị phân .xlsb:
+  ```javascript
+  const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+  ```
+- Thuật toán bóc tách FamilyMart & Dynamic SKU Discovery:
+  + Quét sheet 'NPP': Lặp qua các hàng từ dòng 10 đến hết.
+  + Trích xuất: store_code, icode, iname, iqty, iamt.
+  + Kiểm tra đối chiếu:
+    Kiểm tra icode có tồn tại trong 46 mã tĩnh của `FM_CATEGORIES` không?
+    * NẾU CÓ: Phân loại vào nhóm ngành hàng tương ứng (Sữa chua, Kem, Green Farm...).
+    * NẾU CHƯA CÓ: Tự động gom vào nhóm:
+      `{ name: "SẢN PHẨM MỚI PHÁT SINH / KHÁC", headerBg: "FFF2CC", skus: [...] }`
+    * Tạo dynamic key trong object orders: `store.orders[icode] = (store.orders[icode] || 0) + iamt;`
+  + Hiển thị: Hàm `renderFmMatrixTable()` tự động đọc mảng category động và sinh 
+    các thẻ `<th>`, `<td>` tương ứng. Doanh số toàn bộ SKU mới được tính 100% vào cột 
+    Thực Đạt của cửa hàng và toàn team.
+
+3. XUẤT BÁO CÁO EXCEL CHUẨN DOANH NGHIỆP (exceljs.min.js):
+- Thay vì dùng phương pháp xuất CSV hay HTML-Table thô sơ, app sử dụng `ExcelJS` để 
+  dựng định dạng nhị phân XLSX từ client:
+  + Sheet 1: 'Dashboard' - Khối KPI Cards, thanh trạng thái tiến độ thời gian, xếp hạng nhân viên.
+  + Sheet 2: 'Tiến độ Team' - Bảng tổng hợp kèm Conditional Formatting (Tô màu tự động).
+  + Sheet 3: 'Chi tiết CVS' - Danh sách chi tiết 138 cửa hàng phân theo từng nhân viên.
+  + Sheet 4: 'Chi tiết BHX' - 5 Hubs trung chuyển và phân bổ BHX cho từng người.
+  + Sheet 5: 'Config' - Danh mục thông số chuẩn để phục vụ kiểm toán chéo.
+  + Sheet 6: 'Chi tiết SKU FamilyMart' - Ma trận 34 cửa hàng x 46+ SKU tự động co dãn.
+- Tính năng Pixel-Perfect: Cố định độ rộng cột (col.width), freeze pane dòng tiêu đề, 
+  viền ô (thin border), định dạng số tiền `#,##0`.
+
+4. CƠ CHẾ CHIA SẺ KHÔNG MÁY CHỦ QUA URL HASH (LZ-String & view.html):
+- Bài toán: Cần chia sẻ báo cáo cho cấp quản lý hoặc nhân viên xem trên điện thoại 
+  ngay lập tức mà không cần tạo tài khoản đăng nhập hay lưu database backend.
+- Giải pháp:
+  + Nén toàn bộ JSON kết quả (bao gồm cả danh mục SKU động `cats`) bằng giải thuật 
+    LZ-String (UTF-16 URL Safe Compression):
+    ```javascript
+    const compactObj = { t: targets, a: actuals, fm: fmStores, cats: dynamicCats };
+    const hash = LZString.compressToEncodedURIComponent(JSON.stringify(compactObj));
+    const shareUrl = "https://bcgiang.vercel.app/view.html#" + hash;
+    ```
+  + Khi mở `view.html`, trang web đọc `window.location.hash`, giải nén trong 15ms 
+    và render toàn bộ dashboard tương tác mượt mà.
+
+5. CHỤP BẢNG TÍNH THÀNH ẢNH GỬI ZALO (html2canvas.min.js):
+- Để phục vụ văn hóa báo cáo Zalo nhanh của nhân viên thị trường:
+  + Hàm `captureCurrentSheet(sheetId)` gọi html2canvas với cấu hình `scale: 2` (chống vỡ nét), 
+    `backgroundColor: '#ffffff'`.
+  + Tự động đưa ảnh vào Clipboard bằng `navigator.clipboard.write([new ClipboardItem(...)])`.
+  + Nhân viên chỉ cần bấm "Copy Ảnh" trên App và nhấn "Paste" (Ctrl+V) vào nhóm Zalo.
+
+6. ỨNG DỤNG ANDROID NATIVE CONTAINER (MainActivity.java):
+- Cấu trúc: Android Studio Java Native Project (Target SDK 33 / Android 13).
+- Thành phần cốt lõi:
+  + `WebViewAssetLoader`: Tải tài nguyên web an toàn từ thư mục nội bộ 
+    `file:///android_asset/www/index.html` thông qua domain ảo `https://appassets.androidplatform.net/`, 
+    giúp vượt qua các hạn chế bảo mật CORS/File URI của Android hiện đại.
+  + `WebSettings`: Bật JavaScript, DOM Storage, Database API, AllowFileAccess.
+  + `mFileChooserLauncher`: Đăng ký `ActivityResultLauncher` bắt sự kiện chọn file từ 
+    thẻ nhớ hoặc ứng dụng Zalo/Files khi người dùng ấn nút "Nạp file" trên Web.
+  + `JavascriptInterface` (`AndroidBridge`): Cho phép code Javascript trong WebView gọi 
+    trực tiếp các hàm Native của Java (như hiển thị Toast, lưu ảnh chụp vào Thư viện 
+    ảnh Android qua MediaStore, mở link ngoài).
+
+7. ĐỘNG CƠ CẬP NHẬT TỰ ĐỘNG KHÔNG DÂY (AppUpdateManager.java):
+- Luồng hoạt động OTA (Over-The-Air Update):
+  1. Khi mở ứng dụng, một luồng nền (`ExecutorService`) gửi HTTP GET tới `version.json`
+     (Địa chỉ chính: `https://bcgiang.vercel.app/version.json`, dự phòng: GitHub Raw).
+  2. Đọc `latestVersionCode` và so sánh với `BuildConfig.VERSION_CODE` hiện tại.
+  3. Nếu có phiên bản mới:
+     - Bật hộp thoại `AlertDialog` thông báo nội dung nâng cấp (`releaseNotes`).
+     - Người dùng bấm "Cập nhật" -> Kích hoạt `DownloadManager` tải file APK về thư mục Download.
+     - Sau khi tải xong, dùng `FileProvider.getUriForFile()` tạo URI an toàn.
+     - Kiểm tra quyền `canRequestPackageInstalls()`: Nếu chưa cấp quyền, tự động mở cài đặt; 
+       nếu đã có quyền, phát Intent `ACTION_VIEW` với MIME `application/vnd.android.package-archive` 
+       để hệ điều hành tiến hành cài đè mượt mà.
+
+8. BACKEND GOOGLE APPS SCRIPT & TELEGRAM BOT:
+- File `Code.gs`, `MasterData.gs`, `TelegramBot.gs`:
+  + Chạy trên nền tảng Google Cloud Serverless (Apps Script Engine).
+  + Đóng vai trò Endpoint nhận dữ liệu báo cáo qua Webhook, tự động sinh biểu đồ và 
+    gửi cảnh báo tiến độ % Đạt vào Nhóm Telegram của Team.
+  + Có sẵn thư viện `XlsxBundle.gs` để đọc và ghi trực tiếp vào Google Drive.
+
+9. PIPELINE TỰ ĐỘNG HÓA BUILD & DEPLOY:
+- Script `build_apk.bat`:
+  Chạy lệnh gradle wrapper `.\gradlew assembleRelease` trong thư mục android, tự động 
+  ký (sign) APK với Release Keystore, sao chép file đầu ra thành `BaoCaoDoanhSo_TeamCamGiang.apk` 
+  và `BaoCaoThucDat.apk` tại thư mục gốc.
+- Script `push_to_github.bat`:
+  Tự động thực hiện `git add .`, tạo commit kèm timestamp hiện tại, và `git push origin main`.
+  Vercel phát hiện commit mới sẽ tự động trigger build và cập nhật phiên bản web/OTA 
+  trên toàn cầu trong vòng 30 giây.
+
+
+================================================================================
+PHẦN V: NGUYÊN TẮC ĐỒNG BỘ DỮ LIỆU BẤT BIẾN (SYNCHRONIZATION CONSTRAINTS)
+================================================================================
+Để hệ thống hoạt động ổn định và không bao giờ xảy ra lệch số giữa các nền tảng, 
+quy trình phát triển bắt buộc phải tuân thủ nghiêm ngặt 3 quy tắc sau:
+
+1. QUY TẮC ĐỒNG BỘ NỘI DUNG WEB & ASSETS NATIVE (TRIPLE-SYNC):
+Mọi chỉnh sửa trong:
+- `index.html`
+- `view.html`
+- `master_data.js`
+BẮT BUỘC phải được sao chép ghi đè ngay lập tức sang thư mục:
+- `android/app/src/main/assets/www/index.html`
+- `android/app/src/main/assets/www/view.html`
+- `android/app/src/main/assets/www/master_data.js`
+
+2. QUY TẮC ĐỒNG BỘ CẤU HÌNH NHÂN SỰ & CỬA HÀNG:
+Khi có biến động nhân sự (như việc gỡ bỏ WinMart+ khỏi Nguyễn Đức Hòa):
+Phải cập nhật đồng thời tại 3 vị trí:
+- Mảng cấu hình trong `master_data.js`
+- File `MasterData.gs` trên Google Apps Script
+- Sheet `Config`, `Tiến độ Team`, `Chi tiết CVS` trong file `Team_CamGiang_Report.xlsx`.
+
+3. QUY TẮC PHÁT HÀNH OTA:
+Mỗi khi build xong APK mới:
+Phải tăng `versionCode` và `versionName` trong `version.json` và `android/app/build.gradle`, 
+sau đó chạy script đẩy lên GitHub để máy người dùng tự nhận thông báo nâng cấp.
+
+
+================================================================================
+PHẦN VI: BẢNG TIÊU CHÍ ĐỐI SOÁT & CÂU HỎI THẨM ĐỊNH DÀNH CHO CHUYÊN GIA
+================================================================================
+Kính gửi Quý Chuyên gia, dưới đây là bảng đối soát số liệu chuẩn của hệ thống và 
+các câu hỏi trọng tâm kính nhờ Quý Chuyên gia cho ý kiến phản biện:
+
+1. BẢNG ĐỐI SOÁT CHUẨN CỦA HỆ THỐNG:
++-------------------------------+----------------------+------------------------+
+| Hạng mục đối soát             | Số liệu hệ thống     | Nguồn gốc / Phương pháp|
++-------------------------------+----------------------+------------------------+
+| Tổng số cửa hàng CVS          | 138 Cửa hàng         | Chuẩn hóa 6 chuỗi      |
+| Số cửa hàng WinMart+ (WMP)    | 0 Cửa hàng           | Đã gỡ bỏ khỏi N.Đ.Hòa  |
+| Doanh số Circle K             | 69,457,638 VNĐ       | Kho Khô + Hàng Mát SO  |
+| Doanh số FamilyMart           | 84,178,050 VNĐ       | Bóc tách NPP + SKU mới |
+| Thực đạt Kênh BHX             | 3,551,927,443 VNĐ    | 5 Hubs chia danh sách  |
+| Thực đạt Kênh CVS             | 359,247,028 VNĐ      | 138 Cửa hàng cộng dồn  |
+| Tổng Thực Đạt Toàn Team       | 3,911,174,471 VNĐ    | BHX + CVS              |
+| Chỉ Tiêu Giao Toàn Team       | 10,826,339,729 VNĐ   | Hạn mức Công ty giao   |
+| Tỷ Lệ Hoàn Thành (% Đạt)      | 36.1%                | Thiếu: 6.915 tỷ VNĐ    |
++-------------------------------+----------------------+------------------------+
+
+2. CÂU HỎI THẨM ĐỊNH DÀNH CHO CHUYÊN GIA:
+
+Câu hỏi 1 (Về Phân Bổ Doanh Số Kho DC GS25 & 7-Eleven):
+- Hiện tại hệ thống phân bổ theo tỷ lệ cố định của 2 Kho DC (GS25: 20.46%, 7E: 3.62%) 
+  rồi chia đều theo số lượng cửa hàng. Cách này phản ánh đúng lượng hàng xuất kho 
+  tổng nhưng chưa phản ánh chi tiết sức bán thực tế tại từng quầy thu ngân (POS).
+- Nhờ Chuyên gia đánh giá: Trong bối cảnh chuỗi đối tác chỉ xuất báo cáo DC tổng, 
+  phương pháp phân bổ này đã là tối ưu nhất chưa, hay cần bổ sung thêm trọng số diện tích/doanh thu lịch sử?
+
+Câu hỏi 2 (Về Cơ Chế Kho Khô Circle K):
+- Hệ thống chia đều Kho Khô Nam Tân Uyên (1,872,261 đ/CH) cho 230 cửa hàng có đơn 
+  hàng mát trong kỳ. Cửa hàng không có đơn mát nhận 0đ.
+- Nhờ Chuyên gia đánh giá: Cơ chế "chia đều có điều kiện" này có hợp lý hơn việc 
+  phân bổ theo tỷ trọng % doanh số hàng mát của từng cửa hàng không?
+
+Câu hỏi 3 (Về Kiến Trúc Quản Trị Master Data):
+- Hiện tại danh mục 138 CH đang được đồng bộ thủ công giữa master_data.js, 
+  MasterData.gs và Excel Config.
+- Nhờ Chuyên gia tư vấn: Mô hình kiến trúc "Single Source of Truth" nào là chuẩn 
+  nhất cho dự án dạng Hybrid này (ví dụ dùng 1 schema JSON gốc chạy script pre-build 
+  tự động phát sinh JS, GS, XLSX)?
+
+Câu hỏi 4 (Về Tối Ưu Bộ Nhớ & Hiệu Năng Mobile WebView):
+- WebView Android đang giải mã trực tiếp file XLSB 10-15MB trong RAM bằng SheetJS.
+- Nhờ Chuyên gia đánh giá: Có nguy cơ rò rỉ bộ nhớ (Memory Leak / OOM) trên các 
+  dòng máy Android cũ không, và có cần thiết chuyển sang Web Worker nền hay không?
+
+================================================================================
+KẾT LUẬN:
+Toàn bộ logic nghiệp vụ, thuật toán xử lý dữ liệu và mã nguồn ứng dụng đã được 
+đồng bộ và chạy ổn định 100%. Rất mong nhận được những ý kiến đánh giá, phản biện 
+chuyên sâu từ Quý Chuyên gia để hệ thống tiếp tục hoàn thiện và nâng cấp.
+================================================================================

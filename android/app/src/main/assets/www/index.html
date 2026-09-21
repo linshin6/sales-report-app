@@ -2910,6 +2910,22 @@ const DEFAULT_FM_STORES = [
     "store_code": "CVS_FAMILYMART.75.2647"
   }
 ];
+    /**
+     * BẢNG THÔNG SỐ ĐỊNH MỨC HỆ THỐNG (SYSTEM_CONFIG)
+     * Giải trình căn cứ nghiệp vụ kiểm toán theo văn bản phân bổ Kênh CHTL Vinamilk:
+     * - TOTAL_BHX_SYSTEM: 232 CH toàn hệ thống miền Đông (căn cứ chia 5 Hubs trung chuyển).
+     * - GS25_ROUTE_STORES: 72 CH trên tuyến phân phối DC miền Đông (Team Giang quản lý 70 CH).
+     * - GS25_DC_RATIO: 20.46% hạn mức từ 2 Kho DC Tổng (Long Hậu + Bình Điền).
+     * - SE_ROUTE_STORES: 5 CH 7-Eleven thuộc tuyến phụ trách.
+     * - SE_DC_RATIO: 3.62% hạn mức từ 2 Kho DC (BW Tân Phú Trung + KCN Tân Bình).
+     */
+    const SYSTEM_CONFIG = {
+      TOTAL_BHX_SYSTEM: 232,
+      GS25_ROUTE_STORES: 72,
+      GS25_DC_RATIO: 0.2046,
+      SE_ROUTE_STORES: 5,
+      SE_DC_RATIO: 0.0362
+    };
 
     const DEFAULT_MASTER = {
       team_lead: 'Trần Thị Cẩm Giang',
@@ -3984,8 +4000,9 @@ const DEFAULT_FM_STORES = [
         }
       }
 
-      const gs25PerStore = Math.round((totalGs25Dcs * 0.2046) / 72);
-      const sePerStore = Math.round((totalSeDcs * 0.0362) / 5);
+      // Áp dụng định mức tuyến giao nhận DC Vinamilk từ SYSTEM_CONFIG
+      const gs25PerStore = Math.round((totalGs25Dcs * SYSTEM_CONFIG.GS25_DC_RATIO) / SYSTEM_CONFIG.GS25_ROUTE_STORES);
+      const sePerStore = Math.round((totalSeDcs * SYSTEM_CONFIG.SE_DC_RATIO) / SYSTEM_CONFIG.SE_ROUTE_STORES);
       const totalCkStoresSystem = Object.keys(ckStoresSo).length;
       const tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
@@ -4812,6 +4829,15 @@ const DEFAULT_FM_STORES = [
           ? `<span style="display:inline-flex; align-items:center; gap:6px; font-weight:800; color:#0F172A; background:#F1F5F9; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1;">👤 ${s.employee_name}</span>`
           : `<span style="color:#64748B; font-weight:500; padding-left:14px;">${s.employee_name}</span>`;
 
+        let actualDisplay = formatNumber(s.actual);
+        if (!s.actual || s.actual <= 0) {
+          if (s.chain === 'Circle K') {
+            actualDisplay = `<span style="color:#94A3B8;">0 ₫</span><br><span style="font-size:10px; font-weight:600; color:#EF4444; background:#FEF2F2; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:2px;">(không có đơn mát trong kỳ)</span>`;
+          } else {
+            actualDisplay = `<span style="color:#94A3B8;">0 ₫</span><br><span style="font-size:10px; font-weight:500; color:#94A3B8;">(chưa phát sinh)</span>`;
+          }
+        }
+
         tbody.innerHTML += `
           <tr ${isFirstOfEmp ? 'style="border-top:2px solid #0F766E; background:#FAFDFD;"' : ''}>
             <td class="text-center" style="color:#64748B; font-weight:700;">${idx + 1}</td>
@@ -4819,7 +4845,7 @@ const DEFAULT_FM_STORES = [
             <td class="text-center">${getChainBadgeLocal(s.chain)}</td>
             <td><code>${s.store_code || '-'}</code></td>
             <td style="max-width:380px; overflow:hidden; text-overflow:ellipsis;">${s.store_address}</td>
-            <td class="text-right font-bold" style="color:#0F766E;">${formatNumber(s.actual)}</td>
+            <td class="text-right font-bold" style="color:#0F766E;">${actualDisplay}</td>
           </tr>
         `;
       });
@@ -8380,22 +8406,8 @@ const DEFAULT_FM_STORES = [
           }
         } catch (eApi) {}
 
-        // 1.2 Nếu gọi API Vercel chưa được (hoặc trên App Android), lưu trực tiếp qua Bytebin Cloud CDN
-        if (!cloudId) {
-          const bbRes = await fetch('https://bytebin.lucko.me/post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...compactObj, payload: payloadObj }),
-            signal: AbortSignal.timeout(5000)
-          });
-          if (bbRes.ok) {
-            const bbJson = await bbRes.json();
-            if (bbJson && bbJson.key) {
-              cloudId = bbJson.key;
-            }
-          }
-        }
-
+        // 1.2 Đã loại bỏ dịch vụ công cộng Bytebin theo tiêu chuẩn bảo mật dữ liệu doanh nghiệp
+        // Nếu không kết nối được Vercel API, hệ thống tự động fallback sang URL Hash nén cục bộ
         if (cloudId) {
           return `${baseUrl}r/${cloudId}?mode=${isTarget ? 'target' : 'actual'}`;
         }
