@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 18,
-  "latestVersionName": "1.1.7",
+  "latestVersionCode": 19,
+  "latestVersionName": "1.1.8",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.7]\n• Khôi phục và bổ sung đầy đủ cột Chỉ Tiêu (Target), % Đạt và Cột Trạng Thái Tiến Độ (🟢 VƯỢT / 🟡 CẬN / 🔴 CHẬM so với Timegone) trên bảng báo cáo.\n• Tự động tải ngầm và bật thẳng hộp thoại cài đặt trực tiếp trong ứng dụng mà không cần mở trình duyệt.\n• Khắc phục hoàn toàn lỗi ảnh trắng khi copy/gửi bảng qua Zalo.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.8]\n• Nâng cấp bảo mật dữ liệu doanh nghiệp (loại bỏ liên kết ngoài).\n• Cập nhật chuẩn hóa mã cửa hàng 40 Thống Nhất (CVS_GS25.79.7021).\n• Bổ sung nhãn minh bạch đối soát cho cửa hàng Circle K không có đơn mát.\n• Tối ưu hóa hiệu năng và độ ổn định toàn hệ thống.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-20T20:33:00Z"
+  "updatedAt": "2026-09-21T15:26:00Z"
 }
