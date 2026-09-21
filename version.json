@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 20,
-  "latestVersionName": "1.1.9",
+  "latestVersionCode": 21,
+  "latestVersionName": "1.2.0",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.9]\n• Giao diện hiển thị doanh số 0 ₫ tinh gọn, sạch sẽ, chuẩn báo cáo điều hành.\n• Cập nhật chuẩn hóa mã cửa hàng 40 Thống Nhất (CVS_GS25.79.7021).\n• Tăng cường bảo mật và tối ưu độ ổn định hệ thống.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.0]\n• Khắc phục hiển thị tăng trưởng CVS trên thẻ KPI so sánh (tự động đối soát chuẩn xác theo từng mốc).\n• Kích hoạt tính năng Copy Ảnh và Tải Ảnh bảng So Sánh Tăng Trưởng sắc nét chuẩn Retina.\n• Bổ sung phân tách BHX & CVS trong tin nhắn Zalo tăng trưởng.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-21T15:33:00Z"
+  "updatedAt": "2026-09-21T16:24:00Z"
 }

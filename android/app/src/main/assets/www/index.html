@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.1.9</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.0</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -5256,6 +5256,7 @@ const DEFAULT_FM_STORES = [
         const pad = (n) => String(n).padStart(2, '0');
         const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())} - ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`;
         const totalActual = data.total_actual_team || data.employees.reduce((acc, x) => acc + (x.total_actual || 0), 0);
+        const totalCvs = (typeof data.total_cvs === 'number') ? data.total_cvs : ((data.total_actual || 0) - (data.total_actual_bhx || 0));
 
         // Tránh trùng lặp nếu người dùng bấm tính toán lại trong vòng 2 phút với cùng tổng số tiền
         const lastSnap = snapshots.length > 0 ? snapshots[0] : null;
@@ -5263,7 +5264,7 @@ const DEFAULT_FM_STORES = [
           lastSnap.timeStr = timeStr;
           lastSnap.total_actual = totalActual;
           lastSnap.total_bhx = data.total_actual_bhx || 0;
-          lastSnap.total_cvs = data.total_actual_cvs || 0;
+          lastSnap.total_cvs = totalCvs;
           localStorage.setItem(SNAPSHOT_STORAGE_KEY, JSON.stringify(snapshots));
           updateCompareSelectors();
           updateGrowthBanner();
@@ -5277,7 +5278,7 @@ const DEFAULT_FM_STORES = [
           label: `Mốc ${timeStr} (${formatNumber(totalActual)} đ)`,
           total_actual: totalActual,
           total_bhx: data.total_actual_bhx || 0,
-          total_cvs: data.total_actual_cvs || 0,
+          total_cvs: totalCvs,
           total_target: data.total_target || 0,
           timegone: data.timegone || 0,
           employees: data.employees.map(e => ({
@@ -5348,7 +5349,13 @@ const DEFAULT_FM_STORES = [
       const prev = snapshots[1];
       const deltaTotal = curr.total_actual - prev.total_actual;
       const deltaBhx = (curr.total_bhx || 0) - (prev.total_bhx || 0);
-      const deltaCvs = (curr.total_cvs || 0) - (prev.total_cvs || 0);
+      const currCvs = (typeof curr.total_cvs === 'number' && curr.total_cvs > 0) 
+        ? curr.total_cvs 
+        : ((curr.total_actual || 0) - (curr.total_bhx || 0));
+      const prevCvs = (typeof prev.total_cvs === 'number' && prev.total_cvs > 0) 
+        ? prev.total_cvs 
+        : ((prev.total_actual || 0) - (prev.total_bhx || 0));
+      const deltaCvs = currCvs - prevCvs;
       const pctGrowth = prev.total_actual > 0 ? ((deltaTotal / prev.total_actual) * 100).toFixed(1) : '0.0';
 
       const sign = deltaTotal >= 0 ? '+' : '';
@@ -5418,7 +5425,13 @@ const DEFAULT_FM_STORES = [
 
       const deltaTotal = snapBase.total_actual - snapTarget.total_actual;
       const deltaBhx = (snapBase.total_bhx || 0) - (snapTarget.total_bhx || 0);
-      const deltaCvs = (snapBase.total_cvs || 0) - (snapTarget.total_cvs || 0);
+      const baseCvs = (typeof snapBase.total_cvs === 'number' && snapBase.total_cvs > 0) 
+        ? snapBase.total_cvs 
+        : ((snapBase.total_actual || 0) - (snapBase.total_bhx || 0));
+      const targetCvs = (typeof snapTarget.total_cvs === 'number' && snapTarget.total_cvs > 0) 
+        ? snapTarget.total_cvs 
+        : ((snapTarget.total_actual || 0) - (snapTarget.total_bhx || 0));
+      const deltaCvs = baseCvs - targetCvs;
       const pctGrowth = snapTarget.total_actual > 0 ? ((deltaTotal / snapTarget.total_actual) * 100).toFixed(1) : '0.0';
 
       let topGrower = null;
@@ -5546,6 +5559,11 @@ const DEFAULT_FM_STORES = [
       const pctGrowth = snapTarget.total_actual > 0 ? ((deltaTotal / snapTarget.total_actual) * 100).toFixed(1) : '0.0';
       const signTot = deltaTotal >= 0 ? '+' : '';
 
+      const baseCvs = (typeof snapBase.total_cvs === 'number' && snapBase.total_cvs > 0) ? snapBase.total_cvs : ((snapBase.total_actual || 0) - (snapBase.total_bhx || 0));
+      const targetCvs = (typeof snapTarget.total_cvs === 'number' && snapTarget.total_cvs > 0) ? snapTarget.total_cvs : ((snapTarget.total_actual || 0) - (snapTarget.total_bhx || 0));
+      const deltaBhx = (snapBase.total_bhx || 0) - (snapTarget.total_bhx || 0);
+      const deltaCvs = baseCvs - targetCvs;
+
       const empMapTarget = {};
       (snapTarget.employees || []).forEach(e => { empMapTarget[e.name] = e.total_actual; });
 
@@ -5558,8 +5576,10 @@ const DEFAULT_FM_STORES = [
       let msg = `📈 BÁO CÁO TĂNG TRƯỞNG DOANH SỐ - TEAM CẨM GIANG\n`;
       msg += `📍 So sánh: Mốc ${snapBase.timeStr} vs ${snapTarget.timeStr}\n\n`;
       msg += `🔥 TỔNG TEAM TĂNG: ${signTot}${formatNumber(deltaTotal)} ₫ (${signTot}${pctGrowth}%)\n`;
-      msg += `• Doanh số hiện tại: ${formatNumber(snapBase.total_actual)} ₫\n`;
-      msg += `• Doanh số mốc trước: ${formatNumber(snapTarget.total_actual)} ₫\n\n`;
+      msg += `• Kênh BHX tăng: ${deltaBhx >= 0 ? '+' : ''}${formatNumber(deltaBhx)} ₫\n`;
+      msg += `• Kênh CVS tăng: ${deltaCvs >= 0 ? '+' : ''}${formatNumber(deltaCvs)} ₫\n`;
+      msg += `• Tổng doanh số hiện tại: ${formatNumber(snapBase.total_actual)} ₫\n`;
+      msg += `• Tổng doanh số mốc trước: ${formatNumber(snapTarget.total_actual)} ₫\n\n`;
       msg += `Chi tiết tăng trưởng từng nhân viên:\n`;
 
       compRows.forEach((r, idx) => {
@@ -5806,7 +5826,7 @@ const DEFAULT_FM_STORES = [
     let currentCapturedFileName = 'Bao_Cao.png';
 
     async function captureCurrentSheet(sheetKey, autoDownload = false) {
-      if (!processedReportData) {
+      if (!processedReportData && sheetKey !== 'tabCompare') {
         alert('Vui lòng nạp 2 file doanh số hoặc bấm "Xem Thử Với Dữ Liệu Mẫu" trước khi chụp ảnh!');
         return;
       }
@@ -5854,6 +5874,14 @@ const DEFAULT_FM_STORES = [
         subTitle = 'Chi Tiết Đơn Hàng & 46 SKU FamilyMart' + (pg ? (' - PG: ' + pg) : ' (35 Cửa Hàng)');
         await captureTableAsImage(containerId, baseName, subTitle, autoDownload, false);
         return;
+      } else if (sheetKey === 'tabCompare') {
+        containerId = 'compareTableContainer';
+        baseName = 'So_Sanh_Tang_Truong_Team';
+        const thTarget = document.getElementById('thCompareTargetLabel');
+        const thBase = document.getElementById('thCompareBaseLabel');
+        const targetText = thTarget ? thTarget.innerText.replace(' (VNĐ)', '').trim() : 'Kỳ Trước';
+        const baseText = thBase ? thBase.innerText.replace(' (VNĐ)', '').trim() : 'Kỳ Này';
+        subTitle = 'Bảng So Sánh Tăng Trưởng Doanh Số (' + targetText + ' ↔ ' + baseText + ')';
       }
 
       await captureTableAsImage(containerId, baseName, subTitle, autoDownload, false);
@@ -5944,8 +5972,10 @@ const DEFAULT_FM_STORES = [
       headerDiv.style.fontFamily = "'Plus Jakarta Sans', Calibri, sans-serif";
       headerDiv.style.minWidth = '100%';
 
-      const timePct = processedReportData ? processedReportData.timegone : 0;
+      const timePct = (processedReportData && typeof processedReportData.timegone === 'number') ? processedReportData.timegone : 0;
       const empCount = (processedReportData && processedReportData.employees) ? processedReportData.employees.length : 10;
+      const repMonth = (processedReportData && processedReportData.month) ? processedReportData.month : (new Date().getMonth() + 1);
+      const repYear = (processedReportData && processedReportData.year) ? processedReportData.year : new Date().getFullYear();
 
       const titleH = document.createElement('div');
       titleH.style.flex = '1';
@@ -5953,7 +5983,7 @@ const DEFAULT_FM_STORES = [
       const now = new Date();
       titleH.innerHTML = `
         <div style="font-size:18px; font-weight:800; color:#1F4E78; display:flex; align-items:center; gap:8px;">
-          <span>📊</span> BÁO CÁO DOANH SỐ TEAM CẨM GIANG (Tháng ${processedReportData.month}/${processedReportData.year})
+          <span>📊</span> BÁO CÁO DOANH SỐ TEAM CẨM GIANG (Tháng ${repMonth}/${repYear})
         </div>
         ${subTitle ? `<div style="font-size:14px; font-weight:700; color:#2563EB; margin-top:4px;">${subTitle}</div>` : ''}
         <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
@@ -8738,9 +8768,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.1.9",
-      versionCode: 20,
-      buildDate: "15:33 - 21/09/2026"
+      versionName: "v1.2.0",
+      versionCode: 21,
+      buildDate: "16:24 - 21/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8988,9 +9018,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.1.9</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.0</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">15:33 - 21/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">16:24 - 21/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
