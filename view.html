@@ -1959,15 +1959,6 @@
           : (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : ''));
         const displayAddr = s.store_address || s.address || '';
 
-        let valDisplay = formatMoney(val);
-        if (val <= 0) {
-          if (s.chain && s.chain.includes('Circle K')) {
-            valDisplay = `<span style="color:#94A3B8;">0 ₫</span><br><span style="font-size:10px; font-weight:600; color:#EF4444; background:#FEF2F2; padding:2px 6px; border-radius:4px; display:inline-block; margin-top:2px;">(không có đơn mát trong kỳ)</span>`;
-          } else {
-            valDisplay = `<span style="color:#94A3B8;">0 ₫</span><br><span style="font-size:10px; font-weight:500; color:#94A3B8;">(chưa phát sinh)</span>`;
-          }
-        }
-
         tbody.innerHTML += `
           <tr ${isFirstOfEmp ? 'style="border-top:2px solid #0F766E; background:#FAFDFD;"' : ''}>
             <td class="text-center font-bold" style="color:#64748B;">${idx + 1}</td>
@@ -1976,7 +1967,7 @@
             <td class="font-bold" style="color:#1E293B;"><code>${s.store_code || '-'}</code></td>
             <td style="font-weight:600;">${displayName}</td>
             <td style="max-width:350px; font-size:11.5px; color:#475569;">${displayAddr}</td>
-            <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${valDisplay}</td>
+            <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${formatMoney(val)}</td>
           </tr>
         `;
       });

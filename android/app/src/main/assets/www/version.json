@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 19,
-  "latestVersionName": "1.1.8",
+  "latestVersionCode": 20,
+  "latestVersionName": "1.1.9",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.8]\n• Nâng cấp bảo mật dữ liệu doanh nghiệp (loại bỏ liên kết ngoài).\n• Cập nhật chuẩn hóa mã cửa hàng 40 Thống Nhất (CVS_GS25.79.7021).\n• Bổ sung nhãn minh bạch đối soát cho cửa hàng Circle K không có đơn mát.\n• Tối ưu hóa hiệu năng và độ ổn định toàn hệ thống.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.1.9]\n• Giao diện hiển thị doanh số 0 ₫ tinh gọn, sạch sẽ, chuẩn báo cáo điều hành.\n• Cập nhật chuẩn hóa mã cửa hàng 40 Thống Nhất (CVS_GS25.79.7021).\n• Tăng cường bảo mật và tối ưu độ ổn định hệ thống.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-21T15:26:00Z"
+  "updatedAt": "2026-09-21T15:33:00Z"
 }
