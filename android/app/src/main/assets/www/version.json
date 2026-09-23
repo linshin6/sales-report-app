@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 21,
-  "latestVersionName": "1.2.0",
+  "latestVersionCode": 22,
+  "latestVersionName": "1.2.1",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.0]\n• Khắc phục hiển thị tăng trưởng CVS trên thẻ KPI so sánh (tự động đối soát chuẩn xác theo từng mốc).\n• Kích hoạt tính năng Copy Ảnh và Tải Ảnh bảng So Sánh Tăng Trưởng sắc nét chuẩn Retina.\n• Bổ sung phân tách BHX & CVS trong tin nhắn Zalo tăng trưởng.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.1]\n• Khôi phục link báo cáo siêu ngắn (dạng /r/T4W6bdWLAw) thay vì link dài hash.\n• Tối ưu hệ thống rút gọn link 3 tầng: Vercel KV → Bytebin CDN → Hash nén.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-21T16:24:00Z"
+  "updatedAt": "2026-09-23T20:52:00Z"
 }
