@@ -1156,7 +1156,20 @@
               }
             } catch (eApi) {}
 
-            // 1.2 Đã loại bỏ đọc từ Bytebin công cộng để bảo mật dữ liệu doanh nghiệp
+            // 1.2 Nếu API local/chưa có, thử trực tiếp từ Bytebin Cloud CDN
+            if (!fetched) {
+              const bbRes = await fetch(`https://bytebin.lucko.me/${encodeURIComponent(idParam)}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (bbRes.ok) {
+                const d = await bbRes.json();
+                const rep = parseDataPayload(d);
+                if (rep) {
+                  reportData = rep;
+                  fetched = true;
+                }
+              }
+            }
           } catch (eId) {
             console.warn('Lỗi tải báo cáo theo ID:', eId);
           }

@@ -8427,8 +8427,22 @@ const DEFAULT_FM_STORES = [
           }
         } catch (eApi) {}
 
-        // 1.2 Đã loại bỏ dịch vụ công cộng Bytebin theo tiêu chuẩn bảo mật dữ liệu doanh nghiệp
-        // Nếu không kết nối được Vercel API, hệ thống tự động fallback sang URL Hash nén cục bộ
+        // 1.2 Nếu gọi API Vercel chưa được (hoặc trên App Android), lưu trực tiếp qua Bytebin Cloud CDN
+        if (!cloudId) {
+          const bbRes = await fetch('https://bytebin.lucko.me/post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...compactObj, payload: payloadObj }),
+            signal: AbortSignal.timeout(5000)
+          });
+          if (bbRes.ok) {
+            const bbJson = await bbRes.json();
+            if (bbJson && bbJson.key) {
+              cloudId = bbJson.key;
+            }
+          }
+        }
+
         if (cloudId) {
           return `${baseUrl}r/${cloudId}?mode=${isTarget ? 'target' : 'actual'}`;
         }
