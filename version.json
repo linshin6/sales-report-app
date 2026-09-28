@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 24,
-  "latestVersionName": "1.2.3",
+  "latestVersionCode": 25,
+  "latestVersionName": "1.2.4",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.3 - TỰ ĐỘNG LƯU DỮ LIỆU THỰC ĐẠT VĨNH VIỄN]\n• Tự động lưu giữ số liệu thực đạt trên app: Tắt app mở lại vẫn hiển thị 100% dữ liệu đã nạp.\n• Không cần phải nạp lại 2 file Excel mỗi lần mở app, chỉ nạp khi có dữ liệu ngày mới.\n• Bổ sung banner thông báo dữ liệu đã lưu, nút \"Nạp 2 File Mới\" và \"Xóa Đã Lưu\".\n• Đồng bộ link cố định https://bcgiang.vercel.app/r luôn cập nhật thực đạt mới nhất.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.4 - CHUẨN HÓA CÔNG THỨC CIRCLE K ĐỘNG]\n• Tự động quét toàn bộ mã chuỗi Circle K (VT*) và nhận diện động chính xác 274 cửa hàng có đơn.\n• Tự động chia đều Kho Khô Nam Tân Uyên theo đúng số cửa hàng phát sinh đơn thực tế trong kỳ.\n• Khớp chuẩn 100% từng dòng bảng tính Excel, loại bỏ hoàn toàn chênh lệch ~500k.\n• Đồng bộ link cố định https://bcgiang.vercel.app/r luôn cập nhật thực đạt mới nhất.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-28T13:17:00Z"
+  "updatedAt": "2026-09-28T14:05:00Z"
 }

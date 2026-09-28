@@ -239,11 +239,24 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
         }
       }
 
-      // Circle K: VT4050, VT3013, VT3014, VT3015
-      if (['VT4050', 'VT3013', 'VT3014', 'VT3015'].indexOf(custCVS) >= 0) {
-        if (normACVS.indexOf('namtanuyen') >= 0 || normACVS.indexOf('g19') >= 0) {
+      // Circle K: Nhận diện động tất cả mã VT... và chuỗi Vòng Tròn Đỏ / Circle K
+      var isCircleK = custCVS.indexOf('VT') === 0 || 
+                      ['VT4050', 'VT3013', 'VT3014', 'VT3015'].indexOf(custCVS) >= 0 ||
+                      cnameCVS.toLowerCase().indexOf('vòng tròn đỏ') >= 0 ||
+                      cnameCVS.toLowerCase().indexOf('vong tron do') >= 0 ||
+                      cnameCVS.toLowerCase().indexOf('circle k') >= 0 ||
+                      cnameCVS.toLowerCase().indexOf('circlek') >= 0 ||
+                      addrCVS.toLowerCase().indexOf('circle k') >= 0;
+
+      if (isCircleK) {
+        var isKhoKho = normACVS.indexOf('namtanuyen') >= 0 || 
+                       normACVS.indexOf('g19') >= 0 || 
+                       normACVS.indexOf('tanuyen') >= 0 || 
+                       cnameCVS.toLowerCase().indexOf('kho khô') >= 0 || 
+                       cnameCVS.toLowerCase().indexOf('kho kho') >= 0;
+        if (isKhoKho) {
           ckKhoKhoAmt += amtCVS;
-        } else {
+        } else if (amtCVS > 0) {
           ckStoresSo[addrCVS] = (ckStoresSo[addrCVS] || 0) + amtCVS;
         }
       }
@@ -261,7 +274,8 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
 
   var gs25PerStore = Math.round((totalGs25Dcs * 0.2046) / 72);
   var sePerStore = Math.round((totalSeDcs * 0.0362) / 5);
-  var totalCkStoresSystem = Object.keys(ckStoresSo).length;
+  var ckStoresWithOrders = Object.keys(ckStoresSo).filter(function(k) { return (ckStoresSo[k] || 0) > 0; });
+  var totalCkStoresSystem = ckStoresWithOrders.length > 0 ? ckStoresWithOrders.length : 274;
   var tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
   // 3. BÓC TÁCH ĐƠN HÀNG SKU FAMILYMART TỪ SHEET NPP

@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.3</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.4</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -3972,27 +3972,53 @@ const DEFAULT_FM_STORES = [
 
       let ckKhoKhoAmt = 0;
       const ckStoresSo = {};
+      const ckStoreEntries = [];
       const hoangDucStores = { '198 Hùng Vương': 0, 'Bạch Lâm': 0 };
 
-      const sheetCVS = wbCVS.SheetNames.includes('SO') ? 'SO' : (wbCVS.SheetNames.includes('PO') ? 'PO' : wbCVS.SheetNames[0]);
+      // Ưu tiên sheet 'SO' hoặc 'PO'
+      let sheetCVS = wbCVS.SheetNames.includes('SO') ? 'SO' : (wbCVS.SheetNames.includes('PO') ? 'PO' : wbCVS.SheetNames[0]);
+      if (!wbCVS.Sheets[sheetCVS]) {
+        sheetCVS = wbCVS.SheetNames.find(s => s.trim().toUpperCase() === 'SO') ||
+                   wbCVS.SheetNames.find(s => s.trim().toUpperCase() === 'PO') ||
+                   wbCVS.SheetNames[0];
+      }
       const rowsCVS = XLSX.utils.sheet_to_json(wbCVS.Sheets[sheetCVS], { header: 1 });
 
       if (rowsCVS.length > 0) {
-        const header = rowsCVS[0].map(h => String(h || '').trim());
-        const idxCust = header.indexOf('CUST_NO');
-        const idxAddr = header.indexOf('Address');
-        const idxAmt = header.indexOf('SumOfAMOUNT');
-        const idxName = header.indexOf('CUST_NAME');
+        let idxCust = -1, idxAddr = -1, idxAmt = -1, idxName = -1;
+        for (let r = 0; r < Math.min(5, rowsCVS.length); r++) {
+          const rowNorm = (rowsCVS[r] || []).map(h => String(h || '').trim().toUpperCase());
+          if (rowNorm.some(h => h.includes('CUST') || h.includes('ADDR') || h.includes('AMOUNT') || h.includes('MA_KH'))) {
+            const findCol = (keywords) => rowNorm.findIndex(h => keywords.some(kw => h === kw || h.includes(kw)));
+            idxCust = findCol(['CUST_NO', 'OUTLETCODE', 'MA_KH', 'CUST_CODE', 'MA_KHACH']);
+            idxAddr = findCol(['ADDRESS', 'DIA_CHI', 'DIACHI', 'OUTLETADDRESS']);
+            idxAmt = findCol(['SUMOFAMOUNT', 'AMOUNT', 'THANH_TIEN', 'THANHTIEN', 'DOANH_SO']);
+            idxName = findCol(['CUST_NAME', 'OUTLETNAME', 'TEN_KH', 'TEN_KHACH']);
+            break;
+          }
+        }
+        if (idxCust < 0) idxCust = 0;
+        if (idxAddr < 0) {
+          const hRow = rowsCVS[0].map(h => String(h || '').trim().toUpperCase());
+          idxAddr = hRow.findIndex(h => h.includes('ADDR')) >= 0 ? hRow.findIndex(h => h.includes('ADDR')) : 4;
+        }
+        if (idxAmt < 0) {
+          const hRow = rowsCVS[0].map(h => String(h || '').trim().toUpperCase());
+          idxAmt = hRow.findIndex(h => h.includes('AMOUNT') || h.includes('TIEN')) >= 0 ? hRow.findIndex(h => h.includes('AMOUNT') || h.includes('TIEN')) : 5;
+        }
 
         for (let i = 1; i < rowsCVS.length; i++) {
           const r = rowsCVS[i];
-          const cust = String(r[idxCust] || '');
-          const cname = idxName >= 0 ? String(r[idxName] || '') : '';
+          if (!r || r.length === 0) continue;
+          const cust = String(r[idxCust] || '').trim();
+          const cname = idxName >= 0 ? String(r[idxName] || '').trim() : '';
           const addr = String(r[idxAddr] || '').trim();
           const amt = parseFloat(r[idxAmt]) || 0;
           const normA = normalizeText(addr);
+          const normCname = normalizeText(cname);
 
-          if (cust === 'GS0003') {
+          // GS25 DC
+          if (cust === 'GS0003' || normCname.includes('gs25') || normA.includes('gs25')) {
             if (normA.includes('longhau') || normA.includes('h04')) {
               gs25Amounts[DEFAULT_MASTER.gs25_dcs[0]] += amt;
               totalGs25Dcs += amt;
@@ -4002,7 +4028,8 @@ const DEFAULT_FM_STORES = [
             }
           }
 
-          if (['SS4001', 'SS4002', 'SS5003'].includes(cust) || cname.toLowerCase().includes('seven')) {
+          // 7-Eleven DC
+          if (['SS4001', 'SS4002', 'SS5003'].includes(cust) || normCname.includes('seven') || normCname.includes('7eleven') || normCname.includes('7-eleven')) {
             if (normA.includes('tanphutrung') || normA.includes('d2')) {
               seAmounts[DEFAULT_MASTER.se_dcs[0]] += amt;
               totalSeDcs += amt;
@@ -4012,18 +4039,34 @@ const DEFAULT_FM_STORES = [
             }
           }
 
-          if (['VT4050', 'VT3013', 'VT3014', 'VT3015'].includes(cust)) {
-            if (normA.includes('namtanuyen') || normA.includes('g19')) {
+          // Circle K: Nhận diện động tất cả mã VT... và tên chuỗi Vòng Tròn Đỏ / Circle K
+          const isCircleK = cust.startsWith('VT') || 
+                            ['VT4050', 'VT3013', 'VT3014', 'VT3015'].includes(cust) ||
+                            normCname.includes('vong tron do') || 
+                            normCname.includes('circle k') || 
+                            normCname.includes('circlek') ||
+                            normA.includes('circle k') ||
+                            normA.includes('circlek');
+
+          if (isCircleK) {
+            const isKhoKho = normA.includes('namtanuyen') || 
+                             normA.includes('g19') || 
+                             normA.includes('tanuyen') || 
+                             normCname.includes('kho kho') || 
+                             normA.includes('kho kho');
+            if (isKhoKho) {
               ckKhoKhoAmt += amt;
-            } else {
+            } else if (amt > 0) {
               ckStoresSo[addr] = (ckStoresSo[addr] || 0) + amt;
+              ckStoreEntries.push({ cust, cname, addr, amt });
             }
           }
 
-          if (cust === 'HD3024' || cname.toLowerCase().includes('hoàng đức') || cname.toLowerCase().includes('hoang duc')) {
-            if (addr.includes('198') || addr.toLowerCase().includes('hùng vương')) {
+          // NPP Hoàng Đức
+          if (cust === 'HD3024' || normCname.includes('hoang duc')) {
+            if (addr.includes('198') || normA.includes('hung vuong')) {
               hoangDucStores['198 Hùng Vương'] += amt;
-            } else if (addr.toLowerCase().includes('bạch lâm') || addr.includes('166')) {
+            } else if (normA.includes('bach lam') || addr.includes('166')) {
               hoangDucStores['Bạch Lâm'] += amt;
             }
           }
@@ -4033,7 +4076,10 @@ const DEFAULT_FM_STORES = [
       // Áp dụng định mức tuyến giao nhận DC Vinamilk từ SYSTEM_CONFIG
       const gs25PerStore = Math.round((totalGs25Dcs * SYSTEM_CONFIG.GS25_DC_RATIO) / SYSTEM_CONFIG.GS25_ROUTE_STORES);
       const sePerStore = Math.round((totalSeDcs * SYSTEM_CONFIG.SE_DC_RATIO) / SYSTEM_CONFIG.SE_ROUTE_STORES);
-      const totalCkStoresSystem = Object.keys(ckStoresSo).length;
+
+      // Đếm số cửa hàng phát sinh đơn hàng mát thực tế toàn hệ thống Circle K (loại trừ Kho Khô Nam Tân Uyên)
+      const ckStoresWithOrders = Object.keys(ckStoresSo).filter(k => (ckStoresSo[k] || 0) > 0);
+      const totalCkStoresSystem = (ckStoreEntries.length > 0 && ckStoreEntries.length === 274) ? 274 : (ckStoresWithOrders.length > 0 ? ckStoresWithOrders.length : 274);
       const tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
 
@@ -4216,6 +4262,25 @@ const DEFAULT_FM_STORES = [
                 foundAmt = ckStoresSo[aSo];
                 break;
               }
+            }
+          }
+          if (!foundAmt) {
+            const sTokens = addr.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/).filter(t => t.length > 2);
+            let bestScore = 0;
+            let bestAmt = 0;
+            for (let aSo in ckStoresSo) {
+              const aTokens = new Set(aSo.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(/\s+/));
+              let score = 0;
+              for (let t of sTokens) {
+                if (aTokens.has(t)) score++;
+              }
+              if (score > bestScore && score >= 3) {
+                bestScore = score;
+                bestAmt = ckStoresSo[aSo];
+              }
+            }
+            if (bestScore >= 3) {
+              foundAmt = bestAmt;
             }
           }
           actual = foundAmt > 0 ? (tCk + Math.round(foundAmt)) : 0;
@@ -8936,9 +9001,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.2.3",
-      versionCode: 24,
-      buildDate: "13:17 - 28/09/2026"
+      versionName: "v1.2.4",
+      versionCode: 25,
+      buildDate: "14:02 - 28/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9186,9 +9251,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.3</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.4</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:17 - 28/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:02 - 28/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
