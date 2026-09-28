@@ -8950,6 +8950,24 @@ const DEFAULT_FM_STORES = [
             processedReportData = cloudData;
             try { localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(cloudData)); } catch (e) {}
             try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(cloudData)); } catch (e) {}
+
+            // Đồng bộ Master Data và danh sách cửa hàng
+            if (cloudData.stores && cloudData.stores.length > 0) {
+              currentMaster.cvs_stores = cloudData.stores;
+              allStoresList = cloudData.stores;
+            }
+            if (cloudData.employees && cloudData.employees.length > 0) {
+              currentMaster.employees = cloudData.employees.map(e => ({
+                name: e.name,
+                bhx_stores: e.bhx_stores || 0,
+                target: e.target || 0
+              }));
+              try { localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster)); } catch (e) {}
+            }
+            if (cloudData.total_stores_bhx) currentMaster.total_stores_bhx = cloudData.total_stores_bhx;
+            if (cloudData.total_stores_bhx_team) currentMaster.total_stores_bhx_team = cloudData.total_stores_bhx_team;
+            updateTargetBannerUI();
+
             if (cloudData.mode) {
               window.currentReportMode = cloudData.mode;
               setReportMode(cloudData.mode);
@@ -8967,6 +8985,16 @@ const DEFAULT_FM_STORES = [
       }
     }
 
+    // Tự động kiểm tra đồng bộ khi người dùng chuyển lại tab này
+    window.addEventListener('focus', () => {
+      autoFetchLatestReportFromCloud();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        autoFetchLatestReportFromCloud();
+      }
+    });
+
     // Khởi tạo
     window.onload = function() {
       // Tải cấu hình Master Data / Target từ localStorage nếu có (Vercel)
@@ -8976,10 +9004,12 @@ const DEFAULT_FM_STORES = [
           const parsed = JSON.parse(savedMaster);
           if (parsed && parsed.employees) {
             const sumTgt = parsed.employees.reduce((a, b) => a + (b.target || 0), 0);
-            // Kiểm tra tính hợp lệ: Target toàn team chuẩn là 7.6 tỷ - 10.8 tỷ.
-            // Nếu cache cũ bị cộng dồn vượt quá 15 tỷ (do lỗi nhân 3 cũ) hoặc sai tháng, tự động xóa cache và nạp chuẩn Target Tháng 9!
-            if (sumTgt > 15000000000 || parsed.month !== 9) {
-              console.warn('Phát hiện cache Target cũ không chính xác (>15 tỷ hoặc sai tháng), tự động reset về Target chuẩn Tháng 9!');
+            const minStores = (typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.stores) ? DEFAULT_MASTER.stores.length : 141;
+
+            // Nếu cache cũ bị cộng dồn vượt quá 15 tỷ hoặc sai tháng, hoặc target cũ (7.625.630.123 đ) hoặc danh mục cũ 138 CH,
+            // tự động xóa cache và nạp chuẩn Target & 141 Cửa hàng mới nhất!
+            if (sumTgt > 15000000000 || parsed.month !== 9 || sumTgt === 7625630123 || !parsed.cvs_stores || parsed.cvs_stores.length < minStores) {
+              console.warn('Phát hiện cache Target/CVS cũ (138 CH / 7.625 tỷ), tự động cập nhật về Master mới nhất (141 CH / 7.595 tỷ)!');
               localStorage.removeItem('CUSTOM_MASTER_DATA');
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
@@ -9029,7 +9059,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.2.6",
       versionCode: 27,
-      buildDate: "17:08 - 28/09/2026"
+      buildDate: "19:03 - 28/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9279,7 +9309,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.6</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">17:08 - 28/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">19:03 - 28/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

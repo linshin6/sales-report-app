@@ -3387,6 +3387,14 @@
     }
 
     window.addEventListener('DOMContentLoaded', init);
+    window.addEventListener('focus', () => {
+      if (typeof refreshLatestReport === 'function') refreshLatestReport();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && typeof refreshLatestReport === 'function') {
+        refreshLatestReport();
+      }
+    });
   </script>
 </body>
 </html>
