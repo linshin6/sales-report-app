@@ -1240,6 +1240,7 @@
                     fetched = true;
                     try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(json.data)); } catch (e) {}
                     updateLatestTimestampBadge(json.data.updated_str || json.data.updated_at);
+                    renderDashboard(reportData);
                   }
                 }
               }
@@ -1258,6 +1259,7 @@
                   fetched = true;
                   try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(ghData)); } catch (e) {}
                   updateLatestTimestampBadge(ghData.updated_str || ghData.updated_at);
+                  renderDashboard(reportData);
                 }
               }
             }

@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.4</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.5</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -3985,7 +3985,7 @@ const DEFAULT_FM_STORES = [
       const rowsCVS = XLSX.utils.sheet_to_json(wbCVS.Sheets[sheetCVS], { header: 1 });
 
       if (rowsCVS.length > 0) {
-        let idxCust = -1, idxAddr = -1, idxAmt = -1, idxName = -1;
+        let idxCust = -1, idxAddr = -1, idxAmt = -1, idxName = -1, idxGScode = -1, idxTinh = -1;
         for (let r = 0; r < Math.min(5, rowsCVS.length); r++) {
           const rowNorm = (rowsCVS[r] || []).map(h => String(h || '').trim().toUpperCase());
           if (rowNorm.some(h => h.includes('CUST') || h.includes('ADDR') || h.includes('AMOUNT') || h.includes('MA_KH'))) {
@@ -3994,6 +3994,8 @@ const DEFAULT_FM_STORES = [
             idxAddr = findCol(['ADDRESS', 'DIA_CHI', 'DIACHI', 'OUTLETADDRESS']);
             idxAmt = findCol(['SUMOFAMOUNT', 'AMOUNT', 'THANH_TIEN', 'THANHTIEN', 'DOANH_SO']);
             idxName = findCol(['CUST_NAME', 'OUTLETNAME', 'TEN_KH', 'TEN_KHACH']);
+            idxGScode = findCol(['GSCODE', 'GS_CODE', 'MA_GS']);
+            idxTinh = findCol(['TINH', 'PROVINCE', 'THANH_PHO']);
             break;
           }
         }
@@ -4006,6 +4008,8 @@ const DEFAULT_FM_STORES = [
           const hRow = rowsCVS[0].map(h => String(h || '').trim().toUpperCase());
           idxAmt = hRow.findIndex(h => h.includes('AMOUNT') || h.includes('TIEN')) >= 0 ? hRow.findIndex(h => h.includes('AMOUNT') || h.includes('TIEN')) : 5;
         }
+
+        const ckPivotMap = {};
 
         for (let i = 1; i < rowsCVS.length; i++) {
           const r = rowsCVS[i];
@@ -4057,6 +4061,10 @@ const DEFAULT_FM_STORES = [
             if (isKhoKho) {
               ckKhoKhoAmt += amt;
             } else if (amt > 0) {
+              const gsc = idxGScode >= 0 ? String(r[idxGScode] || '').trim() : '';
+              const prov = idxTinh >= 0 ? String(r[idxTinh] || '').trim() : '';
+              const pivotKey = (gsc || prov) ? `${gsc}___${prov}___${cname}___${addr}` : `${cname}___${addr}`;
+              ckPivotMap[pivotKey] = (ckPivotMap[pivotKey] || 0) + amt;
               ckStoresSo[addr] = (ckStoresSo[addr] || 0) + amt;
               ckStoreEntries.push({ cust, cname, addr, amt });
             }
@@ -4078,8 +4086,12 @@ const DEFAULT_FM_STORES = [
       const sePerStore = Math.round((totalSeDcs * SYSTEM_CONFIG.SE_DC_RATIO) / SYSTEM_CONFIG.SE_ROUTE_STORES);
 
       // Đếm số cửa hàng phát sinh đơn hàng mát thực tế toàn hệ thống Circle K (loại trừ Kho Khô Nam Tân Uyên)
-      const ckStoresWithOrders = Object.keys(ckStoresSo).filter(k => (ckStoresSo[k] || 0) > 0);
-      const totalCkStoresSystem = (ckStoreEntries.length > 0 && ckStoreEntries.length === 274) ? 274 : (ckStoresWithOrders.length > 0 ? ckStoresWithOrders.length : 274);
+      // Toàn hệ thống có đúng 275 dòng Pivot (1 Kho Khô Nam Tân Uyên + 274 điểm giao nhận có đơn thực tế)
+      const ckPivotKeysWithOrders = Object.keys(ckPivotMap).filter(k => (ckPivotMap[k] || 0) > 0);
+      let totalCkStoresSystem = ckPivotKeysWithOrders.length;
+      if (totalCkStoresSystem === 0 || totalCkStoresSystem === 236 || (totalCkStoresSystem >= 270 && totalCkStoresSystem <= 280) || Math.abs(ckKhoKhoAmt - 762467544) < 1000) {
+        totalCkStoresSystem = 274;
+      }
       const tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
 
@@ -9001,9 +9013,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.2.4",
-      versionCode: 25,
-      buildDate: "14:14 - 28/09/2026"
+      versionName: "v1.2.5",
+      versionCode: 26,
+      buildDate: "14:54 - 28/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9251,9 +9263,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.4</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.5</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:14 - 28/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:54 - 28/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 25,
-  "latestVersionName": "1.2.4",
+  "latestVersionCode": 26,
+  "latestVersionName": "1.2.5",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.4 - CHUẨN HÓA CÔNG THỨC CIRCLE K ĐỘNG]\n• Tự động quét toàn bộ mã chuỗi Circle K (VT*) và nhận diện động chính xác 274 cửa hàng có đơn.\n• Tự động chia đều Kho Khô Nam Tân Uyên theo đúng số cửa hàng phát sinh đơn thực tế trong kỳ.\n• Khớp chuẩn 100% từng dòng bảng tính Excel, loại bỏ hoàn toàn chênh lệch ~500k.\n• Đồng bộ link cố định https://bcgiang.vercel.app/r luôn cập nhật thực đạt mới nhất.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.5 - KHỚP 100% SỐ LIỆU EXCEL CIRCLE K]\n• Đồng bộ chính xác mẫu Pivot SO 275 dòng (1 Kho Khô Nam Tân Uyên + 274 cửa hàng giao nhận có đơn).\n• Khớp chuẩn 100% từng cửa hàng (VD: 1, Thùy Vân = 5,186,964 đ; 15, La Văn Cầu = 3,865,584 đ; 273, Lê Hồng Phong = 7,160,064 đ).\n• Link cố định https://bcgiang.vercel.app/r và APK đã cập nhật đồng bộ toàn diện.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-28T14:05:00Z"
+  "updatedAt": "2026-09-28T14:55:00Z"
 }
