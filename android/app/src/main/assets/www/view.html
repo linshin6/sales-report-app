@@ -498,14 +498,18 @@
           <span class="header-badge" id="headerTimegone">⏳ Tiến độ tháng: --%</span>
           <span class="header-badge" style="background:#065F46; border-color:#059669;" id="headerTotalSales">💰 Tổng TH: 0 đ</span>
           <span class="header-badge" id="headerTeamSize">👥 10 Nhân viên</span>
+          <span class="header-badge" id="headerUpdatedTime" style="background:#1E3A8A; border-color:#3B82F6; display:none;">🕒 Mới nhất: --</span>
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn-action" style="background:rgba(255,255,255,0.18); color:#FFFFFF; border:1px solid rgba(255,255,255,0.3);" onclick="refreshLatestReport()" title="Bấm để tải lại số liệu thực đạt mới nhất ngay lập tức">
+          🔄 Tải Lại Mới Nhất
+        </button>
         <button class="btn-action" style="background:#0F766E; color:#FFFFFF;" onclick="document.getElementById('inputViewTargetFile').click()" title="Nạp file Target FORM CHI TIÊU (.xlsb, .xlsx) để cập nhật chỉ tiêu trực tiếp trên link">
           📁 Nạp Target Mới
         </button>
         <input type="file" id="inputViewTargetFile" accept=".xlsx,.xlsb,.xls,.csv" style="display:none;" onchange="handleTargetUploadInView(this.files[0])">
-        <button class="btn-action btn-copy-link" onclick="copyShareLink()" title="Sao chép link này để gửi cấp trên hoặc đối tác">
+        <button class="btn-action btn-copy-link" onclick="copyShareLink()" title="Sao chép đường link cố định này để gửi cấp trên hoặc đối tác">
           🔗 Sao Chép Link
         </button>
         <button class="btn-action btn-download" onclick="downloadExcelReport()" title="Tải file Excel đầy đủ 6 Sheet chuẩn format">
@@ -1042,24 +1046,83 @@
     }
 
     function copyShareLink() {
-      let url = window.location.href;
-      if (reportData && reportData.mode) {
-        try {
-          const u = new URL(url);
-          if (!u.searchParams.has('mode')) {
-            u.searchParams.set('mode', reportData.mode);
-            url = u.toString();
-          }
-        } catch (eUrl) {}
-      }
+      const fixedUrl = 'https://bcgiang.vercel.app/r';
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-          showToast('✅ Đã sao chép đường link báo cáo!');
+        navigator.clipboard.writeText(fixedUrl).then(() => {
+          showToast('✅ Đã sao chép Link Báo Cáo Cố Định: ' + fixedUrl + ' (Luôn tự cập nhật thực đạt mới)');
         }).catch(() => {
-          prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để copy):', url);
+          prompt('Đường link xem báo cáo trực tuyến cố định (Nhấn Ctrl+C để copy):', fixedUrl);
         });
       } else {
-        prompt('Đường link xem báo cáo trực tuyến (Nhấn Ctrl+C để copy):', url);
+        prompt('Đường link xem báo cáo trực tuyến cố định (Nhấn Ctrl+C để copy):', fixedUrl);
+      }
+    }
+
+    function updateLatestTimestampBadge(timeStr) {
+      const badge = document.getElementById('headerUpdatedTime');
+      if (!badge) return;
+      if (timeStr) {
+        let displayStr = timeStr;
+        if (timeStr.includes('T') && timeStr.includes('Z')) {
+          try {
+            const d = new Date(timeStr);
+            displayStr = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          } catch (e) {}
+        }
+        badge.innerHTML = `🕒 Mới nhất: <strong>${displayStr}</strong>`;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.innerHTML = `🕒 Thực Đạt Mới Nhất`;
+        badge.style.display = 'inline-flex';
+      }
+    }
+
+    async function refreshLatestReport() {
+      const loader = document.getElementById('loadingOverlay');
+      if (loader) loader.style.display = 'flex';
+      try {
+        let rep = null;
+        let rawJson = null;
+
+        // 1. Thử qua Vercel API /api/report?id=latest
+        try {
+          const res = await fetch(`/api/report?id=latest&_t=${Date.now()}`, { signal: AbortSignal.timeout(6000) });
+          if (res.ok) {
+            const j = await res.json();
+            if (j && j.ok && j.data) {
+              rawJson = j.data;
+              rep = (typeof parseDataPayload === 'function') ? parseDataPayload(j.data) : j.data;
+            }
+          }
+        } catch (e1) {}
+
+        // 2. Fallback qua GitHub live-data branch
+        if (!rep) {
+          try {
+            const ghRes = await fetch(`https://raw.githubusercontent.com/linshin6/sales-report-app/live-data/latest_report.json?_t=${Date.now()}`, { signal: AbortSignal.timeout(6000) });
+            if (ghRes.ok) {
+              const d = await ghRes.json();
+              rawJson = d;
+              rep = (typeof parseDataPayload === 'function') ? parseDataPayload(d) : d;
+            }
+          } catch (e2) {}
+        }
+
+        if (rep) {
+          reportData = rep;
+          if (rawJson) {
+            try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(rawJson)); } catch (e) {}
+            updateLatestTimestampBadge(rawJson.updated_str || rawJson.updated_at);
+          }
+          renderDashboard(reportData);
+          showToast('✅ Đã cập nhật số liệu thực đạt mới nhất!');
+        } else {
+          showToast('⚠️ Không thể tải số liệu mới lúc này, vui lòng kiểm tra kết nối mạng!');
+        }
+      } catch (err) {
+        showToast('❌ Lỗi làm mới: ' + err.message);
+      } finally {
+        if (loader) loader.style.display = 'none';
       }
     }
 
@@ -1136,7 +1199,73 @@
           return normalizeReportData(parsed);
         };
 
-        if (idParam) {
+        const hash = window.location.hash;
+        const hasHashD = hash && hash.includes('d=');
+        const hasParamD = urlParams.get('d');
+
+        // MẶC ĐỊNH CHO ĐƯỜNG LINK CỐ ĐỊNH /r hoặc /r/latest:
+        // Nếu không có id hoặc id === 'latest' và không có mã hash d= -> Tải Thực Đạt Mới Nhất
+        const isLatestMode = (!idParam || idParam === 'latest') && !hasHashD && !hasParamD;
+
+        if (isLatestMode) {
+          // 1. Nạp tức thời từ LocalStorage nếu có sẵn (hiển thị 0ms cho người dùng)
+          try {
+            const cached = localStorage.getItem('CACHED_LATEST_REPORT');
+            if (cached) {
+              const parsedCache = JSON.parse(cached);
+              const rep = parseDataPayload(parsedCache);
+              if (rep) {
+                reportData = rep;
+                renderDashboard(reportData);
+                updateLatestTimestampBadge(parsedCache.updated_str || parsedCache.updated_at);
+              }
+            }
+          } catch (eCache) {}
+
+          // 2. Fetch số liệu mới nhất trực tiếp từ Cloud
+          try {
+            let fetched = false;
+
+            // 2.1 Fetch từ Vercel Serverless API /api/report?id=latest
+            try {
+              const res = await fetch(`/api/report?id=latest&_t=${Date.now()}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (res.ok) {
+                const json = await res.json();
+                if (json && json.ok && json.data) {
+                  const rep = parseDataPayload(json.data);
+                  if (rep) {
+                    reportData = rep;
+                    fetched = true;
+                    try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(json.data)); } catch (e) {}
+                    updateLatestTimestampBadge(json.data.updated_str || json.data.updated_at);
+                  }
+                }
+              }
+            } catch (eApi) {}
+
+            // 2.2 Fallback: Fetch trực tiếp từ GitHub Live-Data Branch
+            if (!fetched) {
+              const ghRes = await fetch(`https://raw.githubusercontent.com/linshin6/sales-report-app/live-data/latest_report.json?_t=${Date.now()}`, {
+                signal: AbortSignal.timeout(5000)
+              });
+              if (ghRes.ok) {
+                const ghData = await ghRes.json();
+                const rep = parseDataPayload(ghData);
+                if (rep) {
+                  reportData = rep;
+                  fetched = true;
+                  try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(ghData)); } catch (e) {}
+                  updateLatestTimestampBadge(ghData.updated_str || ghData.updated_at);
+                }
+              }
+            }
+          } catch (eLatest) {
+            console.warn('Lỗi tải latest cloud:', eLatest);
+          }
+        } else if (idParam) {
+          // Nạp theo ID cụ thể (dành cho các đường link cũ)
           try {
             let fetched = false;
             // 1.1 Thử lấy từ Vercel Serverless API
@@ -1178,9 +1307,9 @@
         // 2. Fallback kiểm tra mã hash d= hoặc ?d= nếu không có ID
         if (!reportData) {
           let dParam = '';
-          const hash = window.location.hash;
-          if (hash && hash.includes('d=')) {
-            dParam = hash.split('d=')[1].split('&')[0];
+          const hashVal = window.location.hash;
+          if (hashVal && hashVal.includes('d=')) {
+            dParam = hashVal.split('d=')[1].split('&')[0];
           } else {
             dParam = urlParams.get('d') || '';
           }
@@ -1373,6 +1502,9 @@
       document.getElementById('headerTimegone').innerText = `⏳ Tiến độ tháng: ${data.timegone}%`;
       document.getElementById('headerTotalSales').innerText = `💰 Tổng TH: ${formatMoney(data.total_actual)} đ`;
       document.getElementById('headerTeamSize').innerText = `👥 ${(data.employees || []).length} Nhân viên`;
+      if (data.updated_str || data.updated_at) {
+        updateLatestTimestampBadge(data.updated_str || data.updated_at);
+      }
 
       // KPI Cards
       const kpiContainer = document.getElementById('kpiGridContainer');

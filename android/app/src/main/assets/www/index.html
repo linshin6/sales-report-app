@@ -3870,6 +3870,11 @@ const DEFAULT_FM_STORES = [
         renderDashboard(result);
         closeModal('loadingModal');
 
+        // Tự động đồng bộ số liệu mới nhất lên Cloud cho link cố định https://bcgiang.vercel.app/r
+        if (typeof syncLatestReportToCloud === 'function') {
+          syncLatestReportToCloud(result).catch(e => console.warn('Lỗi đồng bộ Cloud nền:', e));
+        }
+
         document.getElementById('reportDashboard').style.display = 'block';
         document.getElementById('reportDashboard').scrollIntoView({ behavior: 'smooth' });
 
@@ -8323,10 +8328,9 @@ const DEFAULT_FM_STORES = [
       return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
 
-    async function getOnlineReportUrl() {
-      if (!processedReportData) return null;
-      const p = processedReportData;
-
+    // Hàm đồng bộ dữ liệu báo cáo mới nhất lên Cloud cho link cố định https://bcgiang.vercel.app/r
+    async function syncLatestReportToCloud(p) {
+      if (!p) return null;
       let allSkus = [];
       const catsForSkus = (p.fm_sku_matrix && p.fm_sku_matrix.categories && p.fm_sku_matrix.categories.length > 0)
         ? p.fm_sku_matrix.categories
@@ -8350,7 +8354,7 @@ const DEFAULT_FM_STORES = [
         }
       });
 
-      // 3. FM matrix [ [fmStoreIndex, [ [skuIdx, amt], ... ]] ]
+      // 3. FM matrix
       const f = [];
       const fmStores = (p.fm_sku_matrix && p.fm_sku_matrix.stores) ? p.fm_sku_matrix.stores : [];
       fmStores.forEach((st, sIdx) => {
@@ -8368,18 +8372,23 @@ const DEFAULT_FM_STORES = [
         }
       });
 
-      // 4. Targets nhân viên (chỉ lấy khi ở chế độ Có Target)
+      // 4. Targets nhân viên
       const isTarget = (window.currentReportMode === 'target');
       const t = isTarget ? (p.employees || []).map(e => e.target || 0) : [];
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
       const compactObj = {
         v: 2,
         mode: isTarget ? 'target' : 'actual',
-        m: p.month || (new Date().getMonth() + 1),
-        y: p.year || new Date().getFullYear(),
+        m: p.month || (now.getMonth() + 1),
+        y: p.year || now.getFullYear(),
         tg: p.timegone || 0,
         tot_tgt: isTarget ? (p.total_target || 0) : 0,
         pct_ach: isTarget ? (p.percent_achieved || 0) : 0,
+        updated_at: now.toISOString(),
+        updated_str: timeStr,
         h, s, f, t,
         cats: catsForSkus
       };
@@ -8387,6 +8396,8 @@ const DEFAULT_FM_STORES = [
       const payloadObj = {
         ...p,
         mode: isTarget ? 'target' : 'actual',
+        updated_at: now.toISOString(),
+        updated_str: timeStr,
         total_target: isTarget ? (p.total_target || 0) : 0,
         percent_achieved: isTarget ? (p.percent_achieved || 0) : 0,
         employees: (p.employees || []).map(e => ({
@@ -8397,61 +8408,57 @@ const DEFAULT_FM_STORES = [
         }))
       };
 
-      const jsonStr = JSON.stringify(compactObj);
-      const compressed = await compressDeflateData(jsonStr);
-      const b64 = uint8ArrayToBase64Url(compressed);
-      
-      let baseUrl = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
-      if (!baseUrl.startsWith('http') || baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1') || baseUrl.includes('androidplatform.net')) {
-        baseUrl = 'https://bcgiang.vercel.app/';
-      }
-      if (!baseUrl.endsWith('/')) baseUrl += '/';
-
-      // 1. Thử lưu lên Cloud Storage (Giải pháp 2C) để lấy URL siêu ngắn, chuyên nghiệp
+      // Lưu cache local
       try {
-        let cloudId = null;
+        localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(payloadObj));
+      } catch (eLocal) {}
 
-        // 1.1 Thử qua Vercel API /api/report
-        try {
-          const apiRes = await fetch(`${baseUrl}api/report`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ payload: payloadObj, compact: compactObj }),
-            signal: AbortSignal.timeout(5000)
-          });
-          if (apiRes.ok) {
-            const resJson = await apiRes.json();
-            if (resJson && resJson.id) {
-              cloudId = resJson.id;
-            }
-          }
-        } catch (eApi) {}
+      // Xác định endpoint API
+      let apiBase = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+      if (!apiBase.startsWith('http') || apiBase.includes('localhost') || apiBase.includes('127.0.0.1') || apiBase.includes('androidplatform.net')) {
+        apiBase = 'https://bcgiang.vercel.app/';
+      }
+      if (!apiBase.endsWith('/')) apiBase += '/';
 
-        // 1.2 Nếu gọi API Vercel chưa được (hoặc trên App Android), lưu trực tiếp qua Bytebin Cloud CDN
-        if (!cloudId) {
-          const bbRes = await fetch('https://bytebin.lucko.me/post', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...compactObj, payload: payloadObj }),
-            signal: AbortSignal.timeout(5000)
-          });
-          if (bbRes.ok) {
-            const bbJson = await bbRes.json();
-            if (bbJson && bbJson.key) {
-              cloudId = bbJson.key;
-            }
-          }
-        }
+      let synced = false;
 
-        if (cloudId) {
-          return `${baseUrl}r/${cloudId}?mode=${isTarget ? 'target' : 'actual'}`;
-        }
-      } catch (eCloud) {
-        console.warn('Lỗi lưu Cloud 2C:', eCloud);
+      // 1. Gửi lên Vercel Serverless API /api/report
+      try {
+        const apiRes = await fetch(`${apiBase}api/report`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: 'latest',
+            is_latest: true,
+            updated_at: now.toISOString(),
+            updated_str: timeStr,
+            payload: payloadObj,
+            compact: compactObj
+          }),
+          signal: AbortSignal.timeout(6000)
+        });
+        if (apiRes.ok) synced = true;
+      } catch (eApi) {
+        console.warn('Lỗi gọi /api/report:', eApi.message);
       }
 
-      // Fallback an toàn: Dùng mã hóa nén base64url nếu không kết nối được Cloud
-      return baseUrl + `r?mode=${isTarget ? 'target' : 'actual'}#d=` + b64;
+      // 2. Sao lưu thêm lên Bytebin CDN làm bản dự phòng
+      try {
+        fetch('https://bytebin.lucko.me/post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'User-Agent': 'SalesReportApp/2.0' },
+          body: JSON.stringify({ ...compactObj, payload: payloadObj }),
+          signal: AbortSignal.timeout(4000)
+        }).catch(e => {});
+      } catch (eBb) {}
+
+      return 'https://bcgiang.vercel.app/r';
+    }
+
+    async function getOnlineReportUrl() {
+      if (!processedReportData) return null;
+      await syncLatestReportToCloud(processedReportData);
+      return 'https://bcgiang.vercel.app/r';
     }
 
     async function copySupervisorLink() {
@@ -8468,15 +8475,15 @@ const DEFAULT_FM_STORES = [
       const oldText = btn ? btn.innerHTML : '';
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '⏳ Đang tạo link ngắn 2C...';
+        btn.innerHTML = '⏳ Đang đồng bộ link cố định...';
       }
       try {
-        const fullUrl = await getOnlineReportUrl();
+        const fixedUrl = await getOnlineReportUrl();
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = oldText;
         }
-        if (!fullUrl) return;
+        if (!fixedUrl) return;
 
         const isTarget = (window.currentReportMode === 'target');
         const modeLabel = isTarget ? 'BÁO CÁO CÓ TARGET' : 'BÁO CÁO THỰC ĐẠT';
@@ -8484,19 +8491,19 @@ const DEFAULT_FM_STORES = [
         // Nếu đang chạy trong ứng dụng Android APK, dùng bridge sao chép & chia sẻ trực tiếp
         if (window.AndroidBridge) {
           if (typeof window.AndroidBridge.copyToClipboard === 'function') {
-            window.AndroidBridge.copyToClipboard(fullUrl);
+            window.AndroidBridge.copyToClipboard(fixedUrl);
           }
           if (typeof window.AndroidBridge.shareText === 'function') {
-            window.AndroidBridge.shareText(fullUrl, `Chia sẻ link ${modeLabel}: ` + fullUrl);
+            window.AndroidBridge.shareText(fixedUrl, `Chia sẻ Link Báo Cáo Thực Đạt (Cố định, luôn mới nhất): ` + fixedUrl);
             return;
           }
         }
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(fullUrl);
-          alert(`✅ ĐÃ TẠO VÀ SAO CHÉP LINK ${modeLabel.toUpperCase()} (2C)!\n\n👉 ` + fullUrl + `\n\n(Đường link trực tuyến mở ra sẽ hiển thị đúng chế độ ${isTarget ? 'Có Target (đầy đủ chỉ tiêu, % đạt, xếp hạng)' : 'Thực Đạt (xếp hạng doanh số, tỷ trọng)'}).`);
+          await navigator.clipboard.writeText(fixedUrl);
+          alert(`✅ ĐÃ SAO CHÉP LINK BÁO CÁO CỐ ĐỊNH!\n\n👉 ` + fixedUrl + `\n\n📌 ĐẶC BIỆT: Đây là 1 ĐƯỜNG LINK DUY NHẤT & CỐ ĐỊNH.\nBạn chỉ cần gửi link này 1 lần duy nhất cho Sếp và Team. Mỗi lần bạn nạp thực đạt mới, bất kỳ ai mở link này đều sẽ tự động thấy số liệu thực đạt mới nhất!`);
         } else {
-          prompt(`Đường link ${modeLabel} (Nhấn Ctrl+C để sao chép):`, fullUrl);
+          prompt(`Đường link cố định duy nhất (Nhấn Ctrl+C để sao chép):`, fixedUrl);
         }
       } catch (e) {
         if (btn) {
