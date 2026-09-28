@@ -196,6 +196,7 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
 
   var ckKhoKhoAmt = 0;
   var ckStoresSo = {};
+  var ckPivotMap = {};
   var hoangDucStores = { '198 Hùng Vương': 0, 'Bạch Lâm': 0 };
 
   var sheetCVS = wbCVS.SheetNames.indexOf('SO') >= 0 ? 'SO' : (wbCVS.SheetNames.indexOf('PO') >= 0 ? 'PO' : wbCVS.SheetNames[0]);
@@ -251,12 +252,14 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
       if (isCircleK) {
         var isKhoKho = normACVS.indexOf('namtanuyen') >= 0 || 
                        normACVS.indexOf('g19') >= 0 || 
-                       normACVS.indexOf('tanuyen') >= 0 || 
+                       normACVS.indexOf('tanuyen') >= 0 ||
                        cnameCVS.toLowerCase().indexOf('kho khô') >= 0 || 
                        cnameCVS.toLowerCase().indexOf('kho kho') >= 0;
         if (isKhoKho) {
           ckKhoKhoAmt += amtCVS;
         } else if (amtCVS > 0) {
+          var pivotKey = cnameCVS ? (cnameCVS + '___' + addrCVS) : addrCVS;
+          ckPivotMap[pivotKey] = (ckPivotMap[pivotKey] || 0) + amtCVS;
           ckStoresSo[addrCVS] = (ckStoresSo[addrCVS] || 0) + amtCVS;
         }
       }
@@ -274,10 +277,10 @@ function processTwoWorkbooks(wbST, wbCVS, customMaster) {
 
   var gs25PerStore = Math.round((totalGs25Dcs * 0.2046) / 72);
   var sePerStore = Math.round((totalSeDcs * 0.0362) / 5);
-  var ckStoresWithOrders = Object.keys(ckStoresSo).filter(function(k) { return (ckStoresSo[k] || 0) > 0; });
-  var totalCkStoresSystem = ckStoresWithOrders.length;
-  if (totalCkStoresSystem === 0 || totalCkStoresSystem === 236 || (totalCkStoresSystem >= 270 && totalCkStoresSystem <= 280) || Math.abs(ckKhoKhoAmt - 762467544) < 1000) {
-    totalCkStoresSystem = 274;
+  var ckPivotKeysWithOrders = Object.keys(ckPivotMap).filter(function(k) { return (ckPivotMap[k] || 0) > 0; });
+  var totalCkStoresSystem = ckPivotKeysWithOrders.length;
+  if (totalCkStoresSystem === 0) {
+    totalCkStoresSystem = Object.keys(ckStoresSo).filter(function(k) { return (ckStoresSo[k] || 0) > 0; }).length;
   }
   var tCk = totalCkStoresSystem > 0 ? Math.round(ckKhoKhoAmt / totalCkStoresSystem) : 0;
 
