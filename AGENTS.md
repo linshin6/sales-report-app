@@ -15,4 +15,4 @@ For complete business logic, store distribution, SKU discovery engine, and histo
 - Sync constraint: Any edits to `index.html`, `view.html`, `master_data.js` must be copied to `android/app/src/main/assets/www/`.
 - Release APKs: Built via `build_apk.bat` -> `BaoCaoDoanhSo_TeamCamGiang.apk` and `BaoCaoThucDat.apk`.
 - Auto Git Push: Always commit & push to `origin main` after APK builds or web/native code updates so users get instant OTA updates via `bcgiang.vercel.app`.
-- Circle K formula (sheet SO): Kho Khô (VT4050 / 230 CH có đơn = 1,872,261 đ/CH) + Hàng Mát của từng cửa hàng có đơn. Cửa hàng không đơn = 0 đ. Tổng Circle K: 69,457,638 đ.
+- Circle K formula (sheet SO): Tự động nhận diện chuỗi Circle K (VT*, Vòng Tròn Đỏ), tách Kho Khô Nam Tân Uyên (Lô G1-9... = 762,467,544 đ) chia đều cho số CH có đơn thực tế (274 CH = 275 dòng trừ 1 DC Khô) = 2,782,728 đ/CH + Hàng Mát của từng CH. Cửa hàng không đơn = 0 đ.

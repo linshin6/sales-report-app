@@ -36,9 +36,10 @@ Khi thư mục này được mở trên bất kỳ máy tính nào:
 
 5. **Công thức chuẩn tính Circle K (Sheet SO):**
    - Doanh số Circle K lấy từ sheet `SO` trong file `HNTRINH_KD6...`.
-   - Kho Khô (`VT4050` Nam Tân Uyên = `430,620,084 đ`) chia đều cho số cửa hàng phát sinh đơn hàng mát toàn hệ thống (`230 cửa hàng`) = `1,872,261 đ/CH`.
-   - Mỗi cửa hàng có phát sinh đơn trong team nhận: `1,872,261 đ` + `Thành tiền hàng mát của cửa hàng đó`. Cửa hàng không có đơn nhận `0 đ`.
-   - Tổng Circle K của toàn team: **`69,457,638 đ`** (22 CH có đơn, 5 CH không có đơn).
+   - Hệ thống tự động nhận diện tất cả mã chuỗi Circle K (`VT*`, `CUST_NAME` "Vòng Tròn Đỏ") và tự động bóc tách dòng Kho Khô Nam Tân Uyên (`Lô G1-9... Nam Tân Uyên` = `762,467,544 đ`).
+   - Đếm động chính xác số cửa hàng có phát sinh đơn hàng mát toàn hệ thống (ở kỳ này: 275 dòng trừ 1 Kho Khô = **`274 cửa hàng`**).
+   - Đơn giá Kho Khô chia đều: `tCk = 762,467,544 / 274 = 2,782,728 đ/CH`.
+   - Mỗi cửa hàng có phát sinh đơn trong team nhận: `2,782,728 đ` + `Thành tiền hàng mát của cửa hàng đó`. Cửa hàng không có đơn nhận `0 đ`.
 
 6. **Tự động đẩy Code/APK lên GitHub phục vụ OTA (Bắt buộc):**
    - Bất kỳ khi nào hoàn thành sửa đổi code web (`index.html`, `view.html`), native Java hoặc build lại APK, agent **BẮT BUỘC** phải tự động chạy `git add .`, `git commit` và `git push origin main`.
