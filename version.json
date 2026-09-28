@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 22,
-  "latestVersionName": "1.2.1",
+  "latestVersionCode": 23,
+  "latestVersionName": "1.2.2",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.1]\n• Khôi phục link báo cáo siêu ngắn (dạng /r/T4W6bdWLAw) thay vì link dài hash.\n• Tối ưu hệ thống rút gọn link 3 tầng: Vercel KV → Bytebin CDN → Hash nén.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.2 - HỆ THỐNG LINK CỐ ĐỊNH DUY NHẤT]\n• Nâng cấp link báo cáo cố định duy nhất: https://bcgiang.vercel.app/r\n• Tự động đồng bộ số liệu thực đạt mới nhất lên link cố định mỗi khi tính toán.\n• Hiển thị thời gian cập nhật thực đạt trên Header và nút làm mới dữ liệu trực tuyến.\n• Tối ưu tốc độ tải và lưu trữ đám mây đa tầng.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-23T20:52:00Z"
+  "updatedAt": "2026-09-28T13:06:00Z"
 }
