@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.2</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.3</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -1265,6 +1265,27 @@
 
     <!-- 3. DASHBOARD BÁO CÁO (HIỂN THỊ KHI TÍNH TOÁN XONG) -->
     <div id="reportDashboard" style="display: none;">
+
+      <!-- Banner Thông Báo Dữ Liệu Thực Đạt Đã Lưu Tự Động -->
+      <div id="persistedDataNotice" style="display:none; margin-bottom: 16px; padding: 12px 18px; border-radius: 12px; background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%); border: 1.5px solid #93c5fd; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08);">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">💾</span>
+            <div>
+              <div style="font-weight: 800; font-size: 14px; color: #1e40af;" id="persistedNoticeTitle">DỮ LIỆU THỰC ĐẠT ĐÃ ĐƯỢC TỰ ĐỘNG LƯU TRÊN MÁY</div>
+              <div style="font-size: 13px; color: #1e3a8a; margin-top: 2px;" id="persistedNoticeDesc">Số liệu hiển thị tức thì mỗi khi mở app. Chỉ khi bạn nạp 2 file mới ở trên thì số liệu mới thay đổi.</div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button class="btn" onclick="scrollToUploadSection()" style="background: #2563eb; color: #ffffff; font-weight: 700; padding: 6px 14px; border-radius: 8px; font-size: 12.5px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              📁 Nạp 2 File Mới
+            </button>
+            <button class="btn" onclick="clearPersistedReportData()" style="background: #ffffff; color: #dc2626; border: 1px solid #fca5a5; font-weight: 600; padding: 6px 12px; border-radius: 8px; font-size: 12.5px; cursor: pointer;" title="Xóa dữ liệu đã lưu để nạp lại từ đầu">
+              🗑️ Xóa Đã Lưu
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- KPI Cards Container: Hiển thị linh hoạt theo Chế Độ Báo Cáo -->
       <div class="kpi-grid" id="kpiGridContainer" style="margin-bottom: 20px;"></div>
@@ -3111,6 +3132,7 @@ const DEFAULT_FM_STORES = [
       if (typeof processedReportData !== 'undefined' && processedReportData) {
         processedReportData.mode = mode;
         renderDashboard(processedReportData);
+        try { localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(processedReportData)); } catch (e) {}
       }
     }
 
@@ -3876,6 +3898,9 @@ const DEFAULT_FM_STORES = [
         }
 
         document.getElementById('reportDashboard').style.display = 'block';
+        if (typeof showPersistedDataNotice === 'function') {
+          showPersistedDataNotice(result.saved_str);
+        }
         document.getElementById('reportDashboard').scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
@@ -4380,6 +4405,17 @@ const DEFAULT_FM_STORES = [
         stores: updatedStores,
         fm_sku_matrix: fmSkuMatrixData
       };
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      processedReportData.saved_at = now.toISOString();
+      processedReportData.saved_str = timeStr;
+
+      try {
+        localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(processedReportData));
+      } catch (ePersist) {
+        console.warn('Lỗi lưu PERSISTED_REPORT_DATA:', ePersist);
+      }
 
       return processedReportData;
     }
@@ -8733,6 +8769,113 @@ const DEFAULT_FM_STORES = [
       closeModal(id);
     }
 
+    // =========================================================================
+    // QUẢN LÝ LƯU TRỮ & KHÔI PHỤC VĨNH VIỄN DỮ LIỆU THỰC ĐẠT TRÊN THIẾT BỊ
+    // =========================================================================
+    function showPersistedDataNotice(timeStr) {
+      const notice = document.getElementById('persistedDataNotice');
+      const desc = document.getElementById('persistedNoticeDesc');
+      if (notice) {
+        notice.style.display = 'block';
+        if (desc && timeStr) {
+          desc.innerHTML = `Số liệu thực đạt đã lưu lúc <strong>${timeStr}</strong>. Dữ liệu luôn được lưu giữ trên app mỗi khi mở lại. Chỉ khi bạn chọn 2 file mới ở trên thì số liệu mới thay đổi.`;
+        }
+      }
+    }
+
+    function scrollToUploadSection() {
+      const sec = document.getElementById('sectionUploadDaily');
+      if (sec) {
+        sec.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function clearPersistedReportData() {
+      if (confirm('Bạn có chắc chắn muốn xóa dữ liệu thực đạt đã lưu trên máy không?\n\n(Sau khi xóa, ứng dụng sẽ trở về trạng thái chờ nạp 2 file Excel mới)')) {
+        localStorage.removeItem('PERSISTED_REPORT_DATA');
+        localStorage.removeItem('CACHED_LATEST_REPORT');
+        processedReportData = null;
+        const dash = document.getElementById('reportDashboard');
+        if (dash) dash.style.display = 'none';
+        const notice = document.getElementById('persistedDataNotice');
+        if (notice) notice.style.display = 'none';
+        scrollToUploadSection();
+        alert('✅ Đã xóa dữ liệu đã lưu! Hãy chọn 2 file Excel mới để tính toán lại.');
+      }
+    }
+
+    function restorePersistedReportData() {
+      try {
+        let savedData = null;
+        const savedStr = localStorage.getItem('PERSISTED_REPORT_DATA') || localStorage.getItem('CACHED_LATEST_REPORT');
+        if (savedStr) {
+          try { savedData = JSON.parse(savedStr); } catch (e) {}
+        }
+
+        if (savedData && (savedData.employees || savedData.total_actual || savedData.total_actual_team)) {
+          console.log('🔄 Đang khôi phục dữ liệu thực đạt đã lưu trên máy...');
+          processedReportData = savedData;
+          if (savedData.mode) {
+            window.currentReportMode = savedData.mode;
+            setReportMode(savedData.mode);
+          }
+          if (typeof calculateRealtimeTimegone === 'function') {
+            processedReportData.timegone = calculateRealtimeTimegone(processedReportData.month || currentMaster.month, processedReportData.year || currentMaster.year);
+          }
+          renderDashboard(processedReportData);
+          document.getElementById('reportDashboard').style.display = 'block';
+          showPersistedDataNotice(savedData.saved_str || savedData.updated_str);
+          return true;
+        }
+      } catch (err) {
+        console.warn('Lỗi khôi phục dữ liệu đã lưu:', err);
+      }
+
+      // Nếu máy chưa có dữ liệu local (lần đầu cài app), thử tải từ Cloud latest
+      autoFetchLatestReportFromCloud();
+      return false;
+    }
+
+    async function autoFetchLatestReportFromCloud() {
+      try {
+        let apiBase = window.location.origin + window.location.pathname.replace(/[^\/]*$/, '');
+        if (!apiBase.startsWith('http') || apiBase.includes('localhost') || apiBase.includes('127.0.0.1') || apiBase.includes('androidplatform.net')) {
+          apiBase = 'https://bcgiang.vercel.app/';
+        }
+        if (!apiBase.endsWith('/')) apiBase += '/';
+
+        let cloudData = null;
+        try {
+          const res = await fetch(`${apiBase}api/report?id=latest&_t=${Date.now()}`, { signal: AbortSignal.timeout(4000) });
+          if (res.ok) {
+            const j = await res.json();
+            if (j && j.ok && j.data) cloudData = j.data;
+          }
+        } catch (e1) {}
+
+        if (!cloudData) {
+          const ghRes = await fetch(`https://raw.githubusercontent.com/linshin6/sales-report-app/live-data/latest_report.json?_t=${Date.now()}`, { signal: AbortSignal.timeout(4000) });
+          if (ghRes.ok) {
+            cloudData = await ghRes.json();
+          }
+        }
+
+        if (cloudData && (cloudData.employees || cloudData.total_actual || cloudData.total_actual_team)) {
+          processedReportData = cloudData;
+          try { localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(cloudData)); } catch (e) {}
+          if (cloudData.mode) {
+            window.currentReportMode = cloudData.mode;
+            setReportMode(cloudData.mode);
+          }
+          renderDashboard(processedReportData);
+          document.getElementById('reportDashboard').style.display = 'block';
+          showPersistedDataNotice(cloudData.updated_str || cloudData.saved_str);
+        }
+      } catch (e) {
+        console.warn('Không thể tự động tải cloud latest:', e);
+      }
+    }
+
     // Khởi tạo
     window.onload = function() {
       // Tải cấu hình Master Data / Target từ localStorage nếu có (Vercel)
@@ -8774,7 +8917,11 @@ const DEFAULT_FM_STORES = [
       updateGrowthBanner();
 
       // Khởi tạo chế độ báo cáo — luôn ưu tiên hiển thị đầy đủ Chỉ Tiêu & % Đạt KPI
-      setReportMode('target');
+      const preferredMode = localStorage.getItem('PREFERRED_REPORT_MODE') || 'target';
+      setReportMode(preferredMode);
+
+      // Tự động khôi phục dữ liệu thực đạt đã lưu từ phiên trước
+      restorePersistedReportData();
 
       // Nếu đang chạy trong Apps Script thì tải master data đã lưu
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -8789,9 +8936,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.2.2",
-      versionCode: 23,
-      buildDate: "13:05 - 28/09/2026"
+      versionName: "v1.2.3",
+      versionCode: 24,
+      buildDate: "13:17 - 28/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9039,9 +9186,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.2</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.3</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:05 - 28/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:17 - 28/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
