@@ -8904,15 +8904,16 @@ const DEFAULT_FM_STORES = [
           renderDashboard(processedReportData);
           document.getElementById('reportDashboard').style.display = 'block';
           showPersistedDataNotice(savedData.saved_str || savedData.updated_str);
-          return true;
         }
       } catch (err) {
         console.warn('Lỗi khôi phục dữ liệu đã lưu:', err);
       }
 
-      // Nếu máy chưa có dữ liệu local (lần đầu cài app), thử tải từ Cloud latest
-      autoFetchLatestReportFromCloud();
-      return false;
+      // LUÔN LUÔN tự động kiểm tra bản mới nhất từ Cloud để đồng bộ số liệu mới nhất
+      setTimeout(() => {
+        autoFetchLatestReportFromCloud();
+      }, 300);
+      return true;
     }
 
     async function autoFetchLatestReportFromCloud() {
@@ -8940,15 +8941,26 @@ const DEFAULT_FM_STORES = [
         }
 
         if (cloudData && (cloudData.employees || cloudData.total_actual || cloudData.total_actual_team)) {
-          processedReportData = cloudData;
-          try { localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(cloudData)); } catch (e) {}
-          if (cloudData.mode) {
-            window.currentReportMode = cloudData.mode;
-            setReportMode(cloudData.mode);
+          const localUpdated = processedReportData ? (processedReportData.updated_at || processedReportData.saved_at || '') : '';
+          const cloudUpdated = cloudData.updated_at || cloudData.saved_at || '';
+          const isDifferent = !processedReportData || (cloudData.total_actual !== processedReportData.total_actual) || (cloudUpdated && cloudUpdated > localUpdated);
+
+          if (isDifferent) {
+            console.log('🔄 Phát hiện số liệu mới trên Cloud, tự động cập nhật dashboard...');
+            processedReportData = cloudData;
+            try { localStorage.setItem('PERSISTED_REPORT_DATA', JSON.stringify(cloudData)); } catch (e) {}
+            try { localStorage.setItem('CACHED_LATEST_REPORT', JSON.stringify(cloudData)); } catch (e) {}
+            if (cloudData.mode) {
+              window.currentReportMode = cloudData.mode;
+              setReportMode(cloudData.mode);
+            }
+            if (typeof calculateRealtimeTimegone === 'function') {
+              processedReportData.timegone = calculateRealtimeTimegone(processedReportData.month || currentMaster.month, processedReportData.year || currentMaster.year);
+            }
+            renderDashboard(processedReportData);
+            document.getElementById('reportDashboard').style.display = 'block';
+            showPersistedDataNotice(cloudData.updated_str || cloudData.saved_str);
           }
-          renderDashboard(processedReportData);
-          document.getElementById('reportDashboard').style.display = 'block';
-          showPersistedDataNotice(cloudData.updated_str || cloudData.saved_str);
         }
       } catch (e) {
         console.warn('Không thể tự động tải cloud latest:', e);
@@ -9017,7 +9029,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.2.6",
       versionCode: 27,
-      buildDate: "15:20 - 28/09/2026"
+      buildDate: "17:08 - 28/09/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9267,7 +9279,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.6</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">15:20 - 28/09/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">17:08 - 28/09/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

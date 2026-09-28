@@ -768,6 +768,13 @@
     }
 
     function reconstitutePayload(compact) {
+      if (!compact) return null;
+      if (compact.payload && (compact.payload.employees || compact.payload.bhx_hubs)) {
+        return (typeof normalizeReportData === 'function') ? normalizeReportData(compact.payload) : compact.payload;
+      }
+      if (compact.employees || compact.bhx_hubs) {
+        return (typeof normalizeReportData === 'function') ? normalizeReportData(compact) : compact;
+      }
       const m = window.MASTER_DATA || {};
 
       let allSkus = [];
@@ -819,8 +826,8 @@
           store_name: s.store_name || s.name || (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : '')),
           address: s.address || s.store_address || '',
           store_address: s.store_address || s.address || '',
-          actual: storeSalesMap[idx] || 0,
-          actual_sales: storeSalesMap[idx] || 0
+          actual: (storeSalesMap[idx] !== undefined && storeSalesMap[idx] !== null) ? storeSalesMap[idx] : (s.actual || 0),
+          actual_sales: (storeSalesMap[idx] !== undefined && storeSalesMap[idx] !== null) ? storeSalesMap[idx] : (s.actual || 0)
         }));
 
         // 3. Employees
@@ -908,8 +915,8 @@
             ten_pg: s.ten_pg,
             vtcv: s.vtcv,
             target: 0,
-            actual: dFm.total,
-            orders: dFm.orders
+            actual: dFm.total > 0 ? dFm.total : (s.actual || 0),
+            orders: (dFm.orders && Object.keys(dFm.orders).length > 0) ? dFm.orders : (s.orders || {})
           };
         });
 
