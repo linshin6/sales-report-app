@@ -552,7 +552,7 @@
         <button class="tab-btn" onclick="switchTab('tabRank')">🏆 2. Xếp Hạng & Tỷ Trọng</button>
         <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 5 Hubs BHX</button>
         <button class="tab-btn" id="btnTabCvsStores" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết Cửa Hàng CVS</button>
-        <button class="tab-btn" onclick="switchTab('tabFmHubs')">🏪 5. Phân Bổ 6 Hubs FamilyMart</button>
+        <button class="tab-btn" onclick="switchTab('tabFmHubs')">🏪 5. Phân Bổ FamilyMart</button>
       </div>
 
       <!-- TAB 1: TIẾN ĐỘ 11 NHÂN VIÊN -->
@@ -666,11 +666,10 @@
             <thead>
               <tr>
                 <th class="text-center" style="width:45px;">STT</th>
-                <th>CHUỖI</th>
+                <th class="text-center">CHUỖI</th>
                 <th>NHÂN VIÊN QUẢN LÝ</th>
                 <th>MÃ CỬA HÀNG</th>
                 <th>TÊN CỬA HÀNG</th>
-                <th style="max-width:350px;">ĐỊA CHỈ</th>
                 <th class="text-right" style="color:#93C5FD;">DOANH SỐ (VNĐ)</th>
               </tr>
             </thead>
@@ -2123,7 +2122,7 @@
         if (isNewEmp) {
           tbody.innerHTML += `
             <tr class="emp-gap" style="background:#F8FAFC;">
-              <td colspan="7" style="height:14px; padding:0; background:#EEF2F6; border-top:1px solid #CBD5E1; border-bottom:2px solid #0F766E;"></td>
+              <td colspan="6" style="height:14px; padding:0; background:#EEF2F6; border-top:1px solid #CBD5E1; border-bottom:2px solid #0F766E;"></td>
             </tr>
           `;
         }
@@ -2140,11 +2139,10 @@
         tbody.innerHTML += `
           <tr ${isFirstOfEmp ? 'style="border-top:2px solid #0F766E; background:#FAFDFD;"' : ''}>
             <td class="text-center font-bold" style="color:#64748B;">${idx + 1}</td>
-            <td>${getCvsChainBadge(s.chain)}</td>
+            <td class="text-center">${getCvsChainBadge(s.chain)}</td>
             <td>${empCell}</td>
             <td class="font-bold" style="color:#1E293B;"><code>${s.store_code || '-'}</code></td>
             <td style="font-weight:600;">${displayName}</td>
-            <td style="max-width:350px; font-size:11.5px; color:#475569;">${displayAddr}</td>
             <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${formatMoney(val)}</td>
           </tr>
         `;
@@ -2152,7 +2150,7 @@
 
       tfoot.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center font-bold">TỔNG (${filtered.length} CỬA HÀNG)</td>
+          <td colspan="5" class="text-center font-bold">TỔNG (${filtered.length} CỬA HÀNG)</td>
           <td class="text-right font-bold" style="color:#93C5FD !important;">${formatMoney(sumCvs)}</td>
         </tr>
       `;
@@ -3073,7 +3071,7 @@
           ['Tháng Báo Cáo', p.month],
           ['Năm Báo Cáo', p.year],
           ['% Timegone Thực Tế', p.timegone + '%'],
-          ['Tổng Cửa Hàng BHX Hệ Thống', p.total_stores_bhx || 232],
+          ['Tổng Cửa Hàng BHX Hệ Thống', p.total_stores_bhx || 240],
           ['Tổng Cửa Hàng GS25 Hệ Thống', 72],
           ['Hệ Số Phân Bổ GS25 (2 DC)', '20.46%'],
           ['Tổng Cửa Hàng 7-Eleven Phụ Trách', 5],

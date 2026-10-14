@@ -664,7 +664,7 @@ const DEFAULT_FM_STORES = [
 
 const MASTER_DATA = {
   "team_lead": "Trần Thị Cẩm Giang",
-  "total_stores_bhx": 233,
+  "total_stores_bhx": 240,
   "total_stores_bhx_team": 199,
   "employees": [
     {
