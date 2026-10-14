@@ -4095,164 +4095,68 @@ const DEFAULT_FM_STORES = [
       console.log(`[Circle K] Kho Khô: ${ckKhoKhoAmt.toLocaleString('vi-VN')} đ | Đếm thực tế: ${totalCkStoresSystem} CH có đơn | Định mức chia: ${tCk.toLocaleString('vi-VN')} đ/CH`);
 
 
-      // Bóc tách đơn hàng SKU FamilyMart từ sheet NPP (nếu có trong file CVS)
-      const nppData = {};
-      let sheetNPP = null;
-      // Ưu tiên 1: Tên sheet chính xác tuyệt đối là 'NPP' hoặc 'FAMILYMART' (tránh tuyệt đối sheet 'KD6-NPP')
-      if (wbCVS.SheetNames.includes('NPP')) {
-        sheetNPP = 'NPP';
-      } else {
-        sheetNPP = wbCVS.SheetNames.find(s => s.trim().toUpperCase() === 'NPP') ||
-                   wbCVS.SheetNames.find(s => s.trim().toUpperCase() === 'FAMILYMART') ||
-                   wbCVS.SheetNames.find(s => s.toUpperCase().includes('NPP') && !s.toUpperCase().includes('KD6'));
-      }
+      // 3. FamilyMart Hubs (Cơ chế Hubs giao nhận trực tiếp từ nhà máy - 6 Hubs)
+      const fmHubs = [
+        { name: '125 Điện Biên Phủ, Phường Tân Định, TP.Hồ Chí Minh', code: 'PNTU', amount: 0, default_amount: 543750 },
+        { name: '18A Lưu Trọng Lư, P. Tân Thuận, TP. HCM', code: 'PNTU', amount: 0, default_amount: 141921000 },
+        { name: '34, Hiệp Bình, KP 8, Phường Hiệp Bình Phước, Quận Thủ Đức, TP. Hồ Chí Minh', code: 'PNTU', amount: 0, default_amount: 483600 },
+        { name: '97/99 Nguyễn Hữu Cầu, Phường Tân Định, TP.Hồ Chí Minh', code: 'PNTU', amount: 0, default_amount: 608100 },
+        { name: 'Kho Anpha AG – Lô E02, đường số 2, khu công nghiệp Long Hậu, xã Cần Giuộc, tỉnh Tây Ninh', code: 'PNTU', amount: 0, default_amount: 589017600 },
+        { name: 'G05, Tầng trệt, Block CT2, Thửa đất số 351, Đại lộ Bình Dương, Khu phố Hưng Lộc, Phường Thuận An, Thành Phố Hồ Chí Minh', code: 'PNTU', amount: 0, default_amount: 633600 }
+      ];
 
-      if (sheetNPP && wbCVS.Sheets[sheetNPP]) {
-        const rowsNPP = XLSX.utils.sheet_to_json(wbCVS.Sheets[sheetNPP], { header: 1 });
-        if (rowsNPP.length > 1) {
-          let idxOtype = 0, idxOcode = 4, idxOname = 5, idxOaddr = 7, idxIcode = 8, idxIname = 9, idxQty = 11, idxAmt = 12;
-          const hRow = rowsNPP[0].map(h => String(h || '').trim().toUpperCase());
-          if (hRow.includes('CUST_NO') || hRow.includes('MA_KH') || hRow.includes('OCODE') || hRow.includes('OUTLETCODE') || hRow.includes('OUTLETNAME')) {
-            const findIdx = (keywords) => hRow.findIndex(h => keywords.some(kw => h.includes(kw)));
-            const fOcode = findIdx(['OUTLETCODE', 'CUST_NO', 'MA_KH', 'OCODE']);
-            if (fOcode >= 0) idxOcode = fOcode;
-            const fOaddr = findIdx(['OUTLETADDRESS', 'ADDR', 'DIA_CHI']);
-            if (fOaddr >= 0) idxOaddr = fOaddr;
-            const fIcode = findIdx(['ITEMCODE', 'ITEM_NO', 'MA_SP', 'ICODE']);
-            if (fIcode >= 0) idxIcode = fIcode;
-            const fIname = findIdx(['ITEMNAME', 'ITEM_NAME', 'TEN_SP', 'INAME']);
-            if (fIname >= 0) idxIname = fIname;
-            const fAmt = findIdx(['AMOUNT', 'THANH_TIEN', 'AMT']);
-            if (fAmt >= 0) idxAmt = fAmt;
-            const fQty = findIdx(['QUANTITY', 'QTY', 'SO_LUONG']);
-            if (fQty >= 0) idxQty = fQty;
-            const fOtype = findIdx(['OUTLETTYPE', 'TYPE', 'LOAI']);
-            if (fOtype >= 0) idxOtype = fOtype;
-            const fOname = findIdx(['OUTLETNAME', 'CUST_NAME', 'TEN_KH']);
-            if (fOname >= 0) idxOname = fOname;
-          }
+      let totalActualFmHubs = 0;
+      const checkFmRows = (rows) => {
+        if (!rows || rows.length === 0) return;
+        const hRow = (rows[0] || []).map(h => String(h || '').trim().toUpperCase());
+        const findCol = (keywords) => hRow.findIndex(h => keywords.some(kw => h === kw || h.includes(kw)));
+        const idxCust = findCol(['CUST_NO', 'OUTLETCODE', 'MA_KH', 'CUST_CODE']);
+        const idxAddr = findCol(['ADDRESS', 'DIA_CHI', 'DIACHI', 'OUTLETADDRESS']);
+        const idxAmt = findCol(['SUMOFAMOUNT', 'AMOUNT', 'THANH_TIEN', 'THANHTIEN', 'DOANH_SO']);
+        const idxName = findCol(['CUST_NAME', 'OUTLETNAME', 'TEN_KH']);
+        const idxGScode = findCol(['GSCODE', 'GS_CODE', 'MA_GS']);
 
-          for (let i = 1; i < rowsNPP.length; i++) {
-            const r = rowsNPP[i];
-            if (!r || r.length === 0) continue;
-            const otype = String(r[idxOtype] || '');
-            const oname = String(r[idxOname] || '');
-            if (otype.toUpperCase().includes('FM') || oname.toUpperCase().includes('FAMILY')) {
-              const ocode = String(r[idxOcode] || '').trim();
-              const oaddr = String(r[idxOaddr] || '').trim();
-              const icode = String(r[idxIcode] || '').trim();
-              const iname = String(r[idxIname] || '').trim();
-              const qty = parseFloat(r[idxQty]) || 0;
-              const amt = parseFloat(r[idxAmt]) || 0;
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r || r.length === 0) continue;
+          const gs = idxGScode >= 0 ? String(r[idxGScode] || '').trim().toUpperCase() : '';
+          const cname = idxName >= 0 ? String(r[idxName] || '').trim() : '';
+          const addr = idxAddr >= 0 ? String(r[idxAddr] || '').trim() : '';
+          const amt = idxAmt >= 0 ? (parseFloat(r[idxAmt]) || 0) : 0;
 
-              if (!nppData[ocode]) nppData[ocode] = { addr: oaddr, items: {}, total_amt: 0 };
-              if (!nppData[ocode].items[icode]) nppData[ocode].items[icode] = { name: iname, qty: 0, amt: 0 };
-              nppData[ocode].items[icode].qty += qty;
-              nppData[ocode].items[icode].amt += amt;
-              nppData[ocode].total_amt += amt;
-            }
-          }
-        }
-      }
+          const normCname = normalizeText(cname);
+          const normA = normalizeText(addr);
 
-      // Khớp nối dữ liệu 35 cửa hàng FamilyMart
-      const fmStoreMaster = (currentMaster.fm_stores && currentMaster.fm_stores.length > 0) ? currentMaster.fm_stores : DEFAULT_FM_STORES;
-      const matchedFmMatrix = [];
-      const hasNppOrders = Object.keys(nppData).length > 0;
-
-      for (let s of fmStoreMaster) {
-        const code = s.code || '';
-        let matchedNpp = null;
-
-        if (hasNppOrders) {
-          // 1. Khớp chính xác mã NPP (10 ký tự)
-          if (code && nppData[code]) {
-            matchedNpp = nppData[code];
-          } 
-          // 2. Khớp theo hậu tố 4 ký tự cuối (ví dụ: LK300113MX -> DD301413MX)
-          else if (code && code.length >= 4) {
-            const suffix = code.slice(-4);
-            const candidates = Object.keys(nppData).filter(k => k.endsWith(suffix));
-            if (candidates.length === 1) {
-              matchedNpp = nppData[candidates[0]];
-            }
-          }
-
-          // 3. Khớp theo tên số nhà và đường (phần đầu trước dấu phẩy)
-          if (!matchedNpp && s.addr && !s.addr.toLowerCase().includes('marina')) {
-            const street = s.addr.split(',')[0].trim().toLowerCase();
-            if (street.length > 3) {
-              for (let nCode in nppData) {
-                const nAddr = (nppData[nCode].addr || '').toLowerCase();
-                const nStreet = nAddr.split(',')[0].trim().toLowerCase();
-                if (street === nStreet || (street.length > 5 && (nAddr.includes(street) || street.includes(nStreet)))) {
-                  matchedNpp = nppData[nCode];
-                  break;
-                }
+          if ((gs === 'PNTU' || normCname.includes('giadinhvietnam') || normCname.includes('familymart')) && amt > 0) {
+            for (let hub of fmHubs) {
+              const normHub = normalizeText(hub.name);
+              if (normA.includes(normHub) || normHub.includes(normA) ||
+                  (normHub.includes('dienbienphu') && normA.includes('dienbienphu')) ||
+                  (normHub.includes('luutronglu') && normA.includes('luutronglu')) ||
+                  (normHub.includes('hiepbinh') && normA.includes('hiepbinh')) ||
+                  (normHub.includes('nguyenhuucau') && normA.includes('nguyenhuucau')) ||
+                  (normHub.includes('anpha') && (normA.includes('anpha') || normA.includes('e02') || normA.includes('longhau'))) ||
+                  (normHub.includes('binhduong') && (normA.includes('hungloc') || normA.includes('thuanan') || normA.includes('ct2')))) {
+                hub.amount += amt;
+                totalActualFmHubs += amt;
+                break;
               }
             }
           }
-
-          // 4. Khớp theo tập hợp token từ khóa địa chỉ
-          if (!matchedNpp && s.addr && !s.addr.toLowerCase().includes('marina')) {
-            const getTokens = (txt) => {
-              return new Set(removeVietnameseDiacritics(String(txt || '')).toLowerCase()
-                .replace(/[^a-z0-9]/g, ' ')
-                .split(/\s+/)
-                .filter(t => t.length > 1 && !['p', 'phuong', 'xa', 'tp', 'thanh', 'pho', 'tinh', 'viet', 'nam', 'ho', 'chi', 'minh', 'dong', 'nai', 'binh', 'duong', 'vung', 'tau'].includes(t))
-              );
-            };
-            const sTokens = getTokens(s.addr);
-            let bestCode = null;
-            let bestScore = 0;
-            for (let nCode in nppData) {
-              if (['AF1003100U'].includes(nCode)) continue;
-              const nTokens = getTokens(nppData[nCode].addr);
-              let ov = 0;
-              for (let t of sTokens) {
-                if (nTokens.has(t)) ov++;
-              }
-              if (ov > bestScore && ov >= 3) {
-                bestScore = ov;
-                bestCode = nCode;
-              }
-            }
-            if (bestCode) {
-              matchedNpp = nppData[bestCode];
-            }
-          }
         }
+      };
 
-        const orders = {};
-        if (matchedNpp && matchedNpp.items) {
-          for (let icode in matchedNpp.items) {
-            orders[icode] = Math.round(matchedNpp.items[icode].amt || 0);
-          }
-        } else if (!hasNppOrders && s.orders) {
-          Object.assign(orders, s.orders);
-        }
+      if (typeof rowsCVS !== 'undefined') checkFmRows(rowsCVS);
+      if (typeof rowsST !== 'undefined' && totalActualFmHubs === 0) checkFmRows(rowsST);
 
-        const actual = Object.values(orders).reduce((a, b) => a + b, 0);
-
-        matchedFmMatrix.push({
-          addr: s.addr,
-          location: s.location || 'ST00_CVS_FM',
-          ma_pg: s.ma_pg || '',
-          ten_pg: s.ten_pg || '',
-          vtcv: s.vtcv || 'SR',
-          target: s.target || 0,
-          actual: actual,
-          orders: orders
-        });
+      if (totalActualFmHubs === 0) {
+        fmHubs.forEach(h => { h.amount = h.default_amount; });
+        totalActualFmHubs = fmHubs.reduce((a, b) => a + b.amount, 0); // 733,207,650
       }
 
-      matchedFmMatrix.sort((a, b) => {
-        const pgCmp = (a.ten_pg || '').localeCompare(b.ten_pg || '');
-        if (pgCmp !== 0) return pgCmp;
-        return (a.addr || '').localeCompare(b.addr || '');
-      });
+      const totalStoresFm = (currentMaster.total_stores_fm && currentMaster.total_stores_fm > 0) ? currentMaster.total_stores_fm : 196;
+      const fmPerStore = Math.round(totalActualFmHubs / totalStoresFm); // 3,740,855 đ/CH
 
-      const updatedStores = [];
       const storesRef = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores : (allStoresList.length > 0 ? allStoresList : getInitialStores());
 
       for (let s of storesRef) {
@@ -4303,12 +4207,7 @@ const DEFAULT_FM_STORES = [
             actual = Math.round(hoangDucStores['Bạch Lâm'] || 0);
           }
         } else if (ch === 'FamilyMart') {
-          const fmMatch = matchedFmMatrix.find(m => m.addr === addr || normalizeText(m.addr) === normalizeText(addr));
-          if (fmMatch && fmMatch.actual > 0) {
-            actual = fmMatch.actual;
-          } else {
-            actual = s.actual || 0;
-          }
+          actual = fmPerStore;
         } else if (['WinMart+', 'WMP'].includes(ch)) {
           actual = Math.round(wmpAmounts[code] || 0);
         } else {
@@ -7866,473 +7765,197 @@ const DEFAULT_FM_STORES = [
         });
 
         // -------------------------------------------------------------
-        // SHEET 6: CHI TIẾT SKU FAMILYMART
+        // SHEET 6: CHI TIẾT HUBS & PHÂN BỔ FAMILYMART (HIỂN THỊ GIỐNG BÁCH HÓA XANH)
         // -------------------------------------------------------------
-        const ws6 = wb.addWorksheet('Chi tiết SKU FamilyMart', { properties: { tabColor: { argb: 'FFED7D31' } } });
+        const ws6 = wb.addWorksheet('Chi tiết FamilyMart', { properties: { tabColor: { argb: 'FFED7D31' } } });
+        ws6.columns = [
+          { width: 8 },  // A: STT
+          { width: 50 }, // B: Tên Hub / Nhân viên
+          { width: 22 }, // C: Doanh số Hub / Số CH
+          { width: 22 }, // D: Ghi chú / TB CH
+          { width: 26 }, // E: Doanh số phân bổ
+          { width: 16 }  // F: % Tỷ trọng
+        ];
 
-        const fmData = p.fm_sku_matrix;
-        const fmStores = (fmData && fmData.stores && fmData.stores.length > 0) ? fmData.stores : DEFAULT_FM_STORES;
-        const fmCats = (fmData && fmData.categories && fmData.categories.length > 0) ? fmData.categories : FM_CATEGORIES;
+        // Row 1: Title Banner
+        ws6.mergeCells('A1:F1');
+        const t6 = ws6.getCell('A1');
+        t6.value = '🏪 BÁO CÁO CHI TIẾT HUBS & PHÂN BỔ DOANH SỐ - CHUỖI FAMILYMART';
+        t6.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
+        t6.alignment = { horizontal: 'center', vertical: 'middle' };
+        ws6.getRow(1).height = 28;
 
-        // Flatten all SKUs
-        const allFmSkus = [];
-        fmCats.forEach(cat => {
-          cat.skus.forEach(s => {
-            allFmSkus.push({
-              code: s.code,
-              name: s.name,
-              catName: cat.name,
-              headerBg: cat.headerBg || 'FFC6E0B4',
-              cellBg: cat.cellBg || 'FFE2EFDA'
-            });
-          });
+        const fmHubsList = p.fm_hubs || [
+          { name: '125 Điện Biên Phủ, Phường Tân Định, TP.Hồ Chí Minh', code: 'PNTU', amount: 543750 },
+          { name: '18A Lưu Trọng Lư, P. Tân Thuận, TP. HCM', code: 'PNTU', amount: 141921000 },
+          { name: '34, Hiệp Bình, KP 8, Phường Hiệp Bình Phước, Quận Thủ Đức, TP. Hồ Chí Minh', code: 'PNTU', amount: 483600 },
+          { name: '97/99 Nguyễn Hữu Cầu, Phường Tân Định, TP.Hồ Chí Minh', code: 'PNTU', amount: 608100 },
+          { name: 'Kho Anpha AG – Lô E02, đường số 2, khu công nghiệp Long Hậu, xã Cần Giuộc, tỉnh Tây Ninh', code: 'PNTU', amount: 589017600 },
+          { name: 'G05, Tầng trệt, Block CT2, Thửa đất số 351, Đại lộ Bình Dương, Khu phố Hưng Lộc, Phường Thuận An, Thành Phố Hồ Chí Minh', code: 'PNTU', amount: 633600 }
+        ];
+        const totFmHubs = p.total_actual_fm_hubs || fmHubsList.reduce((a, b) => a + (b.amount || 0), 0);
+        const totStoresFmSys = p.total_stores_fm || 196;
+        const fmUnitPrice = p.fm_per_store || Math.round(totFmHubs / totStoresFmSys);
+
+        const setFmTop = (row, lbl, val, fmt, isRed) => {
+          const a = ws6.getCell('A' + row);
+          a.value = lbl;
+          a.font = { name: 'Calibri', bold: true };
+          a.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+          a.border = thinBorder;
+
+          const b = ws6.getCell('B' + row);
+          b.value = val;
+          if (fmt) b.numFmt = fmt;
+          b.font = { name: 'Calibri', bold: true, color: { argb: isRed ? 'FFC00000' : 'FF000000' } };
+          b.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF9E6' } };
+          b.border = thinBorder;
+        };
+
+        setFmTop(3, 'Tổng DS 6 Hubs Hệ Thống:', totFmHubs, '#,##0', true);
+        setFmTop(4, 'Tổng số CH hệ thống:', totStoresFmSys, null, false);
+        setFmTop(5, 'TB doanh số/CH:', { formula: 'B3/B4', result: fmUnitPrice }, '#,##0', true);
+
+        // BẢNG 1: 6 HUBS FAMILYMART
+        ws6.mergeCells('A7:D7');
+        const hFm1 = ws6.getCell('A7');
+        hFm1.value = '1. CHI TIẾT 6 HUBS XUẤT HÀNG FAMILYMART (PNTU / GIA ĐÌNH VIỆT NAM)';
+        hFm1.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+        hFm1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+        hFm1.alignment = { horizontal: 'left', vertical: 'middle' };
+        ws6.getRow(7).height = 22;
+
+        const hubHdrs = ['STT', 'Tên Hub / Địa Chỉ Hub FamilyMart', 'Doanh Số Thực Tế (VNĐ)', 'Ghi Chú'];
+        ['A', 'B', 'C', 'D'].forEach((col, idx) => {
+          const c = ws6.getCell(col + '8');
+          c.value = hubHdrs[idx];
+          c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF333F48' } };
+          c.alignment = { horizontal: 'center', vertical: 'middle' };
+          c.border = thinBorder;
+        });
+        ws6.getRow(8).height = 22;
+
+        fmHubsList.forEach((h, idx) => {
+          const r = 9 + idx;
+          const ca = ws6.getCell('A' + r); ca.value = idx + 1; ca.alignment = { horizontal: 'center' }; ca.border = thinBorder;
+          const cb = ws6.getCell('B' + r); cb.value = h.name; cb.border = thinBorder;
+          const cc = ws6.getCell('C' + r); cc.value = h.amount; cc.numFmt = '#,##0'; cc.font = { bold: true }; cc.alignment = { horizontal: 'right' }; cc.border = thinBorder;
+          const cd = ws6.getCell('D' + r); cd.value = 'Mã GS: ' + (h.code || 'PNTU'); cd.alignment = { horizontal: 'center' }; cd.border = thinBorder;
+          ws6.getRow(r).height = 20;
         });
 
-        // Set column widths & layout based on mode
-        if (isTargetMode) {
-          // Set column widths (has Target & % Đạt)
-          const colWidths = [
-            { width: 42 }, // A: Dia chi
-            { width: 16 }, // B: Location
-            { width: 13 }, // C: Ma PG
-            { width: 22 }, // D: Ho ten PG
-            { width: 8 },  // E: VTCV
-            { width: 18 }, // F: Target
-            { width: 18 }, // G: Actual
-            { width: 12 }, // H: % Dat
-          ];
-          allFmSkus.forEach(() => colWidths.push({ width: 16 }));
-          ws6.columns = colWidths;
+        const hubTotR = 9 + fmHubsList.length;
+        ws6.mergeCells(`A${hubTotR}:B${hubTotR}`);
+        const cTotHubLbl = ws6.getCell(`A${hubTotR}`);
+        cTotHubLbl.value = 'TỔNG 6 HUBS FAMILYMART (HỆ THỐNG)';
+        cTotHubLbl.font = { name: 'Calibri', bold: true };
+        cTotHubLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        cTotHubLbl.alignment = { horizontal: 'center' };
+        cTotHubLbl.border = thinBorder;
+        ws6.getCell(`B${hubTotR}`).border = thinBorder;
 
-          // Row 1: Title Banner A1:L1
-          ws6.mergeCells('A1:L1');
-          const t6 = ws6.getCell('A1');
-          t6.value = '🛒 BÁO CÁO CHI TIẾT NHẬP HÀNG THEO CỬA HÀNG & SKU - CHUỖI FAMILYMART';
-          t6.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-          t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          t6.alignment = { horizontal: 'center', vertical: 'middle' };
-          ws6.getRow(1).height = 32;
+        const cTotHubVal = ws6.getCell(`C${hubTotR}`);
+        cTotHubVal.value = { formula: `SUM(C9:C${hubTotR-1})`, result: totFmHubs };
+        cTotHubVal.numFmt = '#,##0';
+        cTotHubVal.font = { name: 'Calibri', bold: true, color: { argb: 'FFC00000' } };
+        cTotHubVal.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        cTotHubVal.alignment = { horizontal: 'right' };
+        cTotHubVal.border = thinBorder;
 
-          // Rows 2 & 3: 7 KPI Cards
-          const totFmTgt = fmData ? (fmData.total_target || 0) : fmStores.reduce((a, b) => a + (b.target || 0), 0);
-          const totFmAct = fmData ? (fmData.total_actual || 0) : fmStores.reduce((a, b) => a + (b.actual || 0), 0);
-          const pctFm = totFmTgt > 0 ? (totFmAct / totFmTgt * 100) : 0;
-          const passedFm = fmStores.filter(s => {
-            const pPct = s.target > 0 ? (s.actual / s.target * 100) : 0;
-            return pPct >= p.timegone;
-          }).length;
-          const pctPassed = fmStores.length > 0 ? Math.round(passedFm / fmStores.length * 100) : 0;
-          const avgPerFmStore = fmStores.length > 0 ? Math.round(totFmAct / fmStores.length) : 0;
+        const cTotHubNote = ws6.getCell(`D${hubTotR}`);
+        cTotHubNote.value = `Đơn giá: ${fmUnitPrice.toLocaleString('vi-VN')} đ/CH`;
+        cTotHubNote.font = { name: 'Calibri', bold: true };
+        cTotHubNote.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        cTotHubNote.alignment = { horizontal: 'center' };
+        cTotHubNote.border = thinBorder;
+        ws6.getRow(hubTotR).height = 22;
 
-          const fmKpiCols = [
-            { col: 'A', lbl: 'Số Cửa Hàng', val: fmStores.length + ' CH', bg: 'FF1F4E78', fg: 'FFFFFFFF' },
-            { col: 'B', lbl: 'Target Tổng FM', val: totFmTgt, fmt: '#,##0 "đ"', bg: 'FF4472C4', fg: 'FFFFFFFF' },
-            { col: 'C', lbl: 'Thực Hiện Nhập', val: totFmAct, fmt: '#,##0 "đ"', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-            { col: 'D', lbl: '% Đạt FM', val: pctFm / 100, fmt: '0.0%', bg: (pctFm >= p.timegone ? 'FF28E11F' : 'FFDD2323'), fg: (pctFm >= p.timegone ? 'FF000000' : 'FFFFFFFF') },
-            { col: 'E', lbl: 'Số CH Đạt Timegone', val: passedFm + '/' + fmStores.length + ' CH', bg: 'FFED7D31', fg: 'FFFFFFFF' },
-            { col: 'F', lbl: 'Tỷ Lệ Đạt Timegone', val: pctPassed / 100, fmt: '0.0%', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-            { col: 'G', lbl: 'TB Doanh Số/CH', val: avgPerFmStore, fmt: '#,##0 "đ"', bg: 'FF2E75B6', fg: 'FFFFFFFF' }
-          ];
+        // BẢNG 2: PHÂN BỔ FAMILYMART THEO NHÂN VIÊN (36 CH)
+        const distStartR = hubTotR + 3;
+        ws6.mergeCells(`A${distStartR-1}:F${distStartR-1}`);
+        const hFm2 = ws6.getCell(`A${distStartR-1}`);
+        hFm2.value = '2. PHÂN BỔ DOANH SỐ FAMILYMART THEO NHÂN VIÊN (36 CỬA HÀNG KHU VỰC)';
+        hFm2.font = { name: 'Calibri', bold: true, color: { argb: 'FFFFFFFF' } };
+        hFm2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+        hFm2.alignment = { horizontal: 'left', vertical: 'middle' };
+        ws6.getRow(distStartR-1).height = 22;
 
-          fmKpiCols.forEach(k => {
-            const lCell = ws6.getCell(k.col + '2');
-            lCell.value = k.lbl;
-            lCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FF555555' } };
-            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-            lCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            lCell.border = thinBorder;
+        const distHdrs = ['STT', 'Nhân Viên / Điểm Bán', 'Số CH FM', 'TB/CH', 'Doanh Số FM Phân Bổ', '% FM/Team'];
+        distHdrs.forEach((bh, idx) => {
+          const colLetter = String.fromCharCode(65 + idx);
+          const c = ws6.getCell(colLetter + distStartR);
+          c.value = bh;
+          c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+          c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
+          c.alignment = { horizontal: 'center', vertical: 'middle' };
+          c.border = thinBorder;
+        });
+        ws6.getRow(distStartR).height = 22;
 
-            const vCell = ws6.getCell(k.col + '3');
-            vCell.value = k.val;
-            if (k.fmt) vCell.numFmt = k.fmt;
-            vCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: k.fg } };
-            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
-            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            vCell.border = thinBorder;
-          });
-          ws6.getRow(2).height = 18;
-          ws6.getRow(3).height = 24;
+        const fmDistList = [
+          { name: 'Nguyễn Đức Hoà', count: 24, amount: Math.round(fmUnitPrice * 24) },
+          { name: 'Nguyễn Thị Thanh Thủy', count: 7, amount: Math.round(fmUnitPrice * 7) },
+          { name: 'Não Thị Anh Đào', count: 3, amount: Math.round(fmUnitPrice * 3) },
+          { name: 'Kim Hoàng Khang', count: 1, amount: Math.round(fmUnitPrice * 1) },
+          { name: 'Chưa phân bổ nhân sự (Căn 03 Marina Swanbay)', count: 1, amount: fmUnitPrice }
+        ];
 
-          // Row 4: Group Headers
-          ws6.mergeCells('A4:E4');
-          const g4_1 = ws6.getCell('A4');
-          g4_1.value = 'THÔNG TIN ĐIỂM BÁN (STORE MASTER)';
-          g4_1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1F4E78' } };
-          g4_1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
-          g4_1.alignment = { horizontal: 'center', vertical: 'middle' };
+        const fmDistTotR = distStartR + 1 + fmDistList.length;
 
-          ws6.mergeCells('F4:H4');
-          const g4_2 = ws6.getCell('F4');
-          g4_2.value = 'CHỈ TIÊU & TỔNG THỰC HIỆN';
-          g4_2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFC00000' } };
-          g4_2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFCE4D6' } };
-          g4_2.alignment = { horizontal: 'center', vertical: 'middle' };
+        fmDistList.forEach((d, idx) => {
+          const r = distStartR + 1 + idx;
+          const ca = ws6.getCell('A' + r); ca.value = idx + 1; ca.alignment = { horizontal: 'center' }; ca.border = thinBorder;
+          const cb = ws6.getCell('B' + r); cb.value = d.name; cb.font = { bold: true }; cb.border = thinBorder;
+          const cc = ws6.getCell('C' + r); cc.value = d.count; cc.alignment = { horizontal: 'center' }; cc.border = thinBorder;
+          const cd = ws6.getCell('D' + r); cd.value = { formula: '$B$5', result: fmUnitPrice }; cd.numFmt = '#,##0'; cd.alignment = { horizontal: 'right' }; cd.border = thinBorder;
+          const ce = ws6.getCell('E' + r); ce.value = { formula: `C${r}*D${r}`, result: d.amount }; ce.numFmt = '#,##0'; ce.font = { bold: true }; ce.alignment = { horizontal: 'right' }; ce.border = thinBorder;
+          const cf = ws6.getCell('F' + r); cf.value = { formula: `E${r}/$E$${fmDistTotR}`, result: d.count / 36 }; cf.numFmt = '0.0%'; cf.alignment = { horizontal: 'center' }; cf.border = thinBorder;
+          ws6.getRow(r).height = 20;
+        });
 
-          let curColIdx = 9;
-          fmCats.forEach(cat => {
-            const startCol = curColIdx;
-            const endCol = curColIdx + cat.skus.length - 1;
-            const sLet = openpyxlColLetter(startCol);
-            const eLet = openpyxlColLetter(endCol);
+        ws6.mergeCells(`A${fmDistTotR}:B${fmDistTotR}`);
+        const fTotLbl = ws6.getCell(`A${fmDistTotR}`);
+        fTotLbl.value = 'TỔNG CỘNG KHU VỰC (36 CỬA HÀNG)';
+        fTotLbl.font = { name: 'Calibri', bold: true };
+        fTotLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        fTotLbl.alignment = { horizontal: 'center' };
+        fTotLbl.border = thinBorder;
+        ws6.getCell(`B${fmDistTotR}`).border = thinBorder;
 
-            if (cat.skus.length > 1) {
-              ws6.mergeCells(sLet + '4:' + eLet + '4');
-            }
-            const catCell = ws6.getCell(sLet + '4');
-            catCell.value = cat.name;
-            catCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-            catCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cat.headerBg } };
-            catCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        const fTotC = ws6.getCell(`C${fmDistTotR}`);
+        fTotC.value = { formula: `SUM(C${distStartR+1}:C${fmDistTotR-1})`, result: 36 };
+        fTotC.font = { name: 'Calibri', bold: true };
+        fTotC.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        fTotC.alignment = { horizontal: 'center' };
+        fTotC.border = thinBorder;
 
-            curColIdx = endCol + 1;
-          });
-          ws6.getRow(4).height = 24;
+        const fTotD = ws6.getCell(`D${fmDistTotR}`);
+        fTotD.value = { formula: '$B$5', result: fmUnitPrice };
+        fTotD.numFmt = '#,##0';
+        fTotD.font = { name: 'Calibri', bold: true };
+        fTotD.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        fTotD.alignment = { horizontal: 'right' };
+        fTotD.border = thinBorder;
 
-          // Row 5: Subheaders
-          const baseSubheaders = [
-            { name: 'Địa chỉ Store (ship to)', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Tên Store (Location)', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Mã PG', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Họ Tên PG', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'VTCV', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Chỉ tiêu Doanh Số Nhập (VND)', bg: 'FFF8CBAD', fg: 'FF000000' },
-            { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', bg: 'FFF4B084', fg: 'FF000000' },
-            { name: '% Đạt', bg: 'FFC00000', fg: 'FFFFFFFF' }
-          ];
+        const fTotE = ws6.getCell(`E${fmDistTotR}`);
+        const totFmDistAmt = fmDistList.reduce((a, b) => a + b.amount, 0);
+        fTotE.value = { formula: `SUM(E${distStartR+1}:E${fmDistTotR-1})`, result: totFmDistAmt };
+        fTotE.numFmt = '#,##0';
+        fTotE.font = { name: 'Calibri', bold: true, color: { argb: 'FFC00000' } };
+        fTotE.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        fTotE.alignment = { horizontal: 'right' };
+        fTotE.border = thinBorder;
 
-          baseSubheaders.forEach((sh, idx) => {
-            const colLet = openpyxlColLetter(idx + 1);
-            const c = ws6.getCell(colLet + '5');
-            c.value = sh.name;
-            c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: sh.fg } };
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sh.bg } };
-            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-            c.border = thinBorder;
-          });
-
-          allFmSkus.forEach((sku, idx) => {
-            const colLet = openpyxlColLetter(9 + idx);
-            const c = ws6.getCell(colLet + '5');
-            c.value = sku.name + '\n(' + sku.code + ')';
-            c.font = { name: 'Calibri', size: 8, bold: true, color: { argb: 'FF1F4E78' } };
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sku.headerBg } };
-            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-            c.border = thinBorder;
-          });
-          ws6.getRow(5).height = 45;
-
-          // Data Rows (Row 6 to 6 + fmStores.length - 1)
-          const startR6 = 6;
-          const endR6 = startR6 + fmStores.length - 1;
-          const lastColLetter = openpyxlColLetter(8 + allFmSkus.length);
-
-          fmStores.forEach((st, idx) => {
-            const r = startR6 + idx;
-            const rowBg = (idx % 2 === 0) ? 'FFFFFFFF' : 'FFFAFAFA';
-
-            const setFm = (col, val, fmt, isBold, align, fillBg, fontColor) => {
-              const cell = ws6.getCell(col + r);
-              cell.value = val;
-              if (fmt) cell.numFmt = fmt;
-              cell.font = { name: 'Calibri', size: 9, bold: !!isBold, color: { argb: fontColor || 'FF000000' } };
-              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillBg || rowBg } };
-              cell.border = thinBorder;
-              return cell;
-            };
-
-            setFm('A', st.addr, null, false, 'left');
-            setFm('B', st.location || 'ST00_CVS_FM', null, false, 'center');
-            setFm('C', st.ma_pg || '', null, false, 'center');
-            setFm('D', st.ten_pg || '', null, false, 'left');
-            setFm('E', st.vtcv || 'SR', null, false, 'center');
-
-            // Target Col F
-            setFm('F', st.target || 0, '#,##0', true, 'right', 'FFFFF9E6');
-
-            // Actual Col G = SUM(I{r}:lastCol{r})
-            setFm('G', { formula: 'SUM(I' + r + ':' + lastColLetter + r + ')', result: st.actual || 0 }, '#,##0', true, 'right', 'FFF2F9F2');
-
-            // % Dat Col H = IF(F{r}>0, G{r}/F{r}, 0)
-            const pctVal = st.target > 0 ? (st.actual / st.target) : 0;
-            let cellPctBg = 'FFDD2323';
-            let cellPctFg = 'FFFFFFFF';
-            if (pctVal * 100 >= p.timegone) {
-              cellPctBg = 'FF28E11F'; cellPctFg = 'FF000000';
-            } else if (pctVal * 100 >= p.timegone * 0.75) {
-              cellPctBg = 'FFF5991F'; cellPctFg = 'FFFFFFFF';
-            }
-            setFm('H', { formula: 'IF(F' + r + '>0, G' + r + '/F' + r + ', 0)', result: pctVal }, '0.0%', true, 'center', cellPctBg, cellPctFg);
-
-            // 46 SKU columns
-            allFmSkus.forEach((sku, sIdx) => {
-              const cLet = openpyxlColLetter(9 + sIdx);
-              const amt = (st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0;
-              const cBg = amt > 0 ? sku.cellBg : rowBg;
-              const cFg = amt > 0 ? 'FF000000' : 'FFA0A0A0';
-              setFm(cLet, amt, '#,##0', false, 'right', cBg, cFg);
-            });
-
-            ws6.getRow(r).height = 20;
-          });
-
-          // Row Total (TỔNG CỘNG)
-          const totalR6 = endR6 + 1;
-          ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
-          const totFmLbl = ws6.getCell('A' + totalR6);
-          totFmLbl.value = {
-            formula: '"TỔNG CỘNG (" & SUBTOTAL(103, D' + startR6 + ':D' + endR6 + ') & " CỬA HÀNG FAMILYMART)"',
-            result: 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)'
-          };
-          totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-          totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
-          for (let colIdx = 1; colIdx <= 5; colIdx++) {
-            ws6.getCell(openpyxlColLetter(colIdx) + totalR6).border = thinBorder;
-          }
-
-          // Col F Target SUBTOTAL
-          const totFmTgtCell = ws6.getCell('F' + totalR6);
-          totFmTgtCell.value = { formula: 'SUBTOTAL(9, F' + startR6 + ':F' + endR6 + ')', result: totFmTgt };
-          totFmTgtCell.numFmt = '#,##0';
-          totFmTgtCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-          totFmTgtCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          totFmTgtCell.alignment = { horizontal: 'right', vertical: 'middle' };
-          totFmTgtCell.border = thinBorder;
-
-          // Col G Actual SUBTOTAL
-          const totFmActCell = ws6.getCell('G' + totalR6);
-          totFmActCell.value = { formula: 'SUBTOTAL(9, G' + startR6 + ':G' + endR6 + ')', result: totFmAct };
-          totFmActCell.numFmt = '#,##0';
-          totFmActCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
-          totFmActCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          totFmActCell.alignment = { horizontal: 'right', vertical: 'middle' };
-          totFmActCell.border = thinBorder;
-
-          // Col H % Dat Formula
-          const totFmPctCell = ws6.getCell('H' + totalR6);
-          totFmPctCell.value = { formula: 'IF(F' + totalR6 + '>0, G' + totalR6 + '/F' + totalR6 + ', 0)', result: pctFm / 100 };
-          totFmPctCell.numFmt = '0.0%';
-          totFmPctCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: (pctFm >= p.timegone ? 'FF000000' : 'FFFFFFFF') } };
-          totFmPctCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: (pctFm >= p.timegone ? 'FF28E11F' : 'FFDD2323') } };
-          totFmPctCell.alignment = { horizontal: 'center', vertical: 'middle' };
-          totFmPctCell.border = thinBorder;
-
-          // SKU SUBTOTALs
-          allFmSkus.forEach((sku, sIdx) => {
-            const cLet = openpyxlColLetter(9 + sIdx);
-            const sc = ws6.getCell(cLet + totalR6);
-            const skuSum = fmStores.reduce((acc, st) => acc + ((st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0), 0);
-            sc.value = { formula: 'SUBTOTAL(9, ' + cLet + startR6 + ':' + cLet + endR6 + ')', result: skuSum };
-            sc.numFmt = '#,##0';
-            sc.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
-            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-            sc.alignment = { horizontal: 'right', vertical: 'middle' };
-            sc.border = thinBorder;
-          });
-          ws6.getRow(totalR6).height = 26;
-
-          // Freeze Panes at column I (freeze 8 columns, 5 rows)
-          ws6.views = [{ state: 'frozen', xSplit: 8, ySplit: 5 }];
-        } else {
-          // Set column widths (Actuals only)
-          const colWidths = [
-            { width: 42 }, // A: Dia chi
-            { width: 16 }, // B: Location
-            { width: 13 }, // C: Ma PG
-            { width: 22 }, // D: Ho ten PG
-            { width: 8 },  // E: VTCV
-            { width: 22 }, // F: Actual
-          ];
-          allFmSkus.forEach(() => colWidths.push({ width: 16 }));
-          ws6.columns = colWidths;
-
-          // Row 1: Title Banner A1:L1
-          ws6.mergeCells('A1:L1');
-          const t6 = ws6.getCell('A1');
-          t6.value = '🛒 BÁO CÁO CHI TIẾT NHẬP HÀNG THEO CỬA HÀNG & SKU - CHUỖI FAMILYMART';
-          t6.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
-          t6.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          t6.alignment = { horizontal: 'center', vertical: 'middle' };
-          ws6.getRow(1).height = 32;
-
-          // Rows 2 & 3: 5 KPI Cards
-          const totFmAct = fmData ? (fmData.total_actual || 0) : fmStores.reduce((a, b) => a + (b.actual || 0), 0);
-          const storesWithOrder = fmStores.filter(s => (s.actual || 0) > 0).length;
-          const pctStoresWithOrder = fmStores.length > 0 ? Math.round(storesWithOrder / fmStores.length * 100) : 0;
-          const avgPerFmStore = fmStores.length > 0 ? Math.round(totFmAct / fmStores.length) : 0;
-
-          const fmKpiCols = [
-            { col: 'A', lbl: 'Số Cửa Hàng', val: fmStores.length + ' CH', bg: 'FF1F4E78', fg: 'FFFFFFFF' },
-            { col: 'B', lbl: 'Tổng Thực Hiện Nhập', val: totFmAct, fmt: '#,##0 "đ"', bg: 'FF70AD47', fg: 'FFFFFFFF' },
-            { col: 'C', lbl: 'TB Doanh Số/CH', val: avgPerFmStore, fmt: '#,##0 "đ"', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
-            { col: 'D', lbl: 'CH Có Phát Sinh Đơn', val: storesWithOrder + '/' + fmStores.length + ' CH', bg: 'FFED7D31', fg: 'FFFFFFFF' },
-            { col: 'E', lbl: 'Tỷ Lệ CH Có Đơn', val: pctStoresWithOrder / 100, fmt: '0.0%', bg: 'FF4472C4', fg: 'FFFFFFFF' }
-          ];
-
-          fmKpiCols.forEach(k => {
-            const lCell = ws6.getCell(k.col + '2');
-            lCell.value = k.lbl;
-            lCell.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FF555555' } };
-            lCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-            lCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            lCell.border = thinBorder;
-
-            const vCell = ws6.getCell(k.col + '3');
-            vCell.value = k.val;
-            if (k.fmt) vCell.numFmt = k.fmt;
-            vCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: k.fg } };
-            vCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.bg } };
-            vCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            vCell.border = thinBorder;
-          });
-          ws6.getRow(2).height = 18;
-          ws6.getRow(3).height = 24;
-
-          // Row 4: Group Headers
-          ws6.mergeCells('A4:E4');
-          const g4_1 = ws6.getCell('A4');
-          g4_1.value = 'THÔNG TIN ĐIỂM BÁN (STORE MASTER)';
-          g4_1.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF1F4E78' } };
-          g4_1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
-          g4_1.alignment = { horizontal: 'center', vertical: 'middle' };
-
-          const g4_2 = ws6.getCell('F4');
-          g4_2.value = 'TỔNG THỰC HIỆN';
-          g4_2.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-          g4_2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E75B6' } };
-          g4_2.alignment = { horizontal: 'center', vertical: 'middle' };
-
-          let curColIdx = 7;
-          fmCats.forEach(cat => {
-            const startCol = curColIdx;
-            const endCol = curColIdx + cat.skus.length - 1;
-            const sLet = openpyxlColLetter(startCol);
-            const eLet = openpyxlColLetter(endCol);
-
-            if (cat.skus.length > 1) {
-              ws6.mergeCells(sLet + '4:' + eLet + '4');
-            }
-            const catCell = ws6.getCell(sLet + '4');
-            catCell.value = cat.name;
-            catCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
-            catCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: cat.headerBg } };
-            catCell.alignment = { horizontal: 'center', vertical: 'middle' };
-
-            curColIdx = endCol + 1;
-          });
-          ws6.getRow(4).height = 24;
-
-          // Row 5: Subheaders
-          const baseSubheaders = [
-            { name: 'Địa chỉ Store (ship to)', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Tên Store (Location)', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Mã PG', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Họ Tên PG', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'VTCV', bg: 'FFFFE699', fg: 'FF000000' },
-            { name: 'Tổng Doanh Số Nhập Thực Hiện (VND)', bg: 'FFF4B084', fg: 'FF000000' }
-          ];
-
-          baseSubheaders.forEach((sh, idx) => {
-            const colLet = openpyxlColLetter(idx + 1);
-            const c = ws6.getCell(colLet + '5');
-            c.value = sh.name;
-            c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: sh.fg } };
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sh.bg } };
-            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-            c.border = thinBorder;
-          });
-
-          allFmSkus.forEach((sku, idx) => {
-            const colLet = openpyxlColLetter(7 + idx);
-            const c = ws6.getCell(colLet + '5');
-            c.value = sku.name + '\n(' + sku.code + ')';
-            c.font = { name: 'Calibri', size: 8, bold: true, color: { argb: 'FF1F4E78' } };
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: sku.headerBg } };
-            c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-            c.border = thinBorder;
-          });
-          ws6.getRow(5).height = 45;
-
-          // Data Rows (Row 6 to 6 + fmStores.length - 1)
-          const startR6 = 6;
-          const endR6 = startR6 + fmStores.length - 1;
-          const lastColLetter = openpyxlColLetter(6 + allFmSkus.length);
-
-          fmStores.forEach((st, idx) => {
-            const r = startR6 + idx;
-            const rowBg = (idx % 2 === 0) ? 'FFFFFFFF' : 'FFFAFAFA';
-
-            const setFm = (col, val, fmt, isBold, align, fillBg, fontColor) => {
-              const cell = ws6.getCell(col + r);
-              cell.value = val;
-              if (fmt) cell.numFmt = fmt;
-              cell.font = { name: 'Calibri', size: 9, bold: !!isBold, color: { argb: fontColor || 'FF000000' } };
-              cell.alignment = { horizontal: align || 'left', vertical: 'middle' };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillBg || rowBg } };
-              cell.border = thinBorder;
-              return cell;
-            };
-
-            setFm('A', st.addr, null, false, 'left');
-            setFm('B', st.location || 'ST00_CVS_FM', null, false, 'center');
-            setFm('C', st.ma_pg || '', null, false, 'center');
-            setFm('D', st.ten_pg || '', null, false, 'left');
-            setFm('E', st.vtcv || 'SR', null, false, 'center');
-
-            // Actual Col F = SUM(G{r}:lastCol{r})
-            setFm('F', { formula: 'SUM(G' + r + ':' + lastColLetter + r + ')', result: st.actual || 0 }, '#,##0', true, 'right', 'FFF2F9F2');
-
-            // 46 SKU columns
-            allFmSkus.forEach((sku, sIdx) => {
-              const cLet = openpyxlColLetter(7 + sIdx);
-              const amt = (st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0;
-              const cBg = amt > 0 ? sku.cellBg : rowBg;
-              const cFg = amt > 0 ? 'FF000000' : 'FFA0A0A0';
-              setFm(cLet, amt, '#,##0', false, 'right', cBg, cFg);
-            });
-
-            ws6.getRow(r).height = 20;
-          });
-
-          // Row Total (TỔNG CỘNG)
-          const totalR6 = endR6 + 1;
-          ws6.mergeCells('A' + totalR6 + ':E' + totalR6);
-          const totFmLbl = ws6.getCell('A' + totalR6);
-          totFmLbl.value = 'TỔNG CỘNG (' + fmStores.length + ' CỬA HÀNG FAMILYMART)';
-          totFmLbl.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-          totFmLbl.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          totFmLbl.alignment = { horizontal: 'center', vertical: 'middle' };
-          for (let colIdx = 1; colIdx <= 5; colIdx++) {
-            ws6.getCell(openpyxlColLetter(colIdx) + totalR6).border = thinBorder;
-          }
-
-          // Col F Actual SUBTOTAL
-          const totFmActCell = ws6.getCell('F' + totalR6);
-          totFmActCell.value = { formula: 'SUBTOTAL(9, F' + startR6 + ':F' + endR6 + ')', result: totFmAct };
-          totFmActCell.numFmt = '#,##0';
-          totFmActCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFF00' } };
-          totFmActCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-          totFmActCell.alignment = { horizontal: 'right', vertical: 'middle' };
-          totFmActCell.border = thinBorder;
-
-          // SKU SUBTOTALs
-          allFmSkus.forEach((sku, sIdx) => {
-            const cLet = openpyxlColLetter(7 + sIdx);
-            const sc = ws6.getCell(cLet + totalR6);
-            const skuSum = fmStores.reduce((acc, st) => acc + ((st.orders && st.orders[sku.code]) ? st.orders[sku.code] : 0), 0);
-            sc.value = { formula: 'SUBTOTAL(9, ' + cLet + startR6 + ':' + cLet + endR6 + ')', result: skuSum };
-            sc.numFmt = '#,##0';
-            sc.font = { name: 'Calibri', size: 9, bold: true, color: { argb: 'FFFFFFFF' } };
-            sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E78' } };
-            sc.alignment = { horizontal: 'right', vertical: 'middle' };
-            sc.border = thinBorder;
-          });
-          ws6.getRow(totalR6).height = 26;
-
-          // Freeze Panes at column G (freeze 6 columns, 5 rows)
-          ws6.views = [{ state: 'frozen', xSplit: 6, ySplit: 5 }];
-        }
+        const fTotF = ws6.getCell(`F${fmDistTotR}`);
+        fTotF.value = { formula: `SUM(F${distStartR+1}:F${fmDistTotR-1})`, result: 1 };
+        fTotF.numFmt = '0.0%';
+        fTotF.font = { name: 'Calibri', bold: true };
+        fTotF.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9E1F2' } };
+        fTotF.alignment = { horizontal: 'center' };
+        fTotF.border = thinBorder;
+        ws6.getRow(fmDistTotR).height = 24;
 
         return wb;
     }
@@ -9060,7 +8683,7 @@ const DEFAULT_FM_STORES = [
     const APP_METADATA = {
       versionName: "v1.2.7",
       versionCode: 28,
-      buildDate: "12:28 - 14/10/2026"
+      buildDate: "20:05 - 14/10/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9310,7 +8933,7 @@ const DEFAULT_FM_STORES = [
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
         <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.7</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">12:28 - 14/10/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:05 - 14/10/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

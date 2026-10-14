@@ -26,8 +26,11 @@ Khi thư mục này được mở trên bất kỳ máy tính nào:
    - Thực đạt CVS (138 CH): `359,247,028 đ`
    - Tổng thực đạt: `3,911,174,471 đ` (Đạt 36.1%)
 
-3. **Cơ chế SKU Động (Dynamic SKU Auto-Discovery):**
-   - Dữ liệu sheet `NPP` FamilyMart: Nếu phát sinh mã SKU (`icode`) mới ngoài danh mục 46 SKU tĩnh, hệ thống tự động nhận diện, gom vào nhóm `"SẢN PHẨM MỚI PHÁT SINH / KHÁC"` và hiển thị cột tương ứng trong bảng ma trận, không bị mất doanh thu và không bị lỗi hiển thị.
+3. **Cơ chế Phân bổ FamilyMart qua 6 Hubs (Tương tự Bách Hóa Xanh):**
+   - FamilyMart chuyển sang nhận hàng trực tiếp từ nhà máy giao về 6 Hubs/DC (Tổng doanh số 6 Hubs: `733,207,650 đ` cho toàn hệ thống `196 cửa hàng`).
+   - Đơn giá bình quân: `733,207,650 / 196 = 3,740,855 đ/CH`.
+   - Khu vực Team quản lý `36 cửa hàng` (Nguyễn Đức Hoà: 24, Nguyễn Thị Thanh Thủy: 7, Não Thị Anh Đào: 3, Kim Hoàng Khang: 1, Chưa phân bổ: 1): Tổng thực đạt FamilyMart = `134,670,793 đ`.
+   - Bỏ hoàn toàn sheet và tab ma trận 46 SKU cũ, hiển thị Bảng 6 Hubs và Bảng Phân bổ theo nhân viên tương tự mô hình Bách Hóa Xanh.
 
 4. **Nguyên tắc Đồng bộ Tài sản (Sync Rules):**
    - Bất kỳ thay đổi nào trong `gas_app/index.html`, `gas_app/view.html`, `gas_app/master_data.js` **PHẢI** được sao chép ghi đè vào `gas_app/android/app/src/main/assets/www/`.
