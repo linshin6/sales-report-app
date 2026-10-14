@@ -2131,10 +2131,7 @@
           ? `<span style="display:inline-flex; align-items:center; gap:6px; font-weight:800; color:#0F172A; background:#F1F5F9; padding:4px 8px; border-radius:6px; border:1px solid #CBD5E1;">👤 ${s.employee_name}</span>`
           : `<span style="color:#64748B; font-weight:500; padding-left:14px;">${s.employee_name}</span>`;
 
-        const displayName = (s.store_name && s.store_name !== 'undefined')
-          ? s.store_name
-          : (s.chain + (s.store_code ? (' - ' + s.store_code.replace(/^CVS_[^.]+\.\d+\./, '')) : ''));
-        const displayAddr = s.store_address || s.address || '';
+        const storeDisplayName = (s.store_address || s.address || s.store_name || (s.chain + (s.store_code ? (' - ' + s.store_code) : ''))).trim();
 
         tbody.innerHTML += `
           <tr ${isFirstOfEmp ? 'style="border-top:2px solid #0F766E; background:#FAFDFD;"' : ''}>
@@ -2142,7 +2139,7 @@
             <td class="text-center">${getCvsChainBadge(s.chain)}</td>
             <td>${empCell}</td>
             <td class="font-bold" style="color:#1E293B;"><code>${s.store_code || '-'}</code></td>
-            <td style="font-weight:600;">${displayName}</td>
+            <td style="font-weight:600; color:#0F172A; max-width:450px; overflow:hidden; text-overflow:ellipsis;" title="${storeDisplayName}">${storeDisplayName}</td>
             <td class="text-right font-bold" style="color:#0F766E; font-size:13px;">${formatMoney(val)}</td>
           </tr>
         `;
