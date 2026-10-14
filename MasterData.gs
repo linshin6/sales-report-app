@@ -1105,7 +1105,7 @@ const DEFAULT_FM_STORES = [
 const MASTER_DATA = {
   "team_lead": "Trần Thị Cẩm Giang",
   "total_stores_bhx": 233,
-  "total_stores_bhx_team": 179,
+  "total_stores_bhx_team": 197,
   "employees": [
     {
       "name": "Bùi Thị Sen",
@@ -1156,6 +1156,11 @@ const MASTER_DATA = {
       "name": "Phạm Thị Kim Nhung",
       "bhx_stores": 20,
       "target": 702989796
+    },
+    {
+      "name": "Võ Thị Hằng",
+      "bhx_stores": 18,
+      "target": 1007529600
     }
   ],
   "stores": [
@@ -2132,6 +2137,21 @@ const MASTER_DATA = {
     "Hub - Ấp 4, Xã Châu Pha, Thành phố Hồ Chí Minh, Việt Nam",
     "Hub - G243 Bùi Văn Hòa, Khu Phố 7, Phường Long Bình, Tỉnh Đồng Nai, Việt Nam",
     "Hub - Đường Phan Huy Chú, tổ 6, khu phố 1, Phường Phú Bình, Thành phố Long Khánh, Tỉnh Đồng Nai"
+,
+  {
+    "employee_name": "Võ Thị Hằng",
+    "chain": "GS25",
+    "store_code": "CVS_GS25.75.6976",
+    "store_address": "GS25 Lê Duẩn - Long Thành",
+    "actual": 0
+  },
+  {
+    "employee_name": "Võ Thị Hằng",
+    "chain": "GS25",
+    "store_code": "CVS_GS25.75.6975",
+    "store_address": "Siêu thị GS-25 35, Nguyễn Đình Chiểu",
+    "actual": 0
+  }
   ],
   "gs25_dcs": [
     "Lô H.04, Đường số 1, Khu Công Nghiệp Long Hậu, Xã Long Hậu, Huyện Cần Giuộc, Tỉnh Long An",
