@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 28,
-  "latestVersionName": "1.2.7",
+  "latestVersionCode": 29,
+  "latestVersionName": "1.2.8",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.7 - BỔ SUNG NHÂN VIÊN VÕ THỊ HẰNG & TARGET THÁNG 10/2026]\n• Bổ sung nhân sự mới Võ Thị Hằng vào hệ thống báo cáo (toàn team gồm 11 nhân viên kinh doanh).\n• Tự động cập nhật bảng chỉ tiêu Target và phân bổ cửa hàng BHX/CVS Tháng 10/2026 từ file HNTrinh Form Target PG_T10 2026.\n• Đồng bộ toàn bộ dữ liệu 11 nhân viên trên giao diện Web, Native Android APK, Excel và Telegram.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.8 - MÔ HÌNH 6 HUBS FAMILYMART GIỐNG BÁCH HÓA XANH]\n• Chuyển đổi FamilyMart sang cơ chế phân bổ 6 Hubs trực tiếp từ nhà máy (Tổng: 733.207.650 đ ÷ 196 CH = 3.740.855 đ/CH).\n• Phân bổ 36 cửa hàng FamilyMart theo đúng file Target Tháng 10 (Hòa: 24, Thủy: 7, Đào: 3, Khang: 1, Căn 03 Swanbay: 1).\n• Bỏ hoàn toàn bảng 46 SKU cũ, bổ sung Tab '5. Phân Bổ 6 Hubs FamilyMart' với 2 bảng trực quan giống hệt mô hình Bách Hóa Xanh.\n• Cập nhật file Excel xuất ra chuẩn 6 Hubs và đồng bộ công thức toàn team.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-10-14T12:30:00Z"
+  "updatedAt": "2026-10-14T20:10:00Z"
 }
