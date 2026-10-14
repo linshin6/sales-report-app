@@ -579,7 +579,7 @@ function sendTelegramPhoto(chatId, blob, caption) {
 }
 
 /**
- * Tạo ảnh biểu đồ thanh ngang Top 10 nhân viên & tiến độ team từ QuickChart API
+ * Tạo ảnh biểu đồ thanh ngang Top 11 nhân viên & tiến độ team từ QuickChart API
  */
 function generateRankingChartImage(payload) {
   try {

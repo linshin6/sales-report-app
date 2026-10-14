@@ -278,7 +278,7 @@
       
       const badgeTeam = document.getElementById('badgeTeamPct');
       badgeTeam.className = 'badge-pct-pass';
-      badgeTeam.innerHTML = `<span>👥</span> Đội ngũ: 10 Nhân viên kinh doanh`;
+      badgeTeam.innerHTML = `<span>👥</span> Đội ngũ: 11 Nhân viên kinh doanh`;
 
       const now = new Date();
       document.getElementById('metaDate').innerText = `Ngày xuất: ${data.dt || (now.toLocaleDateString('vi-VN') + ' | ' + now.toLocaleTimeString('vi-VN'))}`;
@@ -299,9 +299,9 @@
       window.__RENDER_DONE = true;
     }
 
-    // 1. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS) - Không Target, % Đạt
+    // 1. Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS) - Không Target, % Đạt
     function renderTable1(d, container) {
-      document.getElementById('subTitle').innerText = 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
+      document.getElementById('subTitle').innerText = 'Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)';
 
       let html = `
         <table>
@@ -439,9 +439,9 @@
       container.innerHTML = html;
     }
 
-    // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 Nhân Viên)
+    // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 Nhân Viên)
     function renderTable3(d, container) {
-      document.getElementById('subTitle').innerText = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 Nhân Viên)';
+      document.getElementById('subTitle').innerText = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 Nhân Viên)';
 
       let html = `
         <table>

@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 27,
-  "latestVersionName": "1.2.6",
+  "latestVersionCode": 28,
+  "latestVersionName": "1.2.7",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.6 - TỰ ĐỘNG ĐẾM ĐỘNG SỐ LƯỢNG CỬA HÀNG CIRCLE K]\n• Tự động quét và đếm chính xác 100% số lượng cửa hàng Circle K phát sinh đơn thực tế từ mọi file nạp (230, 272, 274...).\n• Khắc phục hoàn toàn lỗi ckPivotMap is not defined.\n• Tự động chia đều Kho Khô Nam Tân Uyên theo đúng số cửa hàng thực tế của từng kỳ.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.7 - BỔ SUNG NHÂN VIÊN VÕ THỊ HẰNG & TARGET THÁNG 10/2026]\n• Bổ sung nhân sự mới Võ Thị Hằng vào hệ thống báo cáo (toàn team gồm 11 nhân viên kinh doanh).\n• Tự động cập nhật bảng chỉ tiêu Target và phân bổ cửa hàng BHX/CVS Tháng 10/2026 từ file HNTrinh Form Target PG_T10 2026.\n• Đồng bộ toàn bộ dữ liệu 11 nhân viên trên giao diện Web, Native Android APK, Excel và Telegram.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-09-28T15:15:00Z"
+  "updatedAt": "2026-10-14T12:30:00Z"
 }

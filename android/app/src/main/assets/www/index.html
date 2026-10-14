@@ -1078,7 +1078,7 @@
           </div>
           <h3 style="font-size: 17px; font-weight: 800; color: #0f766e; margin-bottom: 8px;">1. Báo Cáo Có Target</h3>
           <p style="font-size: 13px; color: #334155; line-height: 1.5; flex: 1; margin-bottom: 16px;">
-            Cho phép <strong>nạp file Target</strong> hoặc <strong>sửa chỉ tiêu 10 nhân viên</strong>. Báo cáo hiển thị cột Target, tính % Đạt so với % Timegone, xếp hạng theo tiến độ và xuất file Excel có Target.
+            Cho phép <strong>nạp file Target</strong> hoặc <strong>sửa chỉ tiêu 11 nhân viên</strong>. Báo cáo hiển thị cột Target, tính % Đạt so với % Timegone, xếp hạng theo tiến độ và xuất file Excel có Target.
           </p>
           <button class="btn" style="background: #0d9488; color: #ffffff; font-weight: 700; width: 100%; border: none; border-radius: 10px; padding: 10px; font-size: 13.5px; pointer-events: none;">
             👉 Chọn Báo Cáo Có Target
@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.6</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.7</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -1167,7 +1167,7 @@
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn btn-outline" onclick="openTargetEditModal()">
-            ✏️ Sửa Nhanh Bảng Chỉ Tiêu (10 NV)
+            ✏️ Sửa Nhanh Bảng Chỉ Tiêu (11 NV)
           </button>
         </div>
       </div>
@@ -1178,7 +1178,7 @@
           <span class="target-icon">📋</span>
           <div class="target-summary-text">
             <h4 id="targetStatusTitle">Target Đang Áp Dụng: Tháng 9/2026</h4>
-            <p id="targetStatusDesc">Tổng Chỉ Tiêu: 10,826,339,729 ₫ | 10 Nhân Viên | 178 CH BHX phụ trách</p>
+            <p id="targetStatusDesc">Tổng Chỉ Tiêu: 12.299.713.233 ₫ | 11 Nhân Viên | 199 CH BHX phụ trách</p>
           </div>
         </div>
         <div>
@@ -1327,7 +1327,7 @@
 
       <!-- Navigation Tabs (Mục So Sánh & Tăng Trưởng được đưa về cuối cùng) -->
       <div class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab('tabTeam', this)">👥 Tiến Độ 10 Nhân Viên</button>
+        <button class="tab-btn active" onclick="switchTab('tabTeam', this)">👥 Tiến Độ 11 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
         <button class="tab-btn" id="btnTabStores" onclick="switchTab('tabStores', this)">🏪 Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
@@ -1335,15 +1335,15 @@
         <button class="tab-btn" id="btnTabCompare" onclick="switchTab('tabCompare', this)" style="background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 800;">📈 So Sánh & Tăng Trưởng</button>
       </div>
 
-      <!-- Tab 1: Tiến độ 10 Nhân Viên -->
+      <!-- Tab 1: Tiến độ 11 Nhân Viên -->
       <div id="tabTeam" class="tab-content">
         <div class="sheet-toolbar">
           <div class="sheet-toolbar-left" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <label style="font-size:13px; font-weight:700; color:#0f172a;">👥 Lọc Nhân Viên:</label>
             <select class="search-input" id="filterTeamEmp" onchange="filterTeamTable()" style="min-width:170px; padding:6px 12px; font-size:13px;">
-              <option value="">Tất cả nhân viên (10 NV)</option>
+              <option value="">Tất cả nhân viên (11 NV)</option>
             </select>
-            <span id="teamEmpCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">10 Nhân viên</span>
+            <span id="teamEmpCountBadge" style="font-size:12px; font-weight:700; color:#475569; background:#ccfbf1; padding:4px 10px; border-radius:12px;">11 Nhân viên</span>
             <div class="zoom-bar-group" title="Chỉnh cỡ chữ hiển thị của bảng báo cáo">
               <span style="font-size:11.5px; font-weight:700; color:#475569;">🔍 Chữ:</span>
               <button type="button" class="btn-zoom-scale" data-size="13" onclick="setReportFontSize(13)" title="Cỡ vừa">Vừa</button>
@@ -1378,7 +1378,7 @@
           <div class="sheet-toolbar-left" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <label style="font-size:13px; font-weight:700; color:#0f172a;">🏆 Lọc Nhân Viên:</label>
             <select class="search-input" id="filterRankEmp" onchange="filterRankTable()" style="min-width:170px; padding:6px 12px; font-size:13px;">
-              <option value="">Tất cả nhân viên (10 NV)</option>
+              <option value="">Tất cả nhân viên (11 NV)</option>
             </select>
             <div class="zoom-bar-group" title="Chỉnh cỡ chữ hiển thị của bảng báo cáo">
               <span style="font-size:11.5px; font-weight:700; color:#475569;">🔍 Chữ:</span>
@@ -1500,7 +1500,7 @@
           <div class="sheet-toolbar-left">
             <span style="font-size:14px; font-weight:800; color:#0f172a;">📦 2. Phân Bổ BHX Theo Nhân Viên:</span>
             <select class="search-input" id="filterBhxEmp" onchange="filterBhxTable()" style="min-width:190px; padding:6px 12px; font-size:13px;">
-              <option value="">Tất cả 10 nhân viên</option>
+              <option value="">Tất cả 11 nhân viên</option>
             </select>
           </div>
           <div class="sheet-toolbar-right">
@@ -1752,7 +1752,7 @@
   <!-- Modal Edit Target Table -->
   <div class="modal-overlay" id="editTargetModal">
     <div class="modal-content" style="max-width:720px;">
-      <h3 style="font-size:18px; font-weight:700; color:#1F4E78; margin-bottom:12px;">✏️ Cập Nhật Chỉ Tiêu & Số Cửa Hàng BHX (10 Nhân Viên)</h3>
+      <h3 style="font-size:18px; font-weight:700; color:#1F4E78; margin-bottom:12px;">✏️ Cập Nhật Chỉ Tiêu & Số Cửa Hàng BHX (11 Nhân Viên)</h3>
       <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
         Chỉnh sửa trực tiếp Target hoặc số cửa hàng BHX phụ trách của từng nhân viên cho tháng mới:
       </p>
@@ -2950,21 +2950,21 @@ const DEFAULT_FM_STORES = [
 
     const DEFAULT_MASTER = {
       team_lead: 'Trần Thị Cẩm Giang',
-      month: 9,
+      month: 10,
       year: 2026,
       total_stores_bhx: 232,
-      total_stores_bhx_team: 197,
+      total_stores_bhx_team: 199,
       employees: [
-        { name: 'Bùi Thị Sen', bhx_stores: 21, target: 714135065 },
-        { name: 'Chắng Lý Quỳnh', bhx_stores: 25, target: 866482375 },
-        { name: 'Kim Hoàng Khang', bhx_stores: 25, target: 898391249 },
-        { name: 'Lê Thị Thùy Châu', bhx_stores: 21, target: 747170347 },
-        { name: 'Lê Trần Bá Kiện', bhx_stores: 25, target: 870612245 },
-        { name: 'Não Thị Anh Đào', bhx_stores: 11, target: 588409311 },
-        { name: 'Nguyễn Đức Hoà', bhx_stores: 0, target: 363195910 },
-        { name: 'Nguyễn Thanh Nhàn', bhx_stores: 25, target: 860612245 },
-        { name: 'Nguyễn Thị Thanh Thủy', bhx_stores: 6, target: 508104811 },
-        { name: 'Phạm Thị Kim Nhung', bhx_stores: 20, target: 702989796 },
+        { name: 'Bùi Thị Sen', bhx_stores: 21, target: 1224747376 },
+        { name: 'Chắng Lý Quỳnh', bhx_stores: 27, target: 1553803206 },
+        { name: 'Kim Hoàng Khang', bhx_stores: 24, target: 1439209643 },
+        { name: 'Lê Thị Thùy Châu', bhx_stores: 22, target: 1347067397 },
+        { name: 'Lê Trần Bá Kiện', bhx_stores: 26, target: 1490030916 },
+        { name: 'Não Thị Anh Đào', bhx_stores: 11, target: 735943613 },
+        { name: 'Nguyễn Đức Hoà', bhx_stores: 0, target: 300816749 },
+        { name: 'Nguyễn Thanh Nhàn', bhx_stores: 24, target: 1427158977 },
+        { name: 'Nguyễn Thị Thanh Thủy', bhx_stores: 6, target: 543282274 },
+        { name: 'Phạm Thị Kim Nhung', bhx_stores: 20, target: 1230123482 },
         { name: 'Võ Thị Hằng', bhx_stores: 18, target: 1007529600 }
       ],
       bhx_hubs: [
@@ -3665,7 +3665,7 @@ const DEFAULT_FM_STORES = [
         if (document.getElementById('editTargetModal') && document.getElementById('editTargetModal').classList.contains('active')) {
           closeModal('editTargetModal');
         }
-        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 233) + ' CH\n\nToàn bộ 10 nhân sự đã được áp dụng target chuẩn!');
+        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 233) + ' CH\n\nToàn bộ 11 nhân sự đã được áp dụng target chuẩn!');
         if (processedReportData) {
           calculateReportData();
           renderAllReports();
@@ -3758,7 +3758,7 @@ const DEFAULT_FM_STORES = [
             });
             if (hasTargetSummary && !wb.SheetNames.includes('SO') && !wb.SheetNames.includes('PO') && !wb.SheetNames.includes('NPP')) {
               closeModal('loadingModal');
-              const applyTarget = confirm('📋 Phát hiện file "' + file.name + '" là BẢNG CHỈ TIÊU / TARGET THÁNG ' + (file.name.includes('9') ? '9' : '') + ' CỦA TOÀN TEAM!\n\nBạn có muốn ÁP DỤNG NGAY LÀM BẢNG TARGET MỚI cho toàn bộ 10 nhân viên không?');
+              const applyTarget = confirm('📋 Phát hiện file "' + file.name + '" là BẢNG CHỈ TIÊU / TARGET THÁNG ' + (file.name.includes('9') ? '9' : '') + ' CỦA TOÀN TEAM!\n\nBạn có muốn ÁP DỤNG NGAY LÀM BẢNG TARGET MỚI cho toàn bộ 11 nhân viên không?');
               if (applyTarget) {
                 await handleTargetFile(file);
               }
@@ -4802,7 +4802,7 @@ const DEFAULT_FM_STORES = [
         sDesc.innerText = 'Dữ liệu Tháng ' + data.month + '/' + data.year + ' | Tiến độ thời gian tháng: ' + data.timegone + '%';
       }
 
-      // 3. Tab 1: Tiến độ 10 Nhân Viên
+      // 3. Tab 1: Tiến độ 11 Nhân Viên
       renderTeamTable(data, mode);
 
       // 4. Tab 2: Xếp Hạng Doanh Số
@@ -4817,19 +4817,19 @@ const DEFAULT_FM_STORES = [
       // Populate Employee Dropdowns across tabs
       const selTeam = document.getElementById('filterTeamEmp');
       if (selTeam) {
-        selTeam.innerHTML = '<option value="">Tất cả nhân viên (10 NV)</option>';
+        selTeam.innerHTML = '<option value="">Tất cả nhân viên (11 NV)</option>';
         data.employees.forEach(e => { selTeam.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
       }
 
       const selRank = document.getElementById('filterRankEmp');
       if (selRank) {
-        selRank.innerHTML = '<option value="">Tất cả nhân viên (10 NV)</option>';
+        selRank.innerHTML = '<option value="">Tất cả nhân viên (11 NV)</option>';
         data.employees.forEach(e => { selRank.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
       }
 
       const selBhx = document.getElementById('filterBhxEmp');
       if (selBhx) {
-        selBhx.innerHTML = '<option value="">Tất cả 10 nhân viên</option>';
+        selBhx.innerHTML = '<option value="">Tất cả 11 nhân viên</option>';
         data.employees.forEach(e => { selBhx.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
       }
 
@@ -5960,7 +5960,7 @@ const DEFAULT_FM_STORES = [
         containerId = 'teamTableContainer';
         const emp = document.getElementById('filterTeamEmp') ? document.getElementById('filterTeamEmp').value : '';
         baseName = emp ? ('Tien_Do_' + emp.replace(/\s+/g, '_')) : 'Tien_Do_Toan_Team';
-        subTitle = emp ? ('Tiến Độ Nhân Viên: ' + emp) : 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
+        subTitle = emp ? ('Tiến Độ Nhân Viên: ' + emp) : 'Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)';
       } else if (sheetKey === 'tabRank') {
         containerId = 'rankTableContainer';
         const emp = document.getElementById('filterRankEmp') ? document.getElementById('filterRankEmp').value : '';
@@ -5976,7 +5976,7 @@ const DEFAULT_FM_STORES = [
         containerId = 'bhxDistTableContainer';
         const emp = document.getElementById('filterBhxEmp') ? document.getElementById('filterBhxEmp').value : '';
         baseName = 'Phan_Bo_BHX_' + (emp ? emp.replace(/\s+/g, '_') : 'Full');
-        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (emp ? (' - NV: ' + emp) : ' (10 Nhân Viên)');
+        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (emp ? (' - NV: ' + emp) : ' (11 Nhân Viên)');
       } else if (sheetKey === 'tabBhxHubs') {
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
@@ -6652,7 +6652,7 @@ const DEFAULT_FM_STORES = [
       if (sheetKey === 'tabTeam') {
         containerId = 'teamTableContainer';
         baseName = empTeam ? ('Tien_Do_' + empTeam.replace(/\s+/g, '_')) : 'Tien_Do_Toan_Team';
-        subTitle = empTeam ? ('Tiến Độ Nhân Viên: ' + empTeam) : 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
+        subTitle = empTeam ? ('Tiến Độ Nhân Viên: ' + empTeam) : 'Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)';
       } else if (sheetKey === 'tabRank') {
         containerId = 'rankTableContainer';
         baseName = empRank ? ('Xep_Hang_' + empRank.replace(/\s+/g, '_')) : 'Bang_Xep_Hang_Team';
@@ -6664,7 +6664,7 @@ const DEFAULT_FM_STORES = [
       } else if (sheetKey === 'tabBhxDist') {
         containerId = 'bhxDistTableContainer';
         baseName = 'Phan_Bo_BHX_' + (empBhx ? empBhx.replace(/\s+/g, '_') : 'Full');
-        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (empBhx ? (' - NV: ' + empBhx) : ' (10 Nhân Viên)');
+        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (empBhx ? (' - NV: ' + empBhx) : ' (11 Nhân Viên)');
       } else if (sheetKey === 'tabBhxHubs') {
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
@@ -6947,9 +6947,9 @@ const DEFAULT_FM_STORES = [
 
         // 2. Chụp và gửi 4 ảnh chính
         const sheetsToSend = [
-          { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(totalTargetVal)} đ | Thực hiện: ${formatNumber(totalActualVal)} đ (${percentAchieved.toFixed(2)}%)` },
+          { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(totalTargetVal)} đ | Thực hiện: ${formatNumber(totalActualVal)} đ (${percentAchieved.toFixed(2)}%)` },
           { key: 'tabRank', caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusEmoji} ${statusText}` },
-          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatNumber(totalBhxVal)} đ` },
+          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 NV)</b>\n🛒 Tổng BHX: ${formatNumber(totalBhxVal)} đ` },
           { key: 'tabFmSku', caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart` }
         ];
 
@@ -9009,7 +9009,7 @@ const DEFAULT_FM_STORES = [
 
             // Nếu cache cũ bị cộng dồn vượt quá 15 tỷ hoặc sai tháng, hoặc target cũ (7.625.630.123 đ) hoặc danh mục cũ 138 CH,
             // tự động xóa cache và nạp chuẩn Target & 141 Cửa hàng mới nhất!
-            if (sumTgt > 15000000000 || parsed.month !== 9 || sumTgt === 7625630123 || !parsed.cvs_stores || parsed.cvs_stores.length < minStores) {
+            if (sumTgt > 15000000000 || parsed.month !== 10 || sumTgt === 7625630123 || !parsed.cvs_stores || parsed.cvs_stores.length < minStores) {
               console.warn('Phát hiện cache Target/CVS cũ (138 CH / 7.625 tỷ), tự động cập nhật về Master mới nhất (141 CH / 7.595 tỷ)!');
               localStorage.removeItem('CUSTOM_MASTER_DATA');
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
@@ -9058,9 +9058,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.2.6",
-      versionCode: 27,
-      buildDate: "10:25 - 14/10/2026"
+      versionName: "v1.2.7",
+      versionCode: 28,
+      buildDate: "12:28 - 14/10/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9308,9 +9308,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.6</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.7</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">10:25 - 14/10/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">12:28 - 14/10/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">

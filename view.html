@@ -497,7 +497,7 @@
           <span>•</span>
           <span class="header-badge" id="headerTimegone">⏳ Tiến độ tháng: --%</span>
           <span class="header-badge" style="background:#065F46; border-color:#059669;" id="headerTotalSales">💰 Tổng TH: 0 đ</span>
-          <span class="header-badge" id="headerTeamSize">👥 10 Nhân viên</span>
+          <span class="header-badge" id="headerTeamSize">👥 11 Nhân viên</span>
           <span class="header-badge" id="headerUpdatedTime" style="background:#1E3A8A; border-color:#3B82F6; display:none;">🕒 Mới nhất: --</span>
         </div>
       </div>
@@ -540,7 +540,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Quy Mô & Cửa Hàng</div>
-        <div class="kpi-value" style="color:#2563EB;" id="kpiStores">10 NV</div>
+        <div class="kpi-value" style="color:#2563EB;" id="kpiStores">11 NV</div>
         <div class="kpi-sub" id="kpiStoresSub">Chi Tiết Cửa Hàng CVS</div>
       </div>
     </div>
@@ -548,17 +548,17 @@
     <!-- TABS CONTAINER -->
     <div class="tabs-wrapper">
       <div class="tabs-bar">
-        <button class="tab-btn active" onclick="switchTab('tabTeam')">📊 1. Tiến Độ 10 Nhân Viên</button>
+        <button class="tab-btn active" onclick="switchTab('tabTeam')">📊 1. Tiến Độ 11 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank')">🏆 2. Xếp Hạng & Tỷ Trọng</button>
         <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 5 Hubs BHX</button>
         <button class="tab-btn" id="btnTabCvsStores" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabFmSku')">🛒 Chi Tiết SKU Cửa Hàng FamilyMart</button>
       </div>
 
-      <!-- TAB 1: TIẾN ĐỘ 10 NHÂN VIÊN -->
+      <!-- TAB 1: TIẾN ĐỘ 11 NHÂN VIÊN -->
       <div class="tab-panel active" id="tabTeam">
         <div class="panel-toolbar">
-          <div style="font-weight:700; color:#0F172A; font-size:14px;" id="titleTabTeam">Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</div>
+          <div style="font-weight:700; color:#0F172A; font-size:14px;" id="titleTabTeam">Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)</div>
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span class="zoom-hint-badge">🔍 Vuốt 2 ngón tay thu phóng • Chạm đúp vừa màn hình</span>
             <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableTeam', 'Tien_Do_10_NV')">📸 Copy Ảnh Gửi Zalo</button>
@@ -613,12 +613,12 @@
           </table>
         </div>
 
-        <!-- BẢNG 2: PHÂN BỔ BHX THEO NHÂN VIÊN (10 NV) -->
+        <!-- BẢNG 2: PHÂN BỔ BHX THEO NHÂN VIÊN (11 NV) -->
         <div class="panel-toolbar" style="margin-bottom: 8px;">
           <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
             <span style="font-weight:700; color:#0F172A; font-size:14px;">2. Phân Bổ BHX Theo Nhân Viên:</span>
             <select id="filterBhxEmp" class="filter-select" onchange="filterBhxDistTable()">
-              <option value="">Tất cả 10 nhân viên</option>
+              <option value="">Tất cả 11 nhân viên</option>
             </select>
           </div>
           <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxDist', 'Phan_Bo_BHX_10_NV')">📸 Copy Bảng Phân Bổ</button>
@@ -1524,7 +1524,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Chỉ Tiêu Toàn Team</div>
               <div class="kpi-value" style="color:#1E3A5F;">${formatMoney(data.total_target)} ₫</div>
-              <div class="kpi-sub">Target 10 Nhân viên</div>
+              <div class="kpi-sub">Target 11 Nhân viên</div>
             </div>
             <div class="kpi-card">
               <div class="kpi-label">Thực Hiện BHX</div>
@@ -1567,7 +1567,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Tiến Độ Tháng</div>
               <div class="kpi-value" style="color:#2563EB;">${data.timegone}%</div>
-              <div class="kpi-sub">10 NV • ${(data.stores && data.stores.length) ? data.stores.length : 138} Cửa hàng CVS</div>
+              <div class="kpi-sub">11 NV • ${(data.stores && data.stores.length) ? data.stores.length : 138} Cửa hàng CVS</div>
             </div>
           `;
         }
@@ -1577,8 +1577,8 @@
       const titleTeam = document.getElementById('titleTabTeam');
       if (titleTeam) {
         titleTeam.innerText = isTarget 
-          ? 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (Có Chỉ Tiêu Target & % Đạt)' 
-          : 'Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)';
+          ? 'Bảng Tiến Độ 11 Nhân Viên Toàn Team (Có Chỉ Tiêu Target & % Đạt)' 
+          : 'Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)';
       }
       const titleRank = document.getElementById('titleTabRank');
       if (titleRank) {
@@ -1956,7 +1956,7 @@
       // Cập nhật dropdown lọc nhân viên
       const sel = document.getElementById('filterBhxEmp');
       if (sel) {
-        sel.innerHTML = '<option value="">Tất cả 10 nhân viên</option>';
+        sel.innerHTML = '<option value="">Tất cả 11 nhân viên</option>';
         (data.employees || []).forEach(e => {
           sel.innerHTML += `<option value="${e.name}">${e.name}</option>`;
         });
@@ -3370,7 +3370,7 @@
               return `${idx + 1}. ${e.name}: ${formatMoney(e.target)} (${e.bhx_stores} CH BHX)`;
             }).join('\n');
 
-            alert('🎉 ĐÃ CẬP NHẬT TARGET THÀNH CÔNG CHO 10 NHÂN VIÊN TỪ FORM CHI TIÊU!\n\n' +
+            alert('🎉 ĐÃ CẬP NHẬT TARGET THÀNH CÔNG CHO 11 NHÂN VIÊN TỪ FORM CHI TIÊU!\n\n' +
                   '• Tổng Target Mới: ' + formatMoney(reportData.total_target) + '\n' +
                   '• % Đạt Toàn Team: ' + reportData.percent_achieved + '%\n' +
                   '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +

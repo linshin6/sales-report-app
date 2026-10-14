@@ -133,7 +133,7 @@ function getCompressedTableUrl(type, payload) {
   let dataObj = null;
 
   if (type === 1) {
-    // 1. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)
+    // 1. Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)
     dataObj = {
       ...common,
       emps: (payload.employees || []).map(e => [
@@ -161,7 +161,7 @@ function getCompressedTableUrl(type, payload) {
       ])
     };
   } else if (type === 3) {
-    // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)
+    // 3. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 NV)
     const totalBhxTeam = (payload.employees || []).reduce((a, e) => a + (e.bhx_actual || 0), 0) || payload.total_actual_bhx || 0;
     dataObj = {
       ...common,
@@ -422,17 +422,17 @@ Gửi cho tôi <b>2 file Excel (.xlsb hoặc .xlsx)</b>:
           {
             type: 1,
             fileName: `Bang_Tien_Do_10_NV_${payload.month}_${payload.year}.png`,
-            caption: `📊 <b>1/4. Bảng Tiến Độ 10 Nhân Viên Toàn Team (BHX + CVS)</b>\n👤 Team Lead: ${payload.team_lead} | 📅 Tháng ${payload.month}/${payload.year}\n💰 Tổng Thực Hiện: ${formatMoney(payload.total_actual)} đ (BHX: ${formatMoney(payload.total_actual_bhx)} đ | CVS: ${formatMoney(payload.total_cvs)} đ)`
+            caption: `📊 <b>1/4. Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)</b>\n👤 Team Lead: ${payload.team_lead} | 📅 Tháng ${payload.month}/${payload.year}\n💰 Tổng Thực Hiện: ${formatMoney(payload.total_actual)} đ (BHX: ${formatMoney(payload.total_actual_bhx)} đ | CVS: ${formatMoney(payload.total_cvs)} đ)`
           },
           {
             type: 2,
             fileName: `Bang_Xep_Hang_Team_${payload.month}_${payload.year}.png`,
-            caption: `🏆 <b>2/4. Bảng Xếp Hạng Doanh Số Toàn Team</b>\n👥 10 Nhân viên kinh doanh | 💰 Tổng TH: ${formatMoney(payload.total_actual)} đ\n⏳ % Timegone (tiến độ tháng): ${payload.timegone}%`
+            caption: `🏆 <b>2/4. Bảng Xếp Hạng Doanh Số Toàn Team</b>\n👥 11 Nhân viên kinh doanh | 💰 Tổng TH: ${formatMoney(payload.total_actual)} đ\n⏳ % Timegone (tiến độ tháng): ${payload.timegone}%`
           },
           {
             type: 3,
             fileName: `Phan_Bo_5_Hubs_BHX_${payload.month}_${payload.year}.png`,
-            caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (10 NV)</b>\n🛒 Tổng BHX: ${formatMoney(payload.total_actual_bhx)} đ (${payload.total_stores_bhx_team || 178} Cửa hàng)\n🏷 Đơn giá phân bổ: ${formatMoney(payload.bhx_per_store)} đ/CH`
+            caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 NV)</b>\n🛒 Tổng BHX: ${formatMoney(payload.total_actual_bhx)} đ (${payload.total_stores_bhx_team || 178} Cửa hàng)\n🏷 Đơn giá phân bổ: ${formatMoney(payload.bhx_per_store)} đ/CH`
           },
           {
             type: 4,
