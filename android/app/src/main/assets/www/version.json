@@ -1,9 +1,9 @@
 {
-  "latestVersionCode": 29,
-  "latestVersionName": "1.2.8",
+  "latestVersionCode": 30,
+  "latestVersionName": "1.2.9",
   "minSupportedVersion": 1,
-  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.8 - MÔ HÌNH 6 HUBS FAMILYMART GIỐNG BÁCH HÓA XANH]\n• Chuyển đổi FamilyMart sang cơ chế phân bổ 6 Hubs trực tiếp từ nhà máy (Tổng: 733.207.650 đ ÷ 196 CH = 3.740.855 đ/CH).\n• Phân bổ 36 cửa hàng FamilyMart theo đúng file Target Tháng 10 (Hòa: 24, Thủy: 7, Đào: 3, Khang: 1, Căn 03 Swanbay: 1).\n• Bỏ hoàn toàn bảng 46 SKU cũ, bổ sung Tab '5. Phân Bổ 6 Hubs FamilyMart' với 2 bảng trực quan giống hệt mô hình Bách Hóa Xanh.\n• Cập nhật file Excel xuất ra chuẩn 6 Hubs và đồng bộ công thức toàn team.",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.2.9 - KHẮC PHỤC LỖI & CHUẨN HÓA CÔNG THỨC FAMILYMART 18.367%]\n• Khắc phục triệt để lỗi 'updatedStores is not defined' khi tải tệp doanh số trên ứng dụng.\n• Chuẩn hóa công thức tính FamilyMart giống hệt GS25 & 7-Eleven: Doanh số = (Tổng 6 Hubs DC × 18.367% tỷ trọng) ÷ 36 CH = 3.740.855 đ/CH.\n• Đồng bộ toàn bộ 36 cửa hàng và phân bổ theo nhân viên chuẩn xác 100%.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
-  "updatedAt": "2026-10-14T20:10:00Z"
+  "updatedAt": "2026-10-14T20:25:00Z"
 }

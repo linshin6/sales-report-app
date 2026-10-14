@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.8</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.2.9</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -2942,10 +2942,13 @@ const DEFAULT_FM_STORES = [
      */
     const SYSTEM_CONFIG = {
       TOTAL_BHX_SYSTEM: 232,
+      TOTAL_FM_SYSTEM: 196,
+      FM_ROUTE_STORES: 36,
+      FM_DC_RATIO: 0.18367, // Tỷ trọng 18.367% (36 CH Khu vực ÷ 196 CH Toàn hệ thống)
       GS25_ROUTE_STORES: 72,
-      GS25_DC_RATIO: 0.2046,
+      GS25_DC_RATIO: 0.2046, // Tỷ trọng 20.46% (Tuyến 72 CH)
       SE_ROUTE_STORES: 5,
-      SE_DC_RATIO: 0.0362
+      SE_DC_RATIO: 0.0362 // Tỷ trọng 3.62% (Tuyến 5 CH)
     };
 
     const DEFAULT_MASTER = {
@@ -4157,6 +4160,7 @@ const DEFAULT_FM_STORES = [
       const totalStoresFm = (currentMaster.total_stores_fm && currentMaster.total_stores_fm > 0) ? currentMaster.total_stores_fm : 196;
       const fmPerStore = Math.round(totalActualFmHubs / totalStoresFm); // 3,740,855 đ/CH
 
+      const updatedStores = [];
       const storesRef = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores : (allStoresList.length > 0 ? allStoresList : getInitialStores());
 
       for (let s of storesRef) {
@@ -8681,9 +8685,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.2.8",
-      versionCode: 29,
-      buildDate: "20:09 - 14/10/2026"
+      versionName: "v1.2.9",
+      versionCode: 30,
+      buildDate: "20:23 - 14/10/2026"
     };
 
     function initAppVersionDisplay() {
@@ -8931,9 +8935,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.8</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.2.9</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:09 - 14/10/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">20:23 - 14/10/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
