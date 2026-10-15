@@ -2,7 +2,7 @@
   "latestVersionCode": 35,
   "latestVersionName": "1.3.4",
   "minSupportedVersion": 1,
-  "releaseNotes": "[BAN CAP NHAT v1.3.4 - KHOA CUNG MAU SO CHIA BHX 240 CUA HANG]",
+  "releaseNotes": "✨ [BẢN CẬP NHẬT v1.3.4 - KHÓA CỨNG MẪU SỐ CHIA BHX 240 CỬA HÀNG]\n• Khóa cứng chuẩn công thức Thực đạt 5 Hub / 240 = Đơn giá / CH.\n• Khắc phục triệt để lỗi nạp file Target tự động ghi đè số CH hệ thống về 232.\n• Tự động làm mới cache thiết bị, đảm bảo luôn chia đúng 240 CH.",
   "apkDownloadUrl": "https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk",
   "forceUpdate": false,
   "updatedAt": "2026-10-15T16:07:00Z",
@@ -10,8 +10,8 @@
   "version_code": 35,
   "release_date": "15/10/2026",
   "changelog": [
-    "Khoa cung mau so chia BHX he thong chuan 240 CH.",
-    "Khac phuc triet de loi file Excel tu dong nhan dien 232 CH.",
-    "Tu dong dong bo chuan don gia 5 Hub / 240 toan he thong."
+    "Khóa cứng mẫu số chia BHX hệ thống chuẩn 240 CH.",
+    "Khắc phục triệt để lỗi file Excel tự động nhận diện 232 CH.",
+    "Tự động đồng bộ chuẩn đơn giá 5 Hub / 240 toàn hệ thống."
   ]
 }
