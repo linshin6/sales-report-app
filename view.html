@@ -821,7 +821,7 @@
         const hubAmounts = compact.h || [0, 0, 0, 0, 0];
         let totalBhxHubs = 0;
         hubAmounts.forEach(val => totalBhxHubs += (val || 0));
-        const totalStoresBhx = (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 233;
+        const totalStoresBhx = (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 240;
         const bhxPerStore = Math.round(totalBhxHubs / totalStoresBhx);
 
         const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => {
@@ -1059,8 +1059,8 @@
         total_actual_bhx: compact.bhx || 0,
         total_cvs: compact.cvs || 0,
         total_actual: totAct,
-        total_stores_bhx_team: compact.sbhx || 178,
-        total_stores_bhx: (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 233,
+        total_stores_bhx_team: compact.sbhx || 199,
+        total_stores_bhx: (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 240,
         bhx_per_store: compact.pbhx || 0,
         employees: employees,
         stores: fullStores,
@@ -1443,7 +1443,7 @@
         total_actual_bhx: 512000000,
         total_cvs: totalActual - 512000000,
         total_actual: totalActual,
-        total_stores_bhx_team: 178,
+        total_stores_bhx_team: 199,
         bhx_per_store: 2876404,
         employees: emps,
         stores: (m.stores || []).map((s, i) => ({
@@ -1551,7 +1551,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Thực Hiện BHX</div>
               <div class="kpi-value" style="color:#059669;">${formatMoney(data.total_actual_bhx)} ₫</div>
-              <div class="kpi-sub">${data.total_stores_bhx_team || 178} CH • TB: ${formatMoney(data.bhx_per_store)} đ/CH</div>
+              <div class="kpi-sub">${data.total_stores_bhx_team || 199} CH • TB: ${formatMoney(data.bhx_per_store)} đ/CH</div>
             </div>
             <div class="kpi-card">
               <div class="kpi-label">Thực Hiện CVS</div>
@@ -1574,7 +1574,7 @@
             <div class="kpi-card">
               <div class="kpi-label">Thực Hiện BHX</div>
               <div class="kpi-value" style="color:#059669;">${formatMoney(data.total_actual_bhx)} ₫</div>
-              <div class="kpi-sub">${data.total_stores_bhx_team || 178} CH • TB: ${formatMoney(data.bhx_per_store)} đ/CH</div>
+              <div class="kpi-sub">${data.total_stores_bhx_team || 199} CH • TB: ${formatMoney(data.bhx_per_store)} đ/CH</div>
             </div>
             <div class="kpi-card">
               <div class="kpi-label">Thực Hiện CVS</div>
@@ -2051,7 +2051,7 @@
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(data.total_actual_bhx_hubs || sumHubs)}</td>
-          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 233} CH)</td>
+          <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 240} CH)</td>
         </tr>
       `;
     }
@@ -2579,7 +2579,7 @@
           { col: 'B', lbl: 'Thực Hiện BHX', val: p.total_actual_bhx, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
           { col: 'C', lbl: 'Thực Hiện CVS', val: p.total_cvs, fmt: '#,##0', bg: 'FFED7D31', fg: 'FFFFFFFF' },
           { col: 'D', lbl: 'Tổng Thực Hiện', val: p.total_actual, fmt: '#,##0', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
-          { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 178) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
+          { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 199) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
           { col: 'F', lbl: 'TB Doanh Số/CH BHX', val: p.bhx_per_store, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
           { col: 'G', lbl: 'Số Nhân Viên', val: (p.employees || []).length + ' NV', fmt: null, bg: 'FF595959', fg: 'FFFFFFFF' }
         ];
@@ -2718,7 +2718,7 @@
         setInfo('B', 'Tháng:', true, false);
         setInfo('C', p.month + '/' + p.year, false, true);
         setInfo('D', 'Tổng CH BHX:', true, false);
-        setInfo('E', p.total_stores_bhx_team || p.total_stores_bhx, false, true);
+        setInfo('E', p.total_stores_bhx_team || 199, false, true);
         setInfo('F', 'TB BHX/CH:', true, false);
         setInfo('G', p.bhx_per_store, false, true);
         ws2.getCell('G3').numFmt = '#,##0';
