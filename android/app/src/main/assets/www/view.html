@@ -821,7 +821,7 @@
         const hubAmounts = compact.h || [0, 0, 0, 0, 0];
         let totalBhxHubs = 0;
         hubAmounts.forEach(val => totalBhxHubs += (val || 0));
-        const totalStoresBhx = (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 240;
+        const totalStoresBhx = (m.total_stores_bhx && m.total_stores_bhx >= 240) ? m.total_stores_bhx : 240;
         const bhxPerStore = Math.round(totalBhxHubs / totalStoresBhx);
 
         const bhxHubs = (m.bhx_hubs || []).map((hName, idx) => {
@@ -1060,7 +1060,7 @@
         total_cvs: compact.cvs || 0,
         total_actual: totAct,
         total_stores_bhx_team: compact.sbhx || 199,
-        total_stores_bhx: (m.total_stores_bhx && m.total_stores_bhx > 180) ? m.total_stores_bhx : 240,
+        total_stores_bhx: (m.total_stores_bhx && m.total_stores_bhx >= 240) ? m.total_stores_bhx : 240,
         bhx_per_store: compact.pbhx || 0,
         employees: employees,
         stores: fullStores,

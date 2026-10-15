@@ -1149,7 +1149,7 @@
       <div class="pill-badge version-badge" onclick="checkAppUpdateManual()" style="cursor:pointer; background:#f0fdfa; border:1px solid #99f6e4;" title="Chạm để kiểm tra bản cập nhật mới">
         <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#14b8a6; margin-right:3px;"></span>
         <span>🚀 Bản:</span>
-        <strong id="headerAppVersion" style="color:#0f766e;">v1.3.3</strong>
+        <strong id="headerAppVersion" style="color:#0f766e;">v1.3.4</strong>
         <span style="font-size:11px; color:#0f766e; margin-left:3px;" id="headerBuildDate">(18/09/2026)</span>
         <span style="font-size:11px; margin-left:3px;" title="Kiểm tra bản mới">🔄</span>
       </div>
@@ -1796,7 +1796,7 @@
         </div>
         <div style="background:#f0fdfa; padding:6px 12px; border-radius:8px; border:1.5px solid #99f6e4;">
           <label style="font-size:12.5px; font-weight:700; color:#0f766e;">🏢 Tổng CH BHX Toàn Hệ Thống (Hub ÷ ...):</label>
-          <input type="number" id="editModalTotalBhxSys" class="search-input" style="width:90px; font-weight:800; color:#0f766e; text-align:center;" value="233" title="Mẫu số chia doanh số 5 Hub BHX (mặc định 233)">
+          <input type="number" id="editModalTotalBhxSys" class="search-input" style="width:90px; font-weight:800; color:#0f766e; text-align:center;" value="240" title="Mẫu số chia doanh số 5 Hub BHX (mặc định 240)">
         </div>
       </div>
 
@@ -3549,9 +3549,11 @@ const DEFAULT_FM_STORES = [
             if (totalBhxCount > 0) {
               currentMaster.total_stores_bhx_team = totalBhxCount;
             }
-            if (foundTotalBhxSys >= 50) {
+            // Quy định mới: Tổng CH BHX toàn hệ thống đã nâng lên 240 CH (chia 5 Hubs)
+            // Không nhận 232 hay 233 từ file excel cũ
+            if (foundTotalBhxSys && foundTotalBhxSys >= 240) {
               currentMaster.total_stores_bhx = foundTotalBhxSys;
-            } else if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx <= 0) {
+            } else {
               currentMaster.total_stores_bhx = 240;
             }
 
@@ -3573,7 +3575,7 @@ const DEFAULT_FM_STORES = [
               feedback.style.display = 'block';
               feedback.style.background = '#DCFCE7';
               feedback.style.color = '#15803D';
-              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 178) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 240) + ' CH Hệ Thống | ' + totalCvsCount + ' CH CVS)';
+              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 199) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 240) + ' CH Hệ Thống | ' + totalCvsCount + ' CH CVS)';
             }
 
             // Tạo thông báo chi tiết từng nhân viên (đúng số tiền ô T4)
@@ -3585,7 +3587,7 @@ const DEFAULT_FM_STORES = [
             alert('🎉 ĐÃ ÁP DỤNG THÀNH CÔNG TARGET TỪ FORM CHI TIÊU!\n\n' +
                   '• Tổng Chỉ Tiêu Toàn Team: ' + formatNumber(totalTgt) + ' đ\n' +
                   '• Tổng Cửa Hàng BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 240) + ' CH\n' +
-                  '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n' +
+                  '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 199) + ' CH\n' +
                   '• Tổng Cửa Hàng CVS Phụ Trách: ' + totalCvsCount + ' CH\n' +
                   '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +
                   'Dữ liệu đã được lưu và áp dụng ngay lập tức!');
@@ -3617,7 +3619,7 @@ const DEFAULT_FM_STORES = [
       document.getElementById('editModalMonth').value = currentMaster.month;
       document.getElementById('editModalYear').value = currentMaster.year;
       if (document.getElementById('editModalTotalBhxSys')) {
-        document.getElementById('editModalTotalBhxSys').value = currentMaster.total_stores_bhx || 240;
+        document.getElementById('editModalTotalBhxSys').value = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
       }
 
       const tbody = document.getElementById('editTargetTableBody');
@@ -3687,7 +3689,7 @@ const DEFAULT_FM_STORES = [
     }
 
     function resetToDefaultMonth9Target() {
-      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 178 CH BHX Team / 233 CH Hệ Thống)?')) {
+      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 199 CH BHX Team / 240 CH Hệ Thống)?')) {
         localStorage.removeItem('CUSTOM_MASTER_DATA');
         currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
         currentMaster.total_stores_bhx = 240;
@@ -3696,7 +3698,7 @@ const DEFAULT_FM_STORES = [
         if (document.getElementById('editTargetModal') && document.getElementById('editTargetModal').classList.contains('active')) {
           closeModal('editTargetModal');
         }
-        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 178) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 233) + ' CH\n\nToàn bộ 11 nhân sự đã được áp dụng target chuẩn!');
+        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 199) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 240) + ' CH\n\nToàn bộ 11 nhân sự đã được áp dụng target chuẩn!');
         if (processedReportData) {
           calculateReportData();
           renderAllReports();
@@ -3990,7 +3992,8 @@ const DEFAULT_FM_STORES = [
         }
       }
 
-      const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx > 50) ? currentMaster.total_stores_bhx : 240;
+      const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
+      currentMaster.total_stores_bhx = totalStoresBhx;
       const bhxPerStore = totalStoresBhx > 0 ? (totalActualBhx / totalStoresBhx) : 0;
 
       // 2. CVS
@@ -8439,7 +8442,8 @@ const DEFAULT_FM_STORES = [
 
       setTimeout(() => {
         const totalActualBhx = 2448050338;
-        const totalStoresBhx = currentMaster.total_stores_bhx || 240;
+        const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
+      currentMaster.total_stores_bhx = totalStoresBhx;
         const bhxPerStore = Math.round(totalActualBhx / totalStoresBhx);
 
         const hubAmounts = [489610068, 512300400, 478200100, 498900200, 469039570];
@@ -8764,7 +8768,8 @@ const DEFAULT_FM_STORES = [
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
               currentMaster = parsed;
-              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx <= 0) {
+              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx < 240) { currentMaster.total_stores_bhx = 240; }
+              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx < 240) {
                 currentMaster.total_stores_bhx = 240;
               }
               if (!currentMaster.total_stores_bhx_team) {
@@ -8807,9 +8812,9 @@ const DEFAULT_FM_STORES = [
 
     // QUẢN LÝ PHIÊN BẢN & THỜI GIAN CẬP NHẬT APP
     const APP_METADATA = {
-      versionName: "v1.3.3",
-      versionCode: 34,
-      buildDate: "13:44 - 15/10/2026"
+      versionName: "v1.3.4",
+      versionCode: 35,
+      buildDate: "14:17 - 15/10/2026"
     };
 
     function initAppVersionDisplay() {
@@ -9057,9 +9062,9 @@ const DEFAULT_FM_STORES = [
       </div>
       <div onclick="checkAppUpdateManual()" style="display:inline-flex; align-items:center; gap:8px; background:#f0fdfa; padding:7px 18px; border-radius:30px; cursor:pointer; transition:all 0.2s; border:1px solid #ccfbf1;" onmouseover="this.style.background='#ccfbf1'" onmouseout="this.style.background='#f0fdfa'" title="Bấm vào để kiểm tra bản cập nhật mới nhất">
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#14b8a6;"></span>
-        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.3.3</strong></span>
+        <span>Phiên bản: <strong id="footerAppVersion" style="color:#0f766e;">v1.3.4</strong></span>
         <span style="opacity:0.4;">•</span>
-        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">13:44 - 15/10/2026</strong></span>
+        <span>Cập nhật: <strong id="footerAppBuildDate" style="color:#0f766e;">14:17 - 15/10/2026</strong></span>
         <span style="background:#0f766e; color:#ffffff; font-size:11px; font-weight:700; padding:2px 10px; border-radius:12px; margin-left:4px;">🔄 Kiểm tra bản mới</span>
       </div>
       <div style="font-size:12px; opacity:0.8;">
