@@ -4515,7 +4515,7 @@ const DEFAULT_FM_STORES = [
             <th class="text-right">Hoàng Đức</th>
             <th class="text-right" style="background:#2E75B6; color:#fff;">Tổng TH (BHX+CVS)</th>
             <th class="text-center" style="background:#1F4E78; color:#fff; min-width:85px;">% Đạt</th>
-            <th class="text-center" style="background:#0F766E; color:#fff; min-width:110px;">Trạng Thái (vs TG)</th>
+            <th class="text-center" style="background:#0F766E; color:#fff; min-width:110px;">Còn Thiếu</th>
           </tr>
         `;
       }
@@ -4523,18 +4523,9 @@ const DEFAULT_FM_STORES = [
       tbody.innerHTML = '';
       (data.employees || []).forEach((e, idx) => {
         const pct = (typeof e.percent === 'number') ? e.percent : (e.target > 0 ? Number(((e.total_actual / e.target) * 100).toFixed(1)) : 0);
-        const diff = pct - timegone;
-        const status = pct >= timegone ? 'VƯỢT' : (pct >= timegone * 0.75 ? 'CẬN' : 'CHẬM');
         const chipClass = (pct >= timegone) ? 'chip-pass' : ((pct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
-        
-        let statusBadge = '';
-        if (status === 'VƯỢT') {
-          statusBadge = `<span style="background:#DCFCE7; color:#15803D; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${diff.toFixed(1)}%)</span>`;
-        } else if (status === 'CẬN') {
-          statusBadge = `<span style="background:#FEF3C7; color:#B45309; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${diff.toFixed(1)}%)</span>`;
-        } else {
-          statusBadge = `<span style="background:#FEE2E2; color:#B91C1C; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${diff.toFixed(1)}%)</span>`;
-        }
+        // Cột "Còn Thiếu": số tiền còn thiếu để hoàn thành target (đã vượt thì = 0)
+        const missingAmt = Math.max(0, (e.target || 0) - (e.total_actual || 0));
 
         tbody.innerHTML += `
           <tr>
@@ -4549,18 +4540,14 @@ const DEFAULT_FM_STORES = [
             <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
             <td class="text-right font-bold" style="color:#0f766e; background:#F0FDF4;">${formatNumber(e.total_actual)}</td>
             <td class="text-center"><span class="${chipClass}">${pct}%</span></td>
-            <td class="text-center">${statusBadge}</td>
+            <td class="text-right" style="font-weight:700;">${formatNumber(missingAmt)}</td>
           </tr>
         `;
       });
 
       const teamPct = (typeof data.percent_achieved === 'number') ? data.percent_achieved : (data.total_target > 0 ? Number(((data.total_actual / data.total_target) * 100).toFixed(1)) : 0);
-      const teamDiff = teamPct - timegone;
-      const teamStatusBadge = (teamPct >= timegone)
-          ? `<span style="background:#15803D; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${teamDiff.toFixed(1)}%)</span>`
-          : ((teamPct >= timegone * 0.75)
-              ? `<span style="background:#D97706; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${teamDiff.toFixed(1)}%)</span>`
-              : `<span style="background:#DC2626; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${teamDiff.toFixed(1)}%)</span>`);
+      const teamChipClass = (teamPct >= timegone) ? 'chip-pass' : ((teamPct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+      const teamMissing = Math.max(0, (data.total_target || 0) - (data.total_actual || 0));
 
       tfoot.innerHTML = `
         <tr style="background:#0f172a;">
@@ -4573,8 +4560,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.ck_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.hd_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(data.total_actual)}</td>
-          <td class="text-center font-bold" style="color:#FDE047 !important;">${teamPct}%</td>
-          <td class="text-center font-bold">${teamStatusBadge}</td>
+          <td class="text-center"><span class="${teamChipClass}">${teamPct}%</span></td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(teamMissing)}</td>
         </tr>
       `;
     }
@@ -4598,7 +4585,7 @@ const DEFAULT_FM_STORES = [
               <th class="text-right" style="background:#4472C4;">Doanh Số CVS</th>
               <th class="text-right" style="background:#2E75B6; color:#FFFFFF;">Tổng Thực Hiện</th>
               <th class="text-center" style="background:#1F4E78; color:#FFFFFF; min-width:90px;">% Đạt</th>
-              <th class="text-center" style="background:#4472C4; color:#FFFFFF; min-width:100px;">Trạng Thái</th>
+              <th class="text-center" style="background:#4472C4; color:#FFFFFF; min-width:100px;">Còn Thiếu</th>
             </tr>
           `;
         } else {
@@ -4627,7 +4614,7 @@ const DEFAULT_FM_STORES = [
       sorted.forEach((e, idx) => {
         if (isTarget) {
           const chipClass = (e.percent >= data.timegone) ? 'chip-pass' : ((e.percent >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
-          const statusColor = (e.status === 'VƯỢT') ? '#059669' : ((e.status === 'CẬN') ? '#d97706' : '#dc2626');
+          const missingAmt = Math.max(0, (e.target || 0) - (e.total_actual || 0));
           tbody.innerHTML += `
             <tr>
               <td class="text-center font-bold" style="font-size:14px;">${idx + 1}</td>
@@ -4637,7 +4624,7 @@ const DEFAULT_FM_STORES = [
               <td class="text-right">${formatNumber(e.cvs_total)}</td>
               <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
               <td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>
-              <td class="text-center font-bold" style="color:${statusColor};">${e.status}</td>
+              <td class="text-right" style="font-weight:700;">${formatNumber(missingAmt)}</td>
             </tr>
           `;
         } else {
@@ -4664,8 +4651,8 @@ const DEFAULT_FM_STORES = [
               <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
               <td class="text-right font-bold" style="color:#fff !important;">${formatNumber(data.total_cvs)}</td>
               <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(data.total_actual)}</td>
-              <td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved}%</td>
-              <td class="text-center font-bold" style="color:#FDE047 !important;">${data.percent_achieved >= data.timegone ? 'VƯỢT' : (data.percent_achieved >= data.timegone * 0.75 ? 'CẬN' : 'CHẬM')}</td>
+              <td class="text-center"><span class="${(data.percent_achieved >= data.timegone) ? 'chip-pass' : ((data.percent_achieved >= data.timegone * 0.75) ? 'chip-warn' : 'chip-fail')}">${data.percent_achieved}%</span></td>
+              <td class="text-right font-bold" style="color:#fff !important;">${formatNumber(Math.max(0, (data.total_target || 0) - (data.total_actual || 0)))}</td>
             </tr>
           `;
         } else {
@@ -5789,18 +5776,9 @@ const DEFAULT_FM_STORES = [
 
       filtered.forEach((e, idx) => {
         const pct = (typeof e.percent === 'number') ? e.percent : (e.target > 0 ? Number(((e.total_actual / e.target) * 100).toFixed(1)) : 0);
-        const diff = pct - timegone;
-        const status = pct >= timegone ? 'VƯỢT' : (pct >= timegone * 0.75 ? 'CẬN' : 'CHẬM');
         const chipClass = (pct >= timegone) ? 'chip-pass' : ((pct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
-
-        let statusBadge = '';
-        if (status === 'VƯỢT') {
-          statusBadge = `<span style="background:#DCFCE7; color:#15803D; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${diff.toFixed(1)}%)</span>`;
-        } else if (status === 'CẬN') {
-          statusBadge = `<span style="background:#FEF3C7; color:#B45309; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${diff.toFixed(1)}%)</span>`;
-        } else {
-          statusBadge = `<span style="background:#FEE2E2; color:#B91C1C; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${diff.toFixed(1)}%)</span>`;
-        }
+        // Cột "Còn Thiếu": số tiền còn thiếu để hoàn thành target (đã vượt thì = 0)
+        const missingAmt = Math.max(0, (e.target || 0) - (e.total_actual || 0));
 
         tbody.innerHTML += `
           <tr>
@@ -5815,7 +5793,7 @@ const DEFAULT_FM_STORES = [
             <td class="text-right" style="font-weight:600;">${formatNumber(e.hd_actual)}</td>
             <td class="text-right font-bold" style="color:#0f766e; background:#F0FDF4;">${formatNumber(e.total_actual)}</td>
             <td class="text-center"><span class="${chipClass}">${pct}%</span></td>
-            <td class="text-center">${statusBadge}</td>
+            <td class="text-right" style="font-weight:700;">${formatNumber(missingAmt)}</td>
           </tr>
         `;
       });
@@ -5829,12 +5807,8 @@ const DEFAULT_FM_STORES = [
       const totHd = filtered.reduce((a, b) => a + (b.hd_actual || 0), 0);
       const totAct = filtered.reduce((a, b) => a + (b.total_actual || 0), 0);
       const totPct = totTgt > 0 ? parseFloat(((totAct / totTgt) * 100).toFixed(1)) : 0;
-      const totDiff = totPct - timegone;
-      const totStatusBadge = (totPct >= timegone)
-          ? `<span style="background:#15803D; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟢 VƯỢT (+${totDiff.toFixed(1)}%)</span>`
-          : ((totPct >= timegone * 0.75)
-              ? `<span style="background:#D97706; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🟡 CẬN (${totDiff.toFixed(1)}%)</span>`
-              : `<span style="background:#DC2626; color:#FFFFFF; font-weight:800; padding:3px 8px; border-radius:8px; font-size:11.5px; white-space:nowrap; display:inline-block;">🔴 CHẬM (${totDiff.toFixed(1)}%)</span>`);
+      const totChipClass = (totPct >= timegone) ? 'chip-pass' : ((totPct >= timegone * 0.75) ? 'chip-warn' : 'chip-fail');
+      const totMissing = Math.max(0, totTgt - totAct);
 
       const footLabel = selEmp ? ('TỔNG (' + selEmp.toUpperCase() + ')') : 'TỔNG TEAM';
 
@@ -5849,8 +5823,8 @@ const DEFAULT_FM_STORES = [
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totCk)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totHd)}</td>
           <td class="text-right font-bold" style="color:#93C5FD !important;">${formatNumber(totAct)}</td>
-          <td class="text-center font-bold" style="color:#FDE047 !important;">${totPct}%</td>
-          <td class="text-center font-bold">${totStatusBadge}</td>
+          <td class="text-center"><span class="${totChipClass}">${totPct}%</span></td>
+          <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totMissing)}</td>
         </tr>
       `;
     }
@@ -5877,7 +5851,7 @@ const DEFAULT_FM_STORES = [
         const rank = sorted.findIndex(s => s.name === e.name) + 1;
         if (isTarget) {
           const chipClass = (e.percent >= processedReportData.timegone) ? 'chip-pass' : ((e.percent >= processedReportData.timegone * 0.75) ? 'chip-warn' : 'chip-fail');
-          const statusColor = (e.status === 'VƯỢT') ? '#059669' : ((e.status === 'CẬN') ? '#d97706' : '#dc2626');
+          const missingAmt = Math.max(0, (e.target || 0) - (e.total_actual || 0));
           tbody.innerHTML += `
             <tr>
               <td class="text-center font-bold" style="font-size:14px;">${rank}</td>
@@ -5887,7 +5861,7 @@ const DEFAULT_FM_STORES = [
               <td class="text-right">${formatNumber(e.cvs_total)}</td>
               <td class="text-right font-bold" style="color:#0f766e; font-size:13.5px;">${formatNumber(e.total_actual)}</td>
               <td class="text-center"><span class="${chipClass}">${e.percent}%</span></td>
-              <td class="text-center font-bold" style="color:${statusColor};">${e.status}</td>
+              <td class="text-right" style="font-weight:700;">${formatNumber(missingAmt)}</td>
             </tr>
           `;
         } else {
