@@ -106,7 +106,7 @@
 
     <!-- Nút bắt đầu tải trực tiếp -->
     <div id="downloadBtnSection">
-      <a href="https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk" download="BaoCaoDoanhSo_TeamCamGiang.apk" class="btn-download" style="border:none; cursor:pointer; font-size:16px; text-decoration:none; display:block; padding:18px 20px;">
+      <a href="https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk" download="BaoCaoDoanhSo_TeamCamGiang.apk" class="btn-download" style="border:none; cursor:pointer; font-size:16px; text-decoration:none; display:block; padding:18px 20px;" onclick="this.href='https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk?t='+Date.now();">
         ⬇️ TẢI & CÀI ĐẶT NGAY (1-CHẠM)
       </a>
     </div>
@@ -125,6 +125,17 @@
 
   <script>
     let savedBlob = null;
+
+    // Hiển thị đúng phiên bản mới nhất từ server (16/10/2026: text cứng từng ghi sai v1.2.7)
+    fetch('https://bcgiang.vercel.app/version.json?t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var el = document.getElementById('downloadBadgeVersion');
+        if (el && d && d.latestVersionName) {
+          el.textContent = 'v' + d.latestVersionName + ' (Code ' + d.latestVersionCode + ')';
+        }
+      })
+      .catch(function(){});
     function startDownloadWithProgress() {
       document.getElementById('downloadBtnSection').style.display = 'none';
       document.getElementById('completeSection').style.display = 'none';
@@ -170,13 +181,13 @@
           }, 400);
         } else {
           alert('Lỗi tải file: HTTP ' + xhr.status + '. Đang mở liên kết trực tiếp...');
-          window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+          window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk?t=' + Date.now();
         }
       };
 
       xhr.onerror = function() {
         alert('Lỗi kết nối khi tải file. Đang mở liên kết trực tiếp...');
-        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk?t=' + Date.now();
       };
 
       xhr.send();
@@ -222,7 +233,7 @@
         setTimeout(() => a.remove(), 1000);
         if (btn) btn.innerText = '✅ ĐÃ XUẤT FILE TẢI VỀ';
       } else {
-        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+        window.location.href = 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk?t=' + Date.now();
       }
     }
   </script>
