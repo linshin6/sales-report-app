@@ -9025,13 +9025,14 @@ const DEFAULT_FM_STORES = [
       // 2. Ưu tiên số 2: Native Bridge downloadAndInstallApk (Tải ngầm luồng Java và mở Package Installer)
       if (window.AndroidBridge && typeof window.AndroidBridge.downloadAndInstallApk === 'function') {
         closeModal('otaUpdateModal');
-        window.AndroidBridge.downloadAndInstallApk(otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk');
+        // Thêm ?t= để phá cache (16/10/2026: từng tải nhầm APK cũ do cache đường link)
+        window.AndroidBridge.downloadAndInstallApk((otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk') + '?t=' + Date.now());
         return;
       }
 
       // 3. Fallback: Mở trực tiếp link file APK bằng trình duyệt để Android tự động tải và cài đặt
       closeModal('otaUpdateModal');
-      const directApkUrl = otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk';
+      const directApkUrl = (otaDownloadLink || 'https://bcgiang.vercel.app/BaoCaoDoanhSo_TeamCamGiang.apk') + '?t=' + Date.now();
       window.location.href = directApkUrl;
     }
   </script>
