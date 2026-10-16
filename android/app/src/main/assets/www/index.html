@@ -8711,12 +8711,19 @@ const DEFAULT_FM_STORES = [
               allStoresList = cloudData.stores;
             }
             if (cloudData.employees && cloudData.employees.length > 0) {
-              currentMaster.employees = cloudData.employees.map(e => ({
-                name: e.name,
-                bhx_stores: e.bhx_stores || 0,
-                target: e.target || 0
-              }));
-              try { localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster)); } catch (e) {}
+              // Guard 16/10/2026: không ghi đè target khi cloud không có target thật
+              // (payload chế độ Thực Đạt có target = 0, từng gây lỗi hiện 0% toàn team)
+              const hasRealTargets = cloudData.employees.some(e => (e.target || 0) > 0);
+              if (hasRealTargets) {
+                currentMaster.employees = cloudData.employees.map(e => ({
+                  name: e.name,
+                  bhx_stores: e.bhx_stores || 0,
+                  target: e.target || 0
+                }));
+                try { localStorage.setItem('CUSTOM_MASTER_DATA', JSON.stringify(currentMaster)); } catch (e) {}
+              } else {
+                console.warn('Cloud không có target thật — giữ nguyên target hiện tại.');
+              }
             }
             if (cloudData.total_stores_bhx) currentMaster.total_stores_bhx = cloudData.total_stores_bhx;
             if (cloudData.total_stores_bhx_team) currentMaster.total_stores_bhx_team = cloudData.total_stores_bhx_team;
@@ -8761,9 +8768,10 @@ const DEFAULT_FM_STORES = [
             const minStores = (typeof DEFAULT_MASTER !== 'undefined' && DEFAULT_MASTER.stores) ? DEFAULT_MASTER.stores.length : 141;
 
             // Nếu cache cũ bị cộng dồn vượt quá 15 tỷ hoặc sai tháng, hoặc target cũ (7.625.630.123 đ) hoặc danh mục cũ 138 CH,
+            // hoặc cache bị mất target (tổng = 0, do từng đồng bộ payload chế độ Thực Đạt) — Guard 16/10/2026,
             // tự động xóa cache và nạp chuẩn Target & 141 Cửa hàng mới nhất!
-            if (sumTgt > 15000000000 || parsed.month !== 10 || sumTgt === 7625630123 || !parsed.cvs_stores || parsed.cvs_stores.length < minStores) {
-              console.warn('Phát hiện cache Target/CVS cũ (138 CH / 7.625 tỷ), tự động cập nhật về Master mới nhất (141 CH / 7.595 tỷ)!');
+            if (sumTgt === 0 || sumTgt > 15000000000 || parsed.month !== 10 || sumTgt === 7625630123 || !parsed.cvs_stores || parsed.cvs_stores.length < minStores) {
+              console.warn('Phát hiện cache Target/CVS cũ hoặc mất target, tự động cập nhật về Master mới nhất!');
               localStorage.removeItem('CUSTOM_MASTER_DATA');
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
