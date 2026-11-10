@@ -1772,7 +1772,8 @@ const MASTER_DATA = {
     "G243 Bùi Văn Hòa, Khu Phố 7, Phường Long Bình, Tỉnh Đồng Nai, Việt Nam",
     "Hub - Ấp 4, Xã Châu Pha, Thành phố Hồ Chí Minh, Việt Nam",
     "Hub - G243 Bùi Văn Hòa, Khu Phố 7, Phường Long Bình, Tỉnh Đồng Nai, Việt Nam",
-    "Hub - Đường Phan Huy Chú, tổ 6, khu phố 1, Phường Phú Bình, Thành phố Long Khánh, Tỉnh Đồng Nai"
+    "Hub - Đường Phan Huy Chú, tổ 6, khu phố 1, Phường Phú Bình, Thành phố Long Khánh, Tỉnh Đồng Nai",
+    "Hub - Số 93 Đường Đinh Bộ Lĩnh, Phường Long Thành, Thành phố Đồng Nai"
   ],
   "gs25_dcs": [
     "Lô H.04, Đường số 1, Khu Công Nghiệp Long Hậu, Xã Long Hậu, Huyện Cần Giuộc, Tỉnh Long An",

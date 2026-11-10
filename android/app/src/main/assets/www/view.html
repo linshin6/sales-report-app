@@ -550,7 +550,7 @@
       <div class="tabs-bar">
         <button class="tab-btn active" onclick="switchTab('tabTeam')">📊 1. Tiến Độ 11 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank')">🏆 2. Xếp Hạng & Tỷ Trọng</button>
-        <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 5 Hubs BHX</button>
+        <button class="tab-btn" onclick="switchTab('tabBhx')">🚚 3. Phân Bổ 6 Hubs BHX</button>
         <button class="tab-btn" id="btnTabCvsStores" onclick="switchTab('tabCvsStores')">🏪 4. Chi Tiết Cửa Hàng CVS</button>
         <button class="tab-btn" onclick="switchTab('tabFmHubs')">🏪 5. Phân Bổ FamilyMart</button>
       </div>
@@ -591,12 +591,12 @@
         </div>
       </div>
 
-      <!-- TAB 3: PHÂN BỔ 5 HUBS BÁCH HÓA XANH (GỒM CẢ 2 BẢNG: 5 HUBS & 10 NHÂN VIÊN) -->
+      <!-- TAB 3: PHÂN BỔ 6 HUBS BÁCH HÓA XANH (GỒM CẢ 2 BẢNG: 6 HUBS & 10 NHÂN VIÊN) -->
       <div class="tab-panel" id="tabBhx">
-        <!-- BẢNG 1: DOANH SỐ THỰC TẾ 5 HUBS BHX (XH4001) -->
+        <!-- BẢNG 1: DOANH SỐ THỰC TẾ 6 HUBS BHX (XH4001) -->
         <div class="panel-toolbar" style="margin-bottom: 8px;">
-          <div style="font-weight:700; color:#0F172A; font-size:14px;">1. Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)</div>
-          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxHubs', 'Doanh_So_5_Hubs_BHX')">📸 Copy Bảng 5 Hubs</button>
+          <div style="font-weight:700; color:#0F172A; font-size:14px;">1. Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)</div>
+          <button class="btn-action" style="background:#E2E8F0; color:#1E293B;" onclick="captureTable('tableBhxHubs', 'Doanh_So_5_Hubs_BHX')">📸 Copy Bảng 6 Hubs</button>
         </div>
         <div class="table-responsive" style="margin-bottom: 24px;">
           <table id="tableBhxHubs">
@@ -2049,7 +2049,7 @@
 
       tfoot.innerHTML = `
         <tr>
-          <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
+          <td colspan="2" class="text-center font-bold">TỔNG ${data.bhx_hubs.length} HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatMoney(data.total_actual_bhx_hubs || sumHubs)}</td>
           <td class="font-bold" style="color:#FDE047 !important;">Đơn giá: ${formatMoney(data.bhx_per_store)} / CH (÷ ${data.total_stores_bhx || 240} CH)</td>
         </tr>
@@ -2968,7 +2968,7 @@
           b.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF9E6' } };
           b.border = thinBorder;
         };
-        setBhxTop(3, 'Tổng DS 5 Hubs Hệ Thống:', p.total_actual_bhx_hubs || p.total_actual_bhx, '#,##0', true);
+        setBhxTop(3, 'Tổng DS ' + ((p.bhx_hubs && p.bhx_hubs.length) || 6) + ' Hubs Hệ Thống:', p.total_actual_bhx_hubs || p.total_actual_bhx, '#,##0', true);
         setBhxTop(4, 'Tổng số CH hệ thống:', p.total_stores_bhx, null, false);
         setBhxTop(5, 'TB doanh số/CH:', { formula: 'B3/B4', result: p.bhx_per_store }, '#,##0', true);
 

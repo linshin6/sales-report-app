@@ -1230,7 +1230,7 @@
           <div style="display:flex; align-items:center; gap:12px;">
             <div class="file-icon-box" id="iconBoxST">🏢</div>
             <div style="flex:1; min-width:0;">
-              <div style="font-size:13.5px; font-weight:700; color:#0f172a;">1. File Siêu Thị (BHX 5 Hubs)</div>
+              <div style="font-size:13.5px; font-weight:700; color:#0f172a;">1. File Siêu Thị (BHX 6 Hubs)</div>
               <div id="statusST" style="font-size:12.5px; color:#475569; margin-top:2px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">
                 Chờ nạp file Siêu Thị (BHX)...
               </div>
@@ -1330,7 +1330,7 @@
         <button class="tab-btn active" onclick="switchTab('tabTeam', this)">👥 Tiến Độ 11 Nhân Viên</button>
         <button class="tab-btn" onclick="switchTab('tabRank', this)">🏆 Xếp Hạng Nhân Viên</button>
         <button class="tab-btn" id="btnTabStores" onclick="switchTab('tabStores', this)">🏪 Chi Tiết Cửa Hàng CVS</button>
-        <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 5 Hubs BHX</button>
+        <button class="tab-btn" onclick="switchTab('tabBhx', this)">📦 Phân Bổ 6 Hubs BHX</button>
         <button class="tab-btn" onclick="switchTab('tabFmHubs', this)">🏪 Phân Bổ FamilyMart</button>
         <button class="tab-btn" id="btnTabCompare" onclick="switchTab('tabCompare', this)" style="background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 800;">📈 So Sánh & Tăng Trưởng</button>
       </div>
@@ -1462,18 +1462,18 @@
         </div>
       </div>
 
-      <!-- Tab 4: Phân Bổ 5 Hubs BHX -->
+      <!-- Tab 4: Phân Bổ 6 Hubs BHX -->
       <div id="tabBhx" class="tab-content" style="display:none;">
         <div class="sheet-toolbar" style="margin-bottom:8px;">
           <div class="sheet-toolbar-left">
-            <span style="font-size:14px; font-weight:800; color:#0f172a;">🏢 1. Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)</span>
+            <span style="font-size:14px; font-weight:800; color:#0f172a;">🏢 1. Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)</span>
           </div>
           <div class="sheet-toolbar-right">
             <button class="btn-zalo" onclick="captureAndSendToZalo('tabBhxHubs')" style="background:#0068FF; color:#fff; font-weight:700; padding:8px 15px; border-radius:12px; font-size:13px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(0,104,255,0.3);">
               💬 Gửi Zalo
             </button>
             <button class="btn-capture" onclick="captureCurrentSheet('tabBhxHubs')">
-              📸 Copy Bảng 5 Hubs
+              📸 Copy Bảng 6 Hubs
             </button>
             <button class="btn-capture-outline" onclick="downloadCurrentSheetImage('tabBhxHubs')">
               💾 Tải Ảnh
@@ -2962,7 +2962,7 @@ const DEFAULT_FM_STORES = [
     /**
      * BẢNG THÔNG SỐ ĐỊNH MỨC HỆ THỐNG (SYSTEM_CONFIG)
      * Giải trình căn cứ nghiệp vụ kiểm toán theo văn bản phân bổ Kênh CHTL Vinamilk:
-     * - TOTAL_BHX_SYSTEM: 240 CH toàn hệ thống miền Đông (căn cứ chia 5 Hubs trung chuyển).
+     * - TOTAL_BHX_SYSTEM: 240 CH toàn hệ thống miền Đông (căn cứ chia 6 Hubs trung chuyển).
      * - GS25_ROUTE_STORES: 72 CH trên tuyến phân phối DC miền Đông (Team Giang quản lý 70 CH).
      * - GS25_DC_RATIO: 20.46% hạn mức từ 2 Kho DC Tổng (Long Hậu + Bình Điền).
      * - SE_ROUTE_STORES: 5 CH 7-Eleven thuộc tuyến phụ trách.
@@ -3003,7 +3003,8 @@ const DEFAULT_FM_STORES = [
         'G243 Bùi Văn Hòa, Khu Phố 7, Phường Long Bình, Tỉnh Đồng Nai, Việt Nam',
         'Hub - Ấp 4, Xã Châu Pha, Thành phố Hồ Chí Minh, Việt Nam',
         'Hub - G243 Bùi Văn Hòa, Khu Phố 7, Phường Long Bình, Tỉnh Đồng Nai, Việt Nam',
-        'Hub - Đường Phan Huy Chú, tổ 6, khu phố 1, Phường Phú Bình, Thành phố Long Khánh, Tỉnh Đồng Nai'
+        'Hub - Đường Phan Huy Chú, tổ 6, khu phố 1, Phường Phú Bình, Thành phố Long Khánh, Tỉnh Đồng Nai',
+        'Hub - Số 93 Đường Đinh Bộ Lĩnh, Phường Long Thành, Thành phố Đồng Nai'
       ],
       gs25_dcs: [
         'Lô H.04, Đường số 1, Khu Công Nghiệp Long Hậu, Xã Long Hậu, Huyện Cần Giuộc, Tỉnh Long An',
@@ -3549,7 +3550,7 @@ const DEFAULT_FM_STORES = [
             if (totalBhxCount > 0) {
               currentMaster.total_stores_bhx_team = totalBhxCount;
             }
-            // Quy định mới: Tổng CH BHX toàn hệ thống đã nâng lên 240 CH (chia 5 Hubs)
+            // Quy định mới: Tổng CH BHX toàn hệ thống đã nâng lên 240 CH (chia 6 Hubs)
             // Không nhận 232 hay 233 từ file excel cũ
             if (foundTotalBhxSys && foundTotalBhxSys >= 240) {
               currentMaster.total_stores_bhx = foundTotalBhxSys;
@@ -3914,7 +3915,7 @@ const DEFAULT_FM_STORES = [
     async function processUploadedFiles() {
       if (!fileST || !fileCVS) return;
 
-      showModal('loadingModal', 'Đang phân tích 2 file doanh số...', 'Hệ thống đang trích xuất BHX 5 Hubs, GS25 2 DCs, 7-Eleven, Circle K...');
+      showModal('loadingModal', 'Đang phân tích 2 file doanh số...', 'Hệ thống đang trích xuất BHX 6 Hubs, GS25 2 DCs, 7-Eleven, Circle K...');
 
       try {
         const [wbST, wbCVS] = await Promise.all([
@@ -4737,7 +4738,7 @@ const DEFAULT_FM_STORES = [
         data.employees.forEach(e => { selEmp.innerHTML += `<option value="${e.name}">${e.name}</option>`; });
       }
 
-      // Tab 4: 5 Hubs BHX
+      // Tab 4: 6 Hubs BHX
       const tbodyHubs = document.getElementById('bhxHubsTableBody');
       tbodyHubs.innerHTML = '';
       data.bhx_hubs.forEach((h, idx) => {
@@ -4753,7 +4754,7 @@ const DEFAULT_FM_STORES = [
 
       document.getElementById('bhxHubsTableFoot').innerHTML = `
         <tr>
-          <td colspan="2" class="text-center font-bold">TỔNG 5 HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
+          <td colspan="2" class="text-center font-bold">TỔNG ${data.bhx_hubs.length} HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#059669;">${formatNumber(data.total_actual_bhx_hubs || data.total_actual_bhx)}</td>
           <td>Đơn giá: ${formatNumber(data.bhx_per_store)} VNĐ / CH (÷ ${data.total_stores_bhx || 240} CH toàn hệ thống)</td>
         </tr>
@@ -5586,7 +5587,7 @@ const DEFAULT_FM_STORES = [
             <div class="kpi-value" style="color:#0284c7; font-size:22px;">
               ${deltaBhx >= 0 ? '+' : ''}${formatNumber(deltaBhx)} ₫
             </div>
-            <div class="kpi-subtitle">Kênh 5 Hubs Bách Hóa Xanh</div>
+            <div class="kpi-subtitle">Kênh 6 Hubs Bách Hóa Xanh</div>
           </div>
           <div class="kpi-card" style="border-left:4px solid #d97706;">
             <div class="kpi-title">CVS TĂNG THÊM</div>
@@ -5956,11 +5957,11 @@ const DEFAULT_FM_STORES = [
         containerId = 'bhxDistTableContainer';
         const emp = document.getElementById('filterBhxEmp') ? document.getElementById('filterBhxEmp').value : '';
         baseName = 'Phan_Bo_BHX_' + (emp ? emp.replace(/\s+/g, '_') : 'Full');
-        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (emp ? (' - NV: ' + emp) : ' (11 Nhân Viên)');
+        subTitle = 'Bảng Phân Bổ Doanh Số 6 Hubs Bách Hóa Xanh' + (emp ? (' - NV: ' + emp) : ' (11 Nhân Viên)');
       } else if (sheetKey === 'tabBhxHubs') {
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
-        subTitle = 'Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)';
+        subTitle = 'Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)';
       } else if (sheetKey === 'tabFmDist') {
         containerId = 'fmDistTableContainer';
         baseName = 'Phan_Bo_FamilyMart_Team';
@@ -5971,7 +5972,7 @@ const DEFAULT_FM_STORES = [
         subTitle = 'Doanh Số Thực Tế 6 Hubs FamilyMart (Toàn Hệ Thống 196 CH)';
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
-        subTitle = 'Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)';
+        subTitle = 'Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)';
       } else if (sheetKey === 'tabFmSku') {
         containerId = 'fmSkuTableContainer';
         const pg = document.getElementById('filterFmPg') ? document.getElementById('filterFmPg').value : '';
@@ -6655,11 +6656,11 @@ const DEFAULT_FM_STORES = [
       } else if (sheetKey === 'tabBhxDist') {
         containerId = 'bhxDistTableContainer';
         baseName = 'Phan_Bo_BHX_' + (empBhx ? empBhx.replace(/\s+/g, '_') : 'Full');
-        subTitle = 'Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh' + (empBhx ? (' - NV: ' + empBhx) : ' (11 Nhân Viên)');
+        subTitle = 'Bảng Phân Bổ Doanh Số 6 Hubs Bách Hóa Xanh' + (empBhx ? (' - NV: ' + empBhx) : ' (11 Nhân Viên)');
       } else if (sheetKey === 'tabBhxHubs') {
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
-        subTitle = 'Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)';
+        subTitle = 'Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)';
       } else if (sheetKey === 'tabFmDist') {
         containerId = 'fmDistTableContainer';
         baseName = 'Phan_Bo_FamilyMart_Team';
@@ -6670,7 +6671,7 @@ const DEFAULT_FM_STORES = [
         subTitle = 'Doanh Số Thực Tế 6 Hubs FamilyMart (Toàn Hệ Thống 196 CH)';
         containerId = 'bhxHubsTableContainer';
         baseName = 'Doanh_So_5_Hubs_BHX';
-        subTitle = 'Doanh Số Thực Tế 5 Hubs Bách Hóa Xanh (XH4001)';
+        subTitle = 'Doanh Số Thực Tế 6 Hubs Bách Hóa Xanh (XH4001)';
       } else if (sheetKey === 'tabFmSku') {
         containerId = 'fmSkuTableContainer';
         baseName = 'Tong_Hop_FamilyMart_' + (pgFm ? pgFm.replace(/\s+/g, '_') : 'Full');
@@ -6951,7 +6952,7 @@ const DEFAULT_FM_STORES = [
         const sheetsToSend = [
           { key: 'tabTeam', caption: `📊 <b>1/4. Bảng Tiến Độ 11 Nhân Viên Toàn Team (BHX + CVS)</b>\n🎯 Target: ${formatNumber(totalTargetVal)} đ | Thực hiện: ${formatNumber(totalActualVal)} đ (${percentAchieved.toFixed(2)}%)` },
           { key: 'tabRank', caption: `🏆 <b>2/4. Bảng Xếp Hạng & Đánh Giá Tiến Độ Toàn Team</b>\n🚦 Trạng thái: ${statusEmoji} ${statusText}` },
-          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 5 Hubs Bách Hóa Xanh (11 NV)</b>\n🛒 Tổng BHX: ${formatNumber(totalBhxVal)} đ` },
+          { key: 'tabBhxDist', caption: `🚚 <b>3/4. Bảng Phân Bổ Doanh Số 6 Hubs Bách Hóa Xanh (11 NV)</b>\n🛒 Tổng BHX: ${formatNumber(totalBhxVal)} đ` },
           { key: 'tabFmSku', caption: `🛒 <b>4/4. Bảng Tổng Hợp Doanh Số & Chỉ Tiêu FamilyMart</b>\n🏪 Kênh CVS FamilyMart` }
         ];
 
@@ -7744,7 +7745,7 @@ const DEFAULT_FM_STORES = [
           b.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF9E6' } };
           b.border = thinBorder;
         };
-        setBhxTop(3, 'Tổng DS 5 Hubs Hệ Thống:', p.total_actual_bhx_hubs || p.total_actual_bhx, '#,##0', true);
+        setBhxTop(3, 'Tổng DS ' + ((p.bhx_hubs && p.bhx_hubs.length) || 6) + ' Hubs Hệ Thống:', p.total_actual_bhx_hubs || p.total_actual_bhx, '#,##0', true);
         setBhxTop(4, 'Tổng số CH hệ thống:', p.total_stores_bhx, null, false);
         setBhxTop(5, 'TB doanh số/CH:', { formula: 'B3/B4', result: p.bhx_per_store }, '#,##0', true);
 
