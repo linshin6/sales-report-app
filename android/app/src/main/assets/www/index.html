@@ -4501,13 +4501,14 @@ const DEFAULT_FM_STORES = [
       if (!tbody || !tfoot) return;
 
       const timegone = (typeof data.timegone === 'number') ? data.timegone : 0;
+      const isTarget = (mode === 'target');
 
       if (thead) {
         thead.innerHTML = `
           <tr>
             <th class="text-center" style="width:45px;">STT</th>
             <th>Nhân Viên</th>
-            <th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>
+            ${isTarget ? '<th class="text-right" style="background:#FFF2CC; color:#1F4E78; min-width:130px;">Chỉ Tiêu (Target)</th>' : ''}
             <th class="text-right">BHX (cố định)</th>
             <th class="text-right">GS25</th>
             <th class="text-right">7-Eleven</th>
@@ -4532,7 +4533,7 @@ const DEFAULT_FM_STORES = [
           <tr>
             <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
             <td class="font-bold" style="color:#0f172a;">${e.name}</td>
-            <td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">${formatNumber(e.target || 0)}</td>
+            ${isTarget ? '<td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">' + formatNumber(e.target || 0) + '</td>' : ''}
             <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
@@ -4553,7 +4554,7 @@ const DEFAULT_FM_STORES = [
       tfoot.innerHTML = `
         <tr style="background:#0f172a;">
           <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">TỔNG TEAM</td>
-          <td class="text-right font-bold" style="color:#FCD34D !important;">${formatNumber(data.total_target)}</td>
+          ${isTarget ? '<td class="text-right font-bold" style="color:#FCD34D !important;">' + formatNumber(data.total_target) + '</td>' : ''}
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(data.total_actual_bhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.gs25_actual || 0), 0))}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber((data.employees || []).reduce((acc, x) => acc + (x.se_actual || 0), 0))}</td>
@@ -5785,7 +5786,7 @@ const DEFAULT_FM_STORES = [
           <tr>
             <td class="text-center font-bold" style="color:#64748b;">${idx + 1}</td>
             <td class="font-bold" style="color:#0f172a;">${e.name}</td>
-            <td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">${formatNumber(e.target || 0)}</td>
+            ${isTarget ? '<td class="text-right font-bold" style="color:#1E3A5F; background:#FFFDF5;">' + formatNumber(e.target || 0) + '</td>' : ''}
             <td class="text-right font-bold" style="color:#059669;">${formatNumber(e.bhx_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.gs25_actual)}</td>
             <td class="text-right" style="font-weight:600;">${formatNumber(e.se_actual)}</td>
@@ -5816,7 +5817,7 @@ const DEFAULT_FM_STORES = [
       tfoot.innerHTML = `
         <tr style="background:#0f172a;">
           <td colspan="2" class="text-center font-bold" style="color:#FFFFFF !important;">${footLabel}</td>
-          <td class="text-right font-bold" style="color:#FCD34D !important;">${formatNumber(totTgt)}</td>
+          ${isTarget ? '<td class="text-right font-bold" style="color:#FCD34D !important;">' + formatNumber(totTgt) + '</td>' : ''}
           <td class="text-right font-bold" style="color:#86EFAC !important;">${formatNumber(totBhx)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totGs)}</td>
           <td class="text-right font-bold" style="color:#FFFFFF !important;">${formatNumber(totSe)}</td>
