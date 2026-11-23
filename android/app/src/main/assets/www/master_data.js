@@ -664,22 +664,22 @@ const DEFAULT_FM_STORES = [
 
 const MASTER_DATA = {
   "team_lead": "Trần Thị Cẩm Giang",
-  "total_stores_bhx": 240,
-  "total_stores_bhx_team": 199,
+  "total_stores_bhx": 253,
+  "total_stores_bhx_team": 211,
   "employees": [
     {
         "name": "Bùi Thị Sen",
-        "bhx_stores": 21,
+        "bhx_stores": 22,
         "target": 1224747376
     },
     {
         "name": "Chắng Lý Quỳnh",
-        "bhx_stores": 27,
+        "bhx_stores": 26,
         "target": 1553803206
     },
     {
         "name": "Kim Hoàng Khang",
-        "bhx_stores": 24,
+        "bhx_stores": 28,
         "target": 1439209643
     },
     {
@@ -689,7 +689,7 @@ const MASTER_DATA = {
     },
     {
         "name": "Lê Trần Bá Kiện",
-        "bhx_stores": 26,
+        "bhx_stores": 29,
         "target": 1490030916
     },
     {
@@ -704,7 +704,7 @@ const MASTER_DATA = {
     },
     {
         "name": "Nguyễn Thanh Nhàn",
-        "bhx_stores": 24,
+        "bhx_stores": 25,
         "target": 1427158977
     },
     {
@@ -714,7 +714,7 @@ const MASTER_DATA = {
     },
     {
         "name": "Phạm Thị Kim Nhung",
-        "bhx_stores": 20,
+        "bhx_stores": 24,
         "target": 1230123482
     },
     {

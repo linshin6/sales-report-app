@@ -2983,19 +2983,19 @@ const DEFAULT_FM_STORES = [
       team_lead: 'Trần Thị Cẩm Giang',
       month: 10,
       year: 2026,
-      total_stores_bhx: 240,
-      total_stores_bhx_team: 199,
+      total_stores_bhx: 253,
+      total_stores_bhx_team: 211,
       employees: [
-        { name: 'Bùi Thị Sen', bhx_stores: 21, target: 1224747376 },
-        { name: 'Chắng Lý Quỳnh', bhx_stores: 27, target: 1553803206 },
-        { name: 'Kim Hoàng Khang', bhx_stores: 24, target: 1439209643 },
+        { name: 'Bùi Thị Sen', bhx_stores: 22, target: 1224747376 },
+        { name: 'Chắng Lý Quỳnh', bhx_stores: 26, target: 1553803206 },
+        { name: 'Kim Hoàng Khang', bhx_stores: 28, target: 1439209643 },
         { name: 'Lê Thị Thùy Châu', bhx_stores: 22, target: 1347067397 },
-        { name: 'Lê Trần Bá Kiện', bhx_stores: 26, target: 1490030916 },
+        { name: 'Lê Trần Bá Kiện', bhx_stores: 29, target: 1490030916 },
         { name: 'Não Thị Anh Đào', bhx_stores: 11, target: 735943613 },
         { name: 'Nguyễn Đức Hoà', bhx_stores: 0, target: 300816749 },
-        { name: 'Nguyễn Thanh Nhàn', bhx_stores: 24, target: 1427158977 },
+        { name: 'Nguyễn Thanh Nhàn', bhx_stores: 25, target: 1427158977 },
         { name: 'Nguyễn Thị Thanh Thủy', bhx_stores: 6, target: 543282274 },
-        { name: 'Phạm Thị Kim Nhung', bhx_stores: 20, target: 1230123482 },
+        { name: 'Phạm Thị Kim Nhung', bhx_stores: 24, target: 1230123482 },
         { name: 'Võ Thị Hằng', bhx_stores: 18, target: 1007529600 }
       ],
       bhx_hubs: [
@@ -3198,7 +3198,7 @@ const DEFAULT_FM_STORES = [
     function updateTargetBannerUI() {
       const totalTgt = currentMaster.employees.reduce((acc, e) => acc + (e.target || 0), 0);
       const totalBhx = currentMaster.employees.reduce((acc, e) => acc + (e.bhx_stores || 0), 0);
-      const sysBhx = currentMaster.total_stores_bhx || 240;
+      const sysBhx = currentMaster.total_stores_bhx || 253;
       const cvsCount = (currentMaster.cvs_stores && currentMaster.cvs_stores.length > 0) ? currentMaster.cvs_stores.length : 138;
 
       if (document.getElementById('targetStatusTitle')) {
@@ -3550,12 +3550,12 @@ const DEFAULT_FM_STORES = [
             if (totalBhxCount > 0) {
               currentMaster.total_stores_bhx_team = totalBhxCount;
             }
-            // Quy định mới: Tổng CH BHX toàn hệ thống đã nâng lên 240 CH (chia 6 Hubs)
+            // Tổng CH BHX toàn hệ thống: 253 CH theo Form chỉ tiêu (211 CH team + 42 CH chưa gán PG) — chia 6 Hubs
             // Không nhận 232 hay 233 từ file excel cũ
             if (foundTotalBhxSys && foundTotalBhxSys >= 240) {
               currentMaster.total_stores_bhx = foundTotalBhxSys;
             } else {
-              currentMaster.total_stores_bhx = 240;
+              currentMaster.total_stores_bhx = 253;
             }
 
             // Lưu vào localStorage (Vercel & Offline)
@@ -3576,7 +3576,7 @@ const DEFAULT_FM_STORES = [
               feedback.style.display = 'block';
               feedback.style.background = '#DCFCE7';
               feedback.style.color = '#15803D';
-              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 199) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 240) + ' CH Hệ Thống | ' + totalCvsCount + ' CH CVS)';
+              feedback.innerText = '✅ ĐÃ ÁP DỤNG TARGET THÁNG ' + currentMaster.month + '/' + currentMaster.year + ' CHO TOÀN TEAM!\n(Tổng Target: ' + formatNumber(totalTgt) + ' đ | ' + (currentMaster.total_stores_bhx_team || 211) + ' CH BHX Team / ' + (currentMaster.total_stores_bhx || 253) + ' CH Hệ Thống | ' + totalCvsCount + ' CH CVS)';
             }
 
             // Tạo thông báo chi tiết từng nhân viên (đúng số tiền ô T4)
@@ -3587,8 +3587,8 @@ const DEFAULT_FM_STORES = [
 
             alert('🎉 ĐÃ ÁP DỤNG THÀNH CÔNG TARGET TỪ FORM CHI TIÊU!\n\n' +
                   '• Tổng Chỉ Tiêu Toàn Team: ' + formatNumber(totalTgt) + ' đ\n' +
-                  '• Tổng Cửa Hàng BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 240) + ' CH\n' +
-                  '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 199) + ' CH\n' +
+                  '• Tổng Cửa Hàng BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 253) + ' CH\n' +
+                  '• Tổng Cửa Hàng BHX Team: ' + (currentMaster.total_stores_bhx_team || 211) + ' CH\n' +
                   '• Tổng Cửa Hàng CVS Phụ Trách: ' + totalCvsCount + ' CH\n' +
                   '• Chi tiết từng nhân sự (khớp ô T4 khi lọc):\n' + empListStr + '\n\n' +
                   'Dữ liệu đã được lưu và áp dụng ngay lập tức!');
@@ -3620,7 +3620,7 @@ const DEFAULT_FM_STORES = [
       document.getElementById('editModalMonth').value = currentMaster.month;
       document.getElementById('editModalYear').value = currentMaster.year;
       if (document.getElementById('editModalTotalBhxSys')) {
-        document.getElementById('editModalTotalBhxSys').value = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
+        document.getElementById('editModalTotalBhxSys').value = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 253;
       }
 
       const tbody = document.getElementById('editTargetTableBody');
@@ -3690,16 +3690,16 @@ const DEFAULT_FM_STORES = [
     }
 
     function resetToDefaultMonth9Target() {
-      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 199 CH BHX Team / 240 CH Hệ Thống)?')) {
+      if (confirm('Bạn có chắc muốn khôi phục lại bảng Target chuẩn Tháng 9 (Tổng: 7,605,871,595 đ - 211 CH BHX Team / 253 CH Hệ Thống)?')) {
         localStorage.removeItem('CUSTOM_MASTER_DATA');
         currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
-        currentMaster.total_stores_bhx = 240;
-        currentMaster.total_stores_bhx_team = 199;
+        currentMaster.total_stores_bhx = 253;
+        currentMaster.total_stores_bhx_team = 211;
         updateTargetBannerUI();
         if (document.getElementById('editTargetModal') && document.getElementById('editTargetModal').classList.contains('active')) {
           closeModal('editTargetModal');
         }
-        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 199) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 240) + ' CH\n\nToàn bộ 11 nhân sự đã được áp dụng target chuẩn!');
+        alert('✅ ĐÃ KHÔI PHỤC THÀNH CÔNG TARGET CHUẨN THÁNG 9!\n\n• Tổng Target: ' + formatNumber(currentMaster.employees.reduce((a,b)=>a+(b.target||0),0)) + ' đ\n• Số CH BHX Team: ' + (currentMaster.total_stores_bhx_team || 211) + ' CH\n• Số CH BHX Hệ Thống: ' + (currentMaster.total_stores_bhx || 253) + ' CH\n\nToàn bộ 11 nhân sự đã được áp dụng target chuẩn!');
         if (processedReportData) {
           calculateReportData();
           renderAllReports();
@@ -3993,7 +3993,7 @@ const DEFAULT_FM_STORES = [
         }
       }
 
-      const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
+      const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 253;
       currentMaster.total_stores_bhx = totalStoresBhx;
       const bhxPerStore = totalStoresBhx > 0 ? (totalActualBhx / totalStoresBhx) : 0;
 
@@ -4417,8 +4417,8 @@ const DEFAULT_FM_STORES = [
     function renderKpiCards(data, mode) {
       const container = document.getElementById('kpiGridContainer');
       if (!container) return;
-      const stTeam = data.total_stores_bhx_team || 199;
-      const stSys = data.total_stores_bhx || 240;
+      const stTeam = data.total_stores_bhx_team || 211;
+      const stSys = data.total_stores_bhx || 253;
 
       if (mode === 'target') {
         const diffMissing = (data.total_target || 0) - (data.total_actual || 0);
@@ -4757,7 +4757,7 @@ const DEFAULT_FM_STORES = [
         <tr>
           <td colspan="2" class="text-center font-bold">TỔNG ${data.bhx_hubs.length} HUBS BÁCH HÓA XANH (HỆ THỐNG)</td>
           <td class="text-right font-bold" style="color:#059669;">${formatNumber(data.total_actual_bhx_hubs || data.total_actual_bhx)}</td>
-          <td>Đơn giá: ${formatNumber(data.bhx_per_store)} VNĐ / CH (÷ ${data.total_stores_bhx || 240} CH toàn hệ thống)</td>
+          <td>Đơn giá: ${formatNumber(data.bhx_per_store)} VNĐ / CH (÷ ${data.total_stores_bhx || 253} CH toàn hệ thống)</td>
         </tr>
       `;
 
@@ -7204,7 +7204,7 @@ const DEFAULT_FM_STORES = [
             { col: 'B', lbl: 'Thực Hiện BHX', val: p.total_actual_bhx, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
             { col: 'C', lbl: 'Thực Hiện CVS', val: p.total_cvs, fmt: '#,##0', bg: 'FFED7D31', fg: 'FFFFFFFF' },
             { col: 'D', lbl: 'Tổng Thực Hiện', val: p.total_actual, fmt: '#,##0', bg: 'FF2E75B6', fg: 'FFFFFFFF' },
-            { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 199) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
+            { col: 'E', lbl: 'Tổng CH BHX Team', val: (p.total_stores_bhx_team || 211) + ' CH', fmt: null, bg: 'FF4472C4', fg: 'FFFFFFFF' },
             { col: 'F', lbl: 'TB Doanh Số/CH BHX', val: p.bhx_per_store, fmt: '#,##0', bg: 'FF70AD47', fg: 'FFFFFFFF' },
             { col: 'G', lbl: 'Số Nhân Viên', val: (p.employees || []).length + ' NV', fmt: null, bg: 'FF595959', fg: 'FFFFFFFF' }
           ];
@@ -7496,7 +7496,7 @@ const DEFAULT_FM_STORES = [
           setInfo('B', 'Tháng:', true, false);
           setInfo('C', p.month + '/' + p.year, false, true);
           setInfo('D', 'Tổng CH BHX:', true, false);
-          setInfo('E', p.total_stores_bhx_team || 199, false, true);
+          setInfo('E', p.total_stores_bhx_team || 211, false, true);
           setInfo('F', 'TB BHX/CH:', true, false);
           setInfo('G', p.bhx_per_store, false, true);
           ws2.getCell('G3').numFmt = '#,##0';
@@ -7846,7 +7846,7 @@ const DEFAULT_FM_STORES = [
           ['Tháng Báo Cáo', p.month],
           ['Năm Báo Cáo', p.year],
           ['% Timegone Thực Tế', p.timegone + '%'],
-          ['Tổng Cửa Hàng BHX Hệ Thống', p.total_stores_bhx || 240],
+          ['Tổng Cửa Hàng BHX Hệ Thống', p.total_stores_bhx || 253],
           ['Tổng Cửa Hàng GS25 Hệ Thống', 72],
           ['Hệ Số Phân Bổ GS25 (2 DC)', '20.46%'],
           ['Tổng Cửa Hàng 7-Eleven Phụ Trách', 5],
@@ -8418,7 +8418,7 @@ const DEFAULT_FM_STORES = [
 
       setTimeout(() => {
         const totalActualBhx = 2448050338;
-        const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 240;
+        const totalStoresBhx = (currentMaster.total_stores_bhx && currentMaster.total_stores_bhx >= 240) ? currentMaster.total_stores_bhx : 253;
       currentMaster.total_stores_bhx = totalStoresBhx;
         const bhxPerStore = Math.round(totalActualBhx / totalStoresBhx);
 
@@ -8752,9 +8752,9 @@ const DEFAULT_FM_STORES = [
               currentMaster = JSON.parse(JSON.stringify(DEFAULT_MASTER));
             } else {
               currentMaster = parsed;
-              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx < 240) { currentMaster.total_stores_bhx = 240; }
+              if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx < 240) { currentMaster.total_stores_bhx = 253; }
               if (!currentMaster.total_stores_bhx || currentMaster.total_stores_bhx < 240) {
-                currentMaster.total_stores_bhx = 240;
+                currentMaster.total_stores_bhx = 253;
               }
               if (!currentMaster.total_stores_bhx_team) {
                 currentMaster.total_stores_bhx_team = currentMaster.employees.reduce((a, b) => a + (b.bhx_stores || 0), 0);
